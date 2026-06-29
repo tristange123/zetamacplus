@@ -77,18 +77,22 @@ function Register() {
             password,
             name,  // user password -> min 8 characters by default
             callbackURL: "/" // A URL to redirect to after the user verifies their email (optional)
-        }, {
-            // onRequest: (ctx) => {
-            //     //show loading
-            // },
-            onSuccess: (ctx) => {
-                router.back();
-            },
-            onError: (ctx) => {
-                // display the error message
-                setRegisterError(ctx.error.message);
-            },
-        });
+        }, 
+        // {
+        //     // onRequest: (ctx) => {
+        //     //     //show loading
+        //     // },
+        //     onSuccess: (ctx) => {
+        //         router.back();
+        //     },
+        //     onError: (ctx) => {
+        //         // display the error message
+        //         console.log(ctx.error.message);
+        //         setRegisterError(ctx.error.message);
+        //     },
+        // }
+        );
+        console.log(data);
     }
 
     return (

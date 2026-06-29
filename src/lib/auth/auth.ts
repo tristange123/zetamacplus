@@ -18,3 +18,4 @@ export const auth = betterAuth({
         provider: "postgresql"
     }),
 });
+console.log(process.env.DATABASE_URL);

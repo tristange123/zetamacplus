@@ -1,6 +1,6 @@
 import { headers } from 'next/headers'
 import { auth } from '@/lib/auth/auth'
-import ClientSide from './startClientSide';
+import StartClientSide from './startClientSide';
 
 export default async function MainPage(){
   const session = await auth.api.getSession({
@@ -14,5 +14,5 @@ export default async function MainPage(){
   else{
     username = session.user.name;
   }
-  return <ClientSide userLoggedIn = {userLoggedIn} username = {username}></ClientSide>
+  return <StartClientSide userLoggedIn = {userLoggedIn} username = {username}></StartClientSide>
 }
