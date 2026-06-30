@@ -134,6 +134,7 @@ model Problem {
   id String @id @default(uuid())
   testId String
   test Test @relation(fields:[testId], references: [id] , onDelete: Cascade) 
+  orderNumber Int @default(0)
   operation String
   firstNum Float
   secondNum Float

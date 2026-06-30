@@ -1,6 +1,7 @@
 export type ProblemDb = {
     id: string,
     testId: string,
+    orderNumber: number,
     operation: string,
     firstNum: number,
     secondNum: number,

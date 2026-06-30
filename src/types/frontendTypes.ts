@@ -4,5 +4,7 @@ export type Problem = {
     secondNum: number,
     answer: number,
     statement: string,
-    solveTime: number | null
+    solveTime: number | null,
+    orderNumber: number | null
+
 }

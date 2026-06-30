@@ -53,9 +53,12 @@ export default function ClientSide({problemList, score}: ClientSideProps) {
     const gameContext = useGameContext();
     const timeFormat = gameContext?.timeFormat
     const solveTimes = []
+    let curr = 0
     for (let problem of problemList){
-        solveTimes.push(problem.solveTime)
+        curr += problem.solveTime;
+        solveTimes.push(curr);
     }
+    console.log(solveTimes);
 
     if (timeFormat == null){
         return <div>Error</div>

@@ -24,8 +24,9 @@ export default function Game() {
     const [time, setTime] = useState(timeFormat);
     const [finished, setFinished] = useState(false);
 
+
     // Track Stats
-    const solveTimes = useRef<number[]>([]);
+    const solveTimes= useRef<number[]>([]);
     const testsAttempted = useRef<number>(1);
     const pastProblems = useRef<Problem[]>([]);
 
@@ -97,13 +98,23 @@ export default function Game() {
         const val = e.target.value;
         setDisplay(val);
         if (Number(val) === answer){
+
+            let timeSpent;
+            if (solveTimes.current.length == 0){
+                timeSpent = timeFormat - time;
+            }
+            else{
+                timeSpent = solveTimes?.current[solveTimes.current.length - 1] - time;
+            }
+
+            let currProblemTimed = currProblem;
+            currProblemTimed.solveTime = timeSpent;
+            currProblemTimed.orderNumber = score;
+            pastProblems.current.push(currProblemTimed);
+            solveTimes.current.push(time);
+
             setScore(score + 1);
             setDisplay('');
-
-            solveTimes.current.push(timeFormat - time);
-            let currProblemTimed = currProblem;
-            currProblemTimed.solveTime = timeFormat - time;
-            pastProblems.current.push(currProblemTimed);
 
             let newProb:Problem = generateProblem(problemType, operations);
             setCurrProblem(newProb);
@@ -114,8 +125,8 @@ export default function Game() {
         setScore(0)
         setTime(timeFormat);
         testsAttempted.current = testsAttempted.current + 1;
-        solveTimes.current = [];
         pastProblems.current = [];
+        solveTimes.current = [];
         let newProb: Problem = generateProblem(problemType, operations)
         setCurrProblem(newProb);
     }

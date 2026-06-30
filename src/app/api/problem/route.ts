@@ -22,7 +22,7 @@ export async function POST(req: Request){
         console.log(problemRequest);
 
         for (let problem of problemSet){
-            if (typeof problem.firstNum === "number" && typeof problem.secondNum === "number" && typeof problem.answer === "number" && typeof problem.solveTime === "number" && typeof problem.operation === "string"){
+            if (typeof problem.firstNum === "number" && typeof problem.secondNum === "number" && typeof problem.answer === "number" && typeof problem.solveTime === "number" && typeof problem.operation === "string" && typeof problem.orderNumber === "number"){
                 await prisma.problem.create({
                     data: {
                         firstNum: problem.firstNum,
@@ -31,6 +31,7 @@ export async function POST(req: Request){
                         statement: problem.statement,
                         answer: problem.answer,
                         solveTime: problem.solveTime,
+                        orderNumber: problem.orderNumber,
                         testId,
                         gameMode
                     }
