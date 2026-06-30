@@ -81,7 +81,6 @@ model Profile {
 
 	email String @unique
   username String @unique
-  password String
   timeJoined DateTime @default(now())
 
   testsAttempted Int @default(0)
@@ -92,28 +91,28 @@ model Profile {
   standard_3 Int @default(0)
   standardAverage Float @default(0)
   standardTotalTests Int @default(0)
-  standardPastTens Int @default(0)
+  standardPastTenTests Int[] @default([])
 
   rapid_1 Int @default(0)
   rapid_2 Int @default(0)
   rapid_3 Int @default(0)
   rapidAverage Float @default(0)
   rapidTotalTests Int @default(0)
-  rapidPastTens Int @default(0)
+  rapidPastTenTests Int[] @default([])
 
   sprint_1 Int @default(0)
   sprint_2 Int @default(0)
   sprint_3 Int @default(0)
   sprintAverage Float @default(0)
   sprintTotalTests Int @default(0)
-  sprintPastTens Int @default(0)
+  sprintPastTenTests Int[] @default([])
 
   hard_1 Int @default(0)
   hard_2 Int @default(0)
   hard_3 Int @default(0)
   hardAverage Float @default(0)
   hardTotalTests Int @default(0)
-  hardPastTens Int @default(0)
+  hardPastTenTests Int[] @default([])
 
   
 }
@@ -123,7 +122,25 @@ model Test {
   score Int
   time DateTime @default(now())
   gameMode String
-  userId String
-  user User @relation(fields:[userId], references: [id] , onDelete: Cascade) 
-  
+  userId String?
+  user User? @relation(fields:[userId], references: [id] , onDelete: Cascade) 
+  problems Problem[]
+
+  @@index([userId])
+
+}
+
+model Problem {
+  id String @id @default(uuid())
+  testId String
+  test Test @relation(fields:[testId], references: [id] , onDelete: Cascade) 
+  operation String
+  firstNum Float
+  secondNum Float
+  answer Float
+  gameMode String
+  statement String
+  solveTime Float
+
+  @@index([testId])
 }

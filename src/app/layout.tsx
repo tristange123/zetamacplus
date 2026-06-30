@@ -2,6 +2,7 @@ import { headers } from 'next/headers'
 import { auth } from '@/lib/auth/auth'
 import LayoutClientSide from './layoutClientSide';
 import {type ReactNode} from 'react'
+import "./globals.css";
 
 type MainPageProps  = {
   children : ReactNode

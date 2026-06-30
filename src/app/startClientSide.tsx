@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { useGameContext } from './gameContext';
 import {type GameContext} from '@/types/contextTypes';
 
+import gameModes from '@/lib/game/gameModes';
+
 type startProps = {
     userLoggedIn: boolean,
     username: string | null
@@ -15,15 +17,8 @@ export default function StartClientSide({userLoggedIn, username}: startProps) {
     const gameContext = useGameContext();
 
     const [timeFormatInput, setTimeFormatInput] = useState(120);
-    const [problemTypeInput, setProblemTypeInput] = useState('Standard');
-    const [gameModeInput, setGameModeInput] = useState('Standard');
-
-    const gameModes = [
-        { label: 'Standard', subtitle: '120 secs', timeFormat: 120, problemType: 'Standard', gameMode: 'Standard' },
-        { label: 'Rapid', subtitle: '60 secs', timeFormat: 60, problemType: 'Standard', gameMode: 'Rapid' },
-        { label: 'Sprint', subtitle: '10 secs', timeFormat: 10, problemType: 'Easy', gameMode: 'Sprint' },
-        { label: 'Hard', subtitle: '180 secs', timeFormat: 180, problemType: 'Hard', gameMode: 'Hard' },
-    ];
+    const [problemTypeInput, setProblemTypeInput] = useState('standard');
+    const [gameModeInput, setGameModeInput] = useState('standard');
 
     return (
         <section className="flex min-h-[calc(100vh-9rem)] flex-col items-center justify-center">
