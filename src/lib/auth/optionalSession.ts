@@ -6,7 +6,7 @@ export default async function requireSession() {
         headers: await headers(),
     });
 
-    if (!session) {
+    if (!session || !session.user.emailVerified) {
         return null;
     }
 

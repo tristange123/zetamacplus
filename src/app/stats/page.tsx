@@ -18,6 +18,13 @@ export default async function MainPage(){
         </div>
     );
   }
+  if (!session.user.emailVerified){
+     return (
+        <div className="flex min-h-[calc(100vh-9rem)] items-center justify-center">
+            <p className="text-sm text-gray-600">Verify email to see stats.</p>
+        </div>
+    );
+  }
   const userId = session.user.id;
   const tests:TestDb[] = await prisma.test.findMany({
     where: {

@@ -1,6 +1,6 @@
 "use client"
 
-import { type Problem, type ProblemType, type GameModeName } from '@/types/frontendTypes'
+import { type Problem, type ProblemType, type GameModeName, type Operation } from '@/types/frontendTypes'
 import generateProblem from '@/lib/game/generateProblem'
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -15,11 +15,16 @@ export default function Game() {
     const context = useGameContext();
     const timeFormat = context?.timeFormat ?? 120;
     const problemType: ProblemType = context?.problemType ?? 'medium';
-    const operations = context?.operations ?? {'+': true, '-':true, '*':true, '/':true};
+    const operations: Record<Operation, Record<string, number[]>> = context?.operations ?? {
+            '+': {first: [2,100], second: [2,100]}, 
+            '-': {first: [2,100], second: [2,100]}, 
+            '*': {first: [2,100], second: [2,12]}, 
+            '/': {first: [2,100], second: [2,12]}
+        };
     const gameMode: GameModeName = context?.gameMode ?? 'standard'
 
     // Gameplay States
-    const [currProblem, setCurrProblem] = useState<Problem>(() => generateProblem(problemType, operations));
+    const [currProblem, setCurrProblem] = useState<Problem>(() => generateProblem(operations));
     const [display, setDisplay] = useState('');
     const [score, setScore] = useState(0);
     const [time, setTime] = useState(timeFormat);
@@ -34,21 +39,22 @@ export default function Game() {
     // Increment Tests Attempted when user closes the page
     // useEffect(() => {
     //     return () => {
-    //         async function updateUserDataFunction () {
-    //             try{
-    //                 await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
-    //                     method: 'PATCH',
-    //                     headers: { "Content-Type": 'application/json'},
-    //                     body: JSON.stringify({testsAttempted: testsAttempted.current})
-    //                 });
-    //             }
-    //             catch (err){
-    //                 console.log(err);
-    //             }
-    //         }
-    //         updateUserDataFunction();
+    //    
+    //         updateTestAttempted();
     //     };
     // }, [])
+    async function updateTestsAttempted () {
+        try{
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
+                method: 'PATCH',
+                headers: { "Content-Type": 'application/json'},
+                body: JSON.stringify({testsAttempted: testsAttempted.current})
+            });
+        }
+        catch (err){
+            console.log(err);
+        }
+    }
 
     // timer logic
     useEffect(() => {
@@ -117,7 +123,7 @@ export default function Game() {
             setScore(score + 1);
             setDisplay('');
 
-            let newProb:Problem = generateProblem(problemType, operations);
+            let newProb:Problem = generateProblem(operations);
             setCurrProblem(newProb);
         }
     }
@@ -128,7 +134,7 @@ export default function Game() {
         testsAttempted.current = testsAttempted.current + 1;
         pastProblems.current = [];
         solveTimes.current = [];
-        let newProb: Problem = generateProblem(problemType, operations)
+        let newProb: Problem = generateProblem(operations)
         setCurrProblem(newProb);
     }
 
@@ -166,7 +172,10 @@ export default function Game() {
                         Restart
                     </button>
                     <button
-                        onClick={() => router.back()}
+                        onClick={() => {
+                            updateTestsAttempted();
+                            router.back();
+                        }}
                         className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
                     >
                         Back

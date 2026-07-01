@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState , ReactNode} from "react";
 import {type GameContext} from '@/types/contextTypes';
-import {type ProblemType, type GameModeName} from '@/types/frontendTypes'
+import {type ProblemType, type GameModeName, type Operation} from '@/types/frontendTypes'
 
 
 type GameProviderProps = {
@@ -16,7 +16,12 @@ export function GameProvider({ children } : GameProviderProps) {
     const [timeFormat, setTimeFormat ] = useState<number>(120);
     const [gameMode, setGameMode ] = useState<GameModeName>("standard");
     const [problemType, setProblemType ] = useState<ProblemType>("medium");
-    const [operations, setOperations ] = useState({});
+    const [operations, setOperations ] = useState<Record<Operation, Record<string, number[]>>>({
+            '+': {first: [2,100], second: [2,100]}, 
+            '-': {first: [2,100], second: [2,100]}, 
+            '*': {first: [2,100], second: [2,12]}, 
+            '/': {first: [2,100], second: [2,12]}
+        });
 
 
     return (

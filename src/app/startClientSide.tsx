@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useGameContext } from './gameContext';
 import { type MainGameModeName, type ProblemType } from '@/types/frontendTypes'
-import {MAIN_GAME_MODES} from '@/lib/game/gameModeGlobals'
+import {MAIN_GAME_MODES, BOUNDS} from '@/lib/game/gameModeGlobals'
 type startProps = {
     userLoggedIn: boolean,
     username: string | null
@@ -17,6 +17,7 @@ export default function StartClientSide({userLoggedIn, username}: startProps) {
     const [timeFormatInput, setTimeFormatInput] = useState(120);
     const [problemTypeInput, setProblemTypeInput] = useState<ProblemType>('medium');
     const [gameModeInput, setGameModeInput] = useState<MainGameModeName>('standard');
+
 
     type GameModeDisplay = {
         label: string,
@@ -80,6 +81,7 @@ export default function StartClientSide({userLoggedIn, username}: startProps) {
                             gameContext?.setGameMode(gameModeInput);
                             gameContext?.setProblemType(problemTypeInput);
                             gameContext?.setTimeFormat(timeFormatInput);
+                            gameContext?.setOperations(BOUNDS[problemTypeInput])
                             router.push('/game');
                         }}
                         className="rounded-lg bg-gray-800 px-8 py-3 text-base font-semibold text-gray-100 transition hover:bg-gray-900"

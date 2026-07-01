@@ -17,6 +17,8 @@ export type ExtraGameModeName = "custom";
 
 export type ProblemType = "easy" | "medium" | "hard";
 
+export type Operation = "+" | "-" | "*" | "/"
+
 export type GameModeType = {
     timeFormat: number,
     problemType: ProblemType

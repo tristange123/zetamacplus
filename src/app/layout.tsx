@@ -15,6 +15,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
 
   
   let userLoggedIn = true;
+  let userVerified = true;
   let username;
   const { data } = authClient.useSession();
   if (data == null){
@@ -22,6 +23,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
   }
   else{
     username = data.user.name;
+    userVerified = data.user.emailVerified;
   }
 
   async function clickSignOut() {
@@ -60,12 +62,18 @@ export default function LayoutClientSide({children}: LayoutProps) {
                         )}
                         {userLoggedIn && (
                             <>
-                                <Link
-                                    href="/stats"
-                                    className="rounded-md px-3 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
-                                >
-                                    My Stats
-                                </Link>
+                                {userVerified && (
+                                    <Link
+                                        href="/stats"
+                                        className="rounded-md px-3 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
+                                    >
+                                        My Stats
+                                    </Link>
+                                )}
+                                {!userVerified && (
+                                    <div>Awaiting Email Verification</div>
+                                )}
+
                                 <button
                                     onClick={clickSignOut}
                                     className="rounded-md bg-gray-800 px-3 py-2 text-gray-100 transition hover:bg-gray-900"

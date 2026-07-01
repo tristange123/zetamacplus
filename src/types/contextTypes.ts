@@ -1,4 +1,4 @@
-import {type ProblemType, type GameModeName} from "@/types/frontendTypes"
+import {type ProblemType, type GameModeName, type Operation} from "@/types/frontendTypes"
 
 export type GameContext = {
     timeFormat: number,
@@ -7,6 +7,6 @@ export type GameContext = {
     setGameMode: (name: GameModeName) => void,
     problemType: ProblemType,
     setProblemType: (name: ProblemType) => void,
-    operations: Record<string, boolean>
-    setOperations: (name: Record<string, boolean>) => void,
+    operations: Record<Operation, Record<string, number[]>>
+    setOperations: (name: Record<Operation, Record<string, number[]>>) => void,
 }
