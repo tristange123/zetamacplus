@@ -3,10 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useGameContext } from './gameContext';
-import {type GameContext} from '@/types/contextTypes';
-
-import gameModes from '@/lib/game/gameModes';
-
+import { type MainGameModeName, type ProblemType } from '@/types/frontendTypes'
+import {MAIN_GAME_MODES} from '@/lib/game/gameModeGlobals'
 type startProps = {
     userLoggedIn: boolean,
     username: string | null
@@ -17,8 +15,20 @@ export default function StartClientSide({userLoggedIn, username}: startProps) {
     const gameContext = useGameContext();
 
     const [timeFormatInput, setTimeFormatInput] = useState(120);
-    const [problemTypeInput, setProblemTypeInput] = useState('standard');
-    const [gameModeInput, setGameModeInput] = useState('standard');
+    const [problemTypeInput, setProblemTypeInput] = useState<ProblemType>('medium');
+    const [gameModeInput, setGameModeInput] = useState<MainGameModeName>('standard');
+
+    type GameModeDisplay = {
+        label: string,
+        subtitle: string,
+        gameMode: MainGameModeName
+    }
+    const gameModeDisplay: GameModeDisplay[] = [
+            { label: 'Standard', subtitle: '120 secs', gameMode: 'standard' },
+            { label: 'Rapid', subtitle: '60 secs', gameMode: 'rapid' },
+            { label: 'Sprint', subtitle: '10 secs', gameMode: 'sprint' },
+            { label: 'Hard', subtitle: '180 secs', gameMode: 'hard' },
+    ];
 
     return (
         <section className="flex min-h-[calc(100vh-9rem)] flex-col items-center justify-center">
@@ -29,14 +39,14 @@ export default function StartClientSide({userLoggedIn, username}: startProps) {
                 </div>
 
                 <div className="grid min-h-[55vh] grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {gameModes.map((mode) => {
+                    {gameModeDisplay.map((mode) => {
                         const isSelected = gameModeInput === mode.gameMode;
                         return (
                             <button
                                 key={mode.gameMode}
                                 onClick={() => {
-                                    setTimeFormatInput(mode.timeFormat);
-                                    setProblemTypeInput(mode.problemType);
+                                    setTimeFormatInput(MAIN_GAME_MODES[mode.gameMode].timeFormat);
+                                    setProblemTypeInput(MAIN_GAME_MODES[mode.gameMode].problemType);
                                     setGameModeInput(mode.gameMode);
                                 }}
                                 className={`flex flex-col items-center justify-center rounded-xl border px-4 py-6 text-center transition md:px-6 ${

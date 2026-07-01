@@ -8,3 +8,16 @@ export type Problem = {
     orderNumber: number | null
 
 }
+
+export type GameModeName = MainGameModeName | ExtraGameModeName;
+
+export type MainGameModeName = "standard" | "rapid" | "sprint" | "hard";
+
+export type ExtraGameModeName = "custom";
+
+export type ProblemType = "easy" | "medium" | "hard";
+
+export type GameModeType = {
+    timeFormat: number,
+    problemType: ProblemType
+}

@@ -1,4 +1,5 @@
-import {type Problem} from '@/types/frontendTypes'
+import {type Problem, type MainGameModeName, ProblemType} from '@/types/frontendTypes'
+import {bounds} from "@/lib/game/gameModeGlobals";
 
 function randomInt(bottom: number, top: number){
     let seed = Math.random() * (top - bottom + 1);
@@ -7,26 +8,7 @@ function randomInt(bottom: number, top: number){
 
 }
 
-const bounds: Record <string, Record<string, Record<string, number[]>>> = 
-        {'standard':{
-            '+': {first: [2,100], second: [2,100]}, 
-            '-': {first: [2,100], second: [2,100]}, 
-            '*': {first: [2,100], second: [2,12]}, 
-            '/': {first: [2,100], second: [2,12]}
-        }, 
-         'easy': {
-            '+': {first: [2,10], second: [2,10]}, 
-            '-': {first: [2,10], second: [2,10]}, 
-            '*': {first: [2,10], second: [2,10]}, 
-            '/': {first: [2,10], second: [2,10]}
-        },
-         'hard': {
-            '+': {first: [50,1000], second: [50,1000]}, 
-            '-': {first: [50,1000], second: [50,1000]}, 
-            '*': {first: [20,100], second: [5,25]}, 
-            '/': {first: [20,100], second: [5,25]}
-        }
-        };
+
 
 function chooseOperation(operations: Record<string,boolean>){
     const mappings: Record <number, string>= {}
@@ -42,7 +24,7 @@ function chooseOperation(operations: Record<string,boolean>){
 
 
 
-export default function generateProblem(problemType: string, operations: Record<string,boolean>): Problem{
+export default function generateProblem(problemType: ProblemType, operations: Record<string,boolean>): Problem{
     let operation = chooseOperation(operations);
     if (operation === '+'){
         let first = randomInt(bounds[problemType]['+']['first'][0], bounds[problemType]['+']['first'][1]);

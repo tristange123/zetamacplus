@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from '@/lib/db/prisma';
 import requireSession from '@/lib/auth/requireSession';
+import {MAIN_GAME_MODES} from "@/lib/game/gameModeGlobals"
 
 export async function GET(req: Request){
     try{
@@ -84,7 +85,7 @@ export async function PATCH(req: Request){
 
         // update format specific data for completed test
         if (body.score && body.gameMode){
-            if (body.gameMode == 'Standard' || body.gameMode == 'Rapid' || body.gameMode == 'Sprint' || body.gameMode == 'Hard'){
+            if (body.gameMode in MAIN_GAME_MODES){
                 const gameMode = body.gameMode;
 
                 let pastTenTests = body[`${gameMode}PastTenTests`]

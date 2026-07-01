@@ -80,29 +80,24 @@ function Register() {
         }, 
 
         {
-            onRequest: (ctx) => {
-                //show loading
-            },
-            onSuccess: (ctx) => {
-                if (data){
-                    async function createProfile(username: string, email: string, userId: string, timeJoined: Date){
-                        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
-                            method: 'POST',
-                            headers: { "Content-Type": 'application/json'},
-                            body: JSON.stringify({username, email, userId, timeJoined})
-                        });
-                    }
-                    createProfile(name, email, data.user.id, data.user.createdAt);
-                    router.back();
-                }
-            },
             onError: (ctx) => {
                 console.log(ctx.error.message);
                 setRegisterError(ctx.error.message);
             },
          }
-        );
-        console.log(data);
+         );
+         if (data){
+            async function createProfile(username: string, email: string, userId: string, timeJoined: Date){
+                await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
+                    method: 'POST',
+                    headers: { "Content-Type": 'application/json'},
+                    body: JSON.stringify({username, email, userId, timeJoined})
+                });
+            }
+            createProfile(name, email, data.user.id, data.user.createdAt);
+            router.back();
+        }
+         
     }
 
     return (
