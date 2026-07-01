@@ -13,7 +13,7 @@ function chooseOperation(operations: Record<Operation,Record<string, number[]>>)
     const mappings: Record <number, Operation>= {}
     let inc: number = 1;
     for (const operation in operations) {
-        mappings[inc] = operation;
+        mappings[inc] = operation as Operation;
         inc += 1;
     }
     return mappings[randomInt(1, inc - 1)]

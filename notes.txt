@@ -29,3 +29,5 @@ specfic components name rather than just <div>
 sitemap robots.txt?
 
 metadata descriptoin
+
+Local database: "postgresql://postgres:$Pizza2122@localhost:5432/metamac_reborn"
