@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from '@/lib/db/prisma';
 import requireSession from '@/lib/auth/requireSession';
 import {MAIN_GAME_MODES} from "@/lib/game/gameModeGlobals"
+import {type MainGameModeName} from "@/types/frontendTypes"
 
 export async function GET(req: Request){
     try{
@@ -71,36 +72,39 @@ export async function PATCH(req: Request){
 
         // update general data for incomplete test
         if (body.testsAttempted){
-            let testsAttempted = userProfile.testsAttempted + (body.testsAttempted ?? 0);
+            let testsAttempted = userProfile.testsAttempted + body.testsAttempted;
             await prisma.profile.update({
-            where: {
-                userId: session.user.id
-            },
-            data: {
-                testsAttempted
-            }
-        })
+                where: {
+                    userId: session.user.id
+                },
+                data: {
+                    testsAttempted
+                }
+            });
+            console.log(body.testsAttempted);
+
         }
+        console.log(body);
         
 
         // update format specific data for completed test
         if (body.score && body.gameMode){
             if (body.gameMode in MAIN_GAME_MODES){
-                const gameMode = body.gameMode;
+                const gameMode: MainGameModeName = body.gameMode;
 
-                let pastTenTests = body[`${gameMode}PastTenTests`]
+                let pastTenTests = userProfile[`${gameMode}PastTenTests`]
                 pastTenTests.unshift(body.score);
                 if (pastTenTests.length > 10){
                     pastTenTests.pop();
                 }
 
-                let totalTests = body[`${gameMode}TotalTests`];
-                let average = (body[`${gameMode}Average`] * totalTests + body.score) / (totalTests + 1);
+                let totalTests = userProfile[`${gameMode}TotalTests`];
+                let average = (userProfile[`${gameMode}Average`] * totalTests + body.score) / (totalTests + 1);
                 totalTests += 1;
 
-                let first = body[`${gameMode}_1`]
-                let second = body[`${gameMode}_2`]
-                let third = body[`${gameMode}_3`]
+                let first = userProfile[`${gameMode}_1`]
+                let second = userProfile[`${gameMode}_2`]
+                let third = userProfile[`${gameMode}_3`]
                 
                 if (body.score > first){
                     third = second;

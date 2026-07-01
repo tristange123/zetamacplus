@@ -32,23 +32,23 @@ export default function Game() {
     const pastProblems = useRef<Problem[]>([]);
 
     // Increment Tests Attempted when user closes the page
-    useEffect(() => {
-        return () => {
-            async function updateUserDataFunction () {
-                try{
-                    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
-                        method: 'PATCH',
-                        headers: { "Content-Type": 'application/json'},
-                        body: JSON.stringify({testsAttempted: testsAttempted.current})
-                    });
-                }
-                catch (err){
-                    console.log(err);
-                }
-            }
-            updateUserDataFunction();
-        };
-    }, [])
+    // useEffect(() => {
+    //     return () => {
+    //         async function updateUserDataFunction () {
+    //             try{
+    //                 await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
+    //                     method: 'PATCH',
+    //                     headers: { "Content-Type": 'application/json'},
+    //                     body: JSON.stringify({testsAttempted: testsAttempted.current})
+    //                 });
+    //             }
+    //             catch (err){
+    //                 console.log(err);
+    //             }
+    //         }
+    //         updateUserDataFunction();
+    //     };
+    // }, [])
 
     // timer logic
     useEffect(() => {
@@ -78,7 +78,7 @@ export default function Game() {
                     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
                         method: 'PATCH',
                         headers: { "Content-Type": 'application/json'},
-                        body: JSON.stringify({score, gameMode})
+                        body: JSON.stringify({score, gameMode, testsAttempted: testsAttempted.current})
                     });
                     await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/problem`, {
                         method: 'POST',

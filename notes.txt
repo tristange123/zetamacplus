@@ -6,6 +6,9 @@ Features:
 keyboard view
 daily level
 leaderboard
+hot keys
+visual settings
+
 
 Things to do:
 don't hardcode gameModes
