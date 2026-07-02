@@ -1,6 +1,6 @@
 "use client"
 
-import { type Problem, type ProblemType, type GameModeName, type Operation } from '@/types/frontendTypes'
+import { type Problem, type ProblemType, type GameModeName, type OperationBounds } from '@/types/frontendTypes'
 import generateProblem from '@/lib/game/generateProblem'
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -15,7 +15,7 @@ export default function Game() {
     const context = useGameContext();
     const timeFormat = context?.timeFormat ?? 120;
     const problemType: ProblemType = context?.problemType ?? 'medium';
-    const operations: Record<Operation, Record<string, number[]>> = context?.operations ?? {
+    const operations: OperationBounds = context?.operations ?? {
             '+': {first: [2,100], second: [2,100]}, 
             '-': {first: [2,100], second: [2,100]}, 
             '*': {first: [2,100], second: [2,12]}, 

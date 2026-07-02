@@ -1,4 +1,4 @@
-import {type Problem, type MainGameModeName, type ProblemType, type Operation, type OperationBounds} from '@/types/frontendTypes'
+import {type Problem, type Operation, type OperationBounds} from '@/types/frontendTypes'
 
 function randomInt(bottom: number, top: number){
     let seed = Math.random() * (top - bottom + 1);
@@ -9,7 +9,7 @@ function randomInt(bottom: number, top: number){
 
 
 
-function chooseOperation(operations: Record<Operation,Record<string, number[]>>): Operation{
+function chooseOperation(operations: OperationBounds): Operation{
     const mappings: Record <number, Operation>= {}
     let inc: number = 1;
     for (const operation in operations) {
@@ -22,26 +22,27 @@ function chooseOperation(operations: Record<Operation,Record<string, number[]>>)
 
 
 export default function generateProblem(operations: OperationBounds): Problem{
-    let operation: Operation = chooseOperation(operations);
+    const operation: Operation = chooseOperation(operations);
+    const operationBounds = operations[operation]!;
     if (operation === '+'){
-        let first = randomInt(operations[operation]['first'][0], operations[operation]['first'][1]);
-        let sec = randomInt(operations[operation]['second'][0], operations[operation]['second'][1]);
+        const first = randomInt(operationBounds['first'][0], operationBounds['first'][1]);
+        const sec = randomInt(operationBounds['second'][0], operationBounds['second'][1]);
         return {'operation': '+', 'firstNum': first, 'secondNum': sec, 'answer': first + sec, 'statement': String(first) + ' + ' + String(sec) + ' = ', 'solveTime': null, 'orderNumber' : null};
     }
     else if (operation === '-'){
-        let first = randomInt(operations[operation]['first'][0], operations[operation]['first'][1]);
-        let sec = randomInt(operations[operation]['second'][0], operations[operation]['second'][1]);
+        const first = randomInt(operationBounds['first'][0], operationBounds['first'][1]);
+        const sec = randomInt(operationBounds['second'][0], operationBounds['second'][1]);
         return {'operation': '-', 'firstNum': first + sec, 'secondNum': sec, 'answer': first, 'statement': String(first + sec) + ' - ' + String(sec) + ' = ', 'solveTime': null, 'orderNumber' : null};
     }
     else if (operation === '*'){
-        let first = randomInt(operations[operation]['first'][0], operations[operation]['first'][1]);
-        let sec = randomInt(operations[operation]['second'][0], operations[operation]['second'][1]);
+        const first = randomInt(operationBounds['first'][0], operationBounds['first'][1]);
+        const sec = randomInt(operationBounds['second'][0], operationBounds['second'][1]);
         return {'operation': '*', 'firstNum': first, 'secondNum': sec, 'answer': first * sec, 'statement': String(first) + ' × ' + String(sec) + ' = ', 'solveTime': null, 'orderNumber' : null};
     }
 
     else{
-        let sec = randomInt(operations[operation]['second'][0], operations[operation]['second'][1]);
-        let first = sec * randomInt(operations[operation]['first'][0], operations[operation]['first'][1]);
+        const sec = randomInt(operationBounds['second'][0], operationBounds['second'][1]);
+        const first = sec * randomInt(operationBounds['first'][0], operationBounds['first'][1]);
         return {'operation': '/', 'firstNum': first, 'secondNum': sec, 'answer': Math.floor(first / sec), 'statement': String(first) + ' ÷ ' + String(sec) + ' = ', 'solveTime': null, 'orderNumber' : null};
     }
 }

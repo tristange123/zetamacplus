@@ -29,7 +29,10 @@ export default async function MainPage(){
   const tests:TestDb[] = await prisma.test.findMany({
     where: {
         userId
-    }
+    },
+    orderBy: {
+      time: "desc",
+    },
   })
   const profile: ProfileDb[] = await prisma.profile.findMany({
     where: {

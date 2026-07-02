@@ -71,9 +71,9 @@ function FormatStats({ title, profile }: FormatStatsProps) {
                 <div>Highest: {profile?.[`${title}_1`]}</div>
                 <div>Second Best: {profile?.[`${title}_2`]}</div>
                 <div>Third Best: {profile?.[`${title}_3`]}</div>
-                <div>Average Score: {profile?.[`${title}Average`]}</div>
-                <div>Past 10 Average: {lastTenAverage}</div>
-                <div>Tests Attempted: {profile?.[`${title}TotalTests`]}</div>
+                <div>Average Score: {profile?.[`${title}Average`].toFixed(1)}</div>
+                <div>Past 10 Average: {lastTenAverage.toFixed(1)}</div>
+                <div>Tests Completed: {profile?.[`${title}TotalTests`]}</div>
             </div>
         </div>
     );

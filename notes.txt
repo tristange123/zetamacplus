@@ -20,7 +20,7 @@ mkae email verif nicer
 average tab
 past runs order + limit
 
-Last task: configruing next-auth with prisma
+
 
 
 
