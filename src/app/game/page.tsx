@@ -35,6 +35,7 @@ export default function Game() {
     const solveTimes= useRef<number[]>([]);
     const testsAttempted = useRef<number>(1);
     const pastProblems = useRef<Problem[]>([]);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     // Increment Tests Attempted when user closes the page
     // useEffect(() => {
@@ -112,11 +113,13 @@ export default function Game() {
     async function reset(){
         setScore(0)
         setTime(timeFormat);
+        setDisplay('');
         testsAttempted.current = testsAttempted.current + 1;
         pastProblems.current = [];
         solveTimes.current = [];
         let newProb: Problem = generateProblem(operations)
         setCurrProblem(newProb);
+        inputRef.current?.focus();
     }
 
 
@@ -137,6 +140,7 @@ export default function Game() {
                             {currProblem.statement}
                         </h2>
                         <input
+                            ref={inputRef}
                             autoFocus
                             type="number"
                             value={display}

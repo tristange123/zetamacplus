@@ -14,7 +14,7 @@ function formatSolveTime(seconds: number | null): string {
 
 // moving average points per 2 minutes
 function PPM(solveTimes: number[], totalTime: number) {
-    let res = [{ time: 0, score: 0 }];
+    const res = [{ time: 0, score: 0 }];
 
     for (let i = 1; i <= totalTime; i++) {
         let rate;
@@ -75,7 +75,7 @@ export default function ClientSide() {
               await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
                   method: 'PATCH',
                   headers: { "Content-Type": 'application/json'},
-                  body: JSON.stringify({score, gameMode: gameContext.gameMode, testsAttempted: gameContext.testsAttempted})
+                  body: JSON.stringify({testId: testJson.testId, score, gameMode: gameContext.gameMode, testsAttempted: gameContext.testsAttempted})
               });
               await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/problem`, {
                   method: 'POST',
@@ -91,7 +91,7 @@ export default function ClientSide() {
         postData();
     }, [])
     let curr = 0
-    for (let problem of problemList){
+    for (const problem of problemList){
         if(problem.solveTime){
             curr += problem.solveTime;
             solveTimes.push(curr);

@@ -3,14 +3,12 @@ import { auth } from '@/lib/auth/auth'
 import ClientSide from './clientSide';
 import prisma from '@/lib/db/prisma';
 import {type TestDb, type ProfileDb} from "@/types/dbTypes"
-import {type GameModeName} from '@/types/frontendTypes'
 
 
 export default async function MainPage(){
   const session = await auth.api.getSession({
     headers: await headers() 
   })
-  let userLoggedIn: boolean = true;
   if (session == null){
      return (
         <div className="flex min-h-[calc(100vh-9rem)] items-center justify-center">

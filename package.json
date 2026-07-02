@@ -15,6 +15,7 @@
     "@react-email/render": "^2.0.9",
     "better-auth": "^1.6.20",
     "dotenv": "^17.4.2",
+    "lucide-react": "^1.23.0",
     "next": "16.2.9",
     "pg": "^8.22.0",
     "react": "19.2.4",

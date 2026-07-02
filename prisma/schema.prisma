@@ -86,30 +86,30 @@ model Profile {
   testsAttempted Int @default(0)
   testsCompleted Int @default(0)
 
-  standard_1 Int @default(0)
-  standard_2 Int @default(0)
-  standard_3 Int @default(0)
+  standard_1 String?
+  standard_2 String?
+  standard_3 String?
   standardAverage Float @default(0)
   standardTotalTests Int @default(0)
   standardPastTenTests Int[] @default([])
 
-  rapid_1 Int @default(0)
-  rapid_2 Int @default(0)
-  rapid_3 Int @default(0)
+  rapid_1 String?
+  rapid_2 String?
+  rapid_3 String?
   rapidAverage Float @default(0)
   rapidTotalTests Int @default(0)
   rapidPastTenTests Int[] @default([])
 
-  sprint_1 Int @default(0)
-  sprint_2 Int @default(0)
-  sprint_3 Int @default(0)
+  sprint_1 String?
+  sprint_2 String?
+  sprint_3 String?
   sprintAverage Float @default(0)
   sprintTotalTests Int @default(0)
   sprintPastTenTests Int[] @default([])
 
-  hard_1 Int @default(0)
-  hard_2 Int @default(0)
-  hard_3 Int @default(0)
+  hard_1 String?
+  hard_2 String?
+  hard_3 String?
   hardAverage Float @default(0)
   hardTotalTests Int @default(0)
   hardPastTenTests Int[] @default([])
@@ -127,6 +127,7 @@ model Test {
   problems Problem[]
 
   @@index([userId])
+  @@index([gameMode, score])
 
 }
 

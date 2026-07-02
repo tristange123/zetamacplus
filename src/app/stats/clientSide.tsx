@@ -52,10 +52,14 @@ function UserStats({ testsAttempted, testsCompleted }: UserStatsProps) {
 }
 type FormatStatsProps = {
     title: MainGameModeName,
-    profile: ProfileDb
+    profile: ProfileDb,
+    scoreByTestId: Map<string, number>
 }
-function FormatStats({ title, profile }: FormatStatsProps) {
+function FormatStats({ title, profile, scoreByTestId }: FormatStatsProps) {
     const pastTenTests = profile?.[`${title}PastTenTests`];
+    const highestScore = scoreByTestId.get(profile[`${title}_1`] ?? '') ?? 0;
+    const secondBestScore = scoreByTestId.get(profile[`${title}_2`] ?? '') ?? 0;
+    const thirdBestScore = scoreByTestId.get(profile[`${title}_3`] ?? '') ?? 0;
 
     const lastTenAverage = pastTenTests?.length
         ? Math.round(
@@ -68,9 +72,9 @@ function FormatStats({ title, profile }: FormatStatsProps) {
         <div className="h-full rounded-xl border border-gray-200 bg-white p-5">
             <h3 className="mb-4 text-lg font-semibold text-gray-800">{title}</h3>
             <div className="space-y-2 text-sm text-gray-700">
-                <div>Highest: {profile?.[`${title}_1`]}</div>
-                <div>Second Best: {profile?.[`${title}_2`]}</div>
-                <div>Third Best: {profile?.[`${title}_3`]}</div>
+                <div>Highest: {highestScore}</div>
+                <div>Second Best: {secondBestScore}</div>
+                <div>Third Best: {thirdBestScore}</div>
                 <div>Average Score: {profile?.[`${title}Average`].toFixed(1)}</div>
                 <div>Past 10 Average: {lastTenAverage.toFixed(1)}</div>
                 <div>Tests Completed: {profile?.[`${title}TotalTests`]}</div>
@@ -84,7 +88,7 @@ type ClientSideProps = {
 }
 
 export default function ClientSide({profile, tests}: ClientSideProps) {
-    
+    const scoreByTestId = new Map(tests.map((test) => [test.id, test.score]));
     
     return (
         <section className="flex min-h-[calc(100vh-9rem)] flex-col gap-5">
@@ -100,10 +104,10 @@ export default function ClientSide({profile, tests}: ClientSideProps) {
 
             <div className="flex-1 overflow-y-auto rounded-2xl border border-gray-200 bg-gray-100 p-4 md:p-5">
                 <div className="grid min-h-full grid-cols-1 gap-4 md:grid-cols-2">
-                    <FormatStats title="standard"  profile = {profile} />
-                    <FormatStats title="sprint"  profile = {profile} />
-                    <FormatStats title="rapid" profile = {profile} />
-                    <FormatStats title="hard" profile = {profile} />
+                    <FormatStats title="standard" profile={profile} scoreByTestId={scoreByTestId} />
+                    <FormatStats title="sprint" profile={profile} scoreByTestId={scoreByTestId} />
+                    <FormatStats title="rapid" profile={profile} scoreByTestId={scoreByTestId} />
+                    <FormatStats title="hard" profile={profile} scoreByTestId={scoreByTestId} />
                 </div>
             </div>
 

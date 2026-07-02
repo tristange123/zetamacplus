@@ -2,7 +2,7 @@ import {type MainGameModeName, type ExtraGameModeName, type GameModeType, type P
 
 
 export const MAIN_GAME_MODES: Record<MainGameModeName, GameModeType> = {
-    standard:
+    'standard':
     {
         timeFormat: 120,
         problemType: 'medium',
