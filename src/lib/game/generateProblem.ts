@@ -36,13 +36,13 @@ export default function generateProblem(operations: Record<Operation,Record<stri
     else if (operation === '*'){
         let first = randomInt(operations[operation]['first'][0], operations[operation]['first'][1]);
         let sec = randomInt(operations[operation]['second'][0], operations[operation]['second'][1]);
-        return {'operation': '*', 'firstNum': first, 'secondNum': sec, 'answer': first * sec, 'statement': String(first) + ' * ' + String(sec) + ' = ', 'solveTime': null, 'orderNumber' : null};
+        return {'operation': '*', 'firstNum': first, 'secondNum': sec, 'answer': first * sec, 'statement': String(first) + ' × ' + String(sec) + ' = ', 'solveTime': null, 'orderNumber' : null};
     }
 
     else{
         let sec = randomInt(operations[operation]['second'][0], operations[operation]['second'][1]);
         let first = sec * randomInt(operations[operation]['first'][0], operations[operation]['first'][1]);
-        return {'operation': '/', 'firstNum': first, 'secondNum': sec, 'answer': Math.floor(first / sec), 'statement': String(first) + ' / ' + String(sec) + ' = ', 'solveTime': null, 'orderNumber' : null};
+        return {'operation': '/', 'firstNum': first, 'secondNum': sec, 'answer': Math.floor(first / sec), 'statement': String(first) + ' ÷ ' + String(sec) + ' = ', 'solveTime': null, 'orderNumber' : null};
     }
 }
 

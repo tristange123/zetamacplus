@@ -58,11 +58,13 @@ export default function Game() {
 
     // timer logic
     useEffect(() => {
-        if (finished){
-            return;
-        }
         const timeId = setInterval(() => {setTime((t) => {
-                return t - 0.1;
+                if (t > 0){
+                    return t - 0.1;
+                }
+                else{
+                    return t
+                }
             })
         }, 100);
         return () => {clearInterval(timeId)};
@@ -152,10 +154,11 @@ export default function Game() {
             <div className="-mt-40 flex flex-col justify-center">
                 <div className="relative left-1/2 right-1/2 w-screen -translate-x-1/2 bg-gray-200 py-8">
                     <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-4 px-6">
-                        <h2 className="text-2xl font-semibold tracking-tight text-gray-800 md:text-3xl">
+                        <h2 className="text-4xl font-semibold tracking-tight text-gray-800 md:text-3xl">
                             {currProblem.statement}
                         </h2>
                         <input
+                            autoFocus
                             type="number"
                             value={display}
                             onChange={(e) => checkDisplay(e, currProblem.answer)}

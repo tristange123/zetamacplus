@@ -16,6 +16,8 @@ don't hardcode gameModes
 using error handling on the frontend
 google sign on
 timer glitch
+forgot password
+mkae email verif nicer
 
 Last task: configruing next-auth with prisma
 
