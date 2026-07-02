@@ -31,4 +31,9 @@ export const auth = betterAuth({
     database: prismaAdapter(prisma, {
         provider: "postgresql",
     }),
+    trustedOrigins: [
+    "http://localhost:3000",
+    "https://zetamacplus.com",
+    "https://zetamacplus.vercel.app",
+    ]
 });
