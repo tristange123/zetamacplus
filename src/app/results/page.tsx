@@ -2,7 +2,9 @@
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useRouter } from 'next/navigation';
-import {useGameContext} from '../../gameContext'
+import {useGameContext} from '../gameContext'
+import {useEffect } from 'react';
+import {type GameContext} from '@/types/contextTypes'
 import {type ProblemDb} from '@/types/dbTypes';
 
 
@@ -44,21 +46,49 @@ function exponentialSmoothing(data: Record<string, number>[], alpha = 0.5) {
     return smoothed;
 }
 
-type ClientSideProps = {
-    problemList: ProblemDb[],
-    score: number
-}
-export default function ClientSide({problemList, score}: ClientSideProps) {
+export default function ClientSide() {
     const router = useRouter();
-    const gameContext = useGameContext();
+    const gameContext: GameContext = useGameContext();
     const timeFormat = gameContext?.timeFormat
+    const problemList = gameContext?.problemSet
+    const score = gameContext?.score
     const solveTimes = []
+    
+    useEffect (() => {
+      async function postData(){
+          const now = new Date();
+          try{
+              const testRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/test`, {
+                  method: 'POST',
+                  headers: { "Content-Type": 'application/json'},
+                  body: JSON.stringify({score, time: now, gameMode: gameContext.gameMode})
+              });
+              const testJson = await testRes.json();
+              await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
+                  method: 'PATCH',
+                  headers: { "Content-Type": 'application/json'},
+                  body: JSON.stringify({score, gameMode: gameContext.gameMode, testsAttempted: gameContext.testsAttempted})
+              });
+              await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/problem`, {
+                  method: 'POST',
+                  headers: { "Content-Type": 'application/json'},
+                  body: JSON.stringify({testId: testJson.testId, gameMode: gameContext.gameMode, problemSet: gameContext.problemSet})
+              });
+          } 
+          catch (err){
+              console.log(err);
+          }
+      
+        }
+        postData();
+    }, [])
     let curr = 0
     for (let problem of problemList){
-        curr += problem.solveTime;
-        solveTimes.push(curr);
+        if(problem.solveTime){
+            curr += problem.solveTime;
+            solveTimes.push(curr);
+        }
     }
-    console.log(solveTimes);
 
     if (timeFormat == null){
         return <div>Error</div>

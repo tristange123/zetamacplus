@@ -1,4 +1,4 @@
-import {type MainGameModeName, type ExtraGameModeName, type GameModeType, type ProblemType} from "@/types/frontendTypes"
+import {type MainGameModeName, type ExtraGameModeName, type GameModeType, type ProblemType, type OperationBounds} from "@/types/frontendTypes"
 
 
 export const MAIN_GAME_MODES: Record<MainGameModeName, GameModeType> = {
@@ -24,7 +24,7 @@ export const MAIN_GAME_MODES: Record<MainGameModeName, GameModeType> = {
     }
 }
 
-export const BOUNDS: Record <string, Record<string, Record<string, number[]>>> = 
+export const BOUNDS: Record <ProblemType, OperationBounds> = 
         {'medium':{
             '+': {first: [2,100], second: [2,100]}, 
             '-': {first: [2,100], second: [2,100]}, 

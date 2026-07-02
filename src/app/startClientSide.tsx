@@ -82,6 +82,9 @@ export default function StartClientSide({userLoggedIn, username}: startProps) {
                             gameContext?.setProblemType(problemTypeInput);
                             gameContext?.setTimeFormat(timeFormatInput);
                             gameContext?.setOperations(BOUNDS[problemTypeInput])
+                            gameContext?.setScore(0);
+                            gameContext?.setTestsAttempted(0);
+                            gameContext?.setProblemSet([]);
                             router.push('/game');
                         }}
                         className="rounded-lg bg-gray-800 px-8 py-3 text-base font-semibold text-gray-100 transition hover:bg-gray-900"

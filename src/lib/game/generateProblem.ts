@@ -1,4 +1,4 @@
-import {type Problem, type MainGameModeName, type ProblemType, type Operation} from '@/types/frontendTypes'
+import {type Problem, type MainGameModeName, type ProblemType, type Operation, type OperationBounds} from '@/types/frontendTypes'
 
 function randomInt(bottom: number, top: number){
     let seed = Math.random() * (top - bottom + 1);
@@ -21,7 +21,7 @@ function chooseOperation(operations: Record<Operation,Record<string, number[]>>)
 
 
 
-export default function generateProblem(operations: Record<Operation,Record<string, number[]>>): Problem{
+export default function generateProblem(operations: OperationBounds): Problem{
     let operation: Operation = chooseOperation(operations);
     if (operation === '+'){
         let first = randomInt(operations[operation]['first'][0], operations[operation]['first'][1]);

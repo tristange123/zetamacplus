@@ -8,16 +8,17 @@ daily level
 leaderboard
 hot keys
 visual settings
-change operation looks
+
 
 
 Things to do:
-don't hardcode gameModes
+
 using error handling on the frontend
 google sign on
-timer glitch
 forgot password
 mkae email verif nicer
+average tab
+past runs order + limit
 
 Last task: configruing next-auth with prisma
 

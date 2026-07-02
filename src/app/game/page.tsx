@@ -72,34 +72,13 @@ export default function Game() {
     
     // Handle Game Finish
     useEffect(()=> {
-        async function handleFinish(){
-            if (time <= 0 && (!finished)){
-                setFinished(true);
-                const now = new Date();
-                try{
-                    const testRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/test`, {
-                        method: 'POST',
-                        headers: { "Content-Type": 'application/json'},
-                        body: JSON.stringify({score, time: now, gameMode})
-                    });
-                    const testJson = await testRes.json();
-                    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
-                        method: 'PATCH',
-                        headers: { "Content-Type": 'application/json'},
-                        body: JSON.stringify({score, gameMode, testsAttempted: testsAttempted.current})
-                    });
-                    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/problem`, {
-                        method: 'POST',
-                        headers: { "Content-Type": 'application/json'},
-                        body: JSON.stringify({testId: testJson.testId, gameMode, problemSet: pastProblems.current})
-                    });
-                    router.replace(`results/${testJson.testId}`);
-                } catch (err){
-                    console.log(err);
-                }
-            }
+        if (time <= 0 && !finished){
+            setFinished(true);
+            context?.setTestsAttempted(testsAttempted.current);
+            context?.setProblemSet(pastProblems.current);
+            context?.setScore(score);
+            router.replace('results');
         }
-        handleFinish();
     }, [time, finished]);
 
 

@@ -19,6 +19,8 @@ export type ProblemType = "easy" | "medium" | "hard";
 
 export type Operation = "+" | "-" | "*" | "/"
 
+export type OperationBounds = Record<Operation, Record<string, number[]>>
+
 export type GameModeType = {
     timeFormat: number,
     problemType: ProblemType
