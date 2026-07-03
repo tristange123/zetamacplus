@@ -13,11 +13,11 @@ export type GameModeName = MainGameModeName | ExtraGameModeName;
 
 export type MainGameModeName = "standard" | "rapid" | "sprint" | "hard";
 
-export type ExtraGameModeName = "custom" | "LCM";
+export type ExtraGameModeName = "custom" 
 
-export type ProblemType = "easy" | "medium" | "hard" | "LCM";
+export type ProblemType = "easy" | "medium" | "hard" 
 
-export type Operation = "+" | "-" | "*" | "/" | "LCM"
+export type Operation = "+" | "-" | "*" | "/" 
 
 export type OperationBounds = Partial<Record<Operation, Record<string, number[]>>>
 

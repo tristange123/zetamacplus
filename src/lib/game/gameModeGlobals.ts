@@ -51,10 +51,10 @@ export const EXTRA_GAME_MODES: Record<ExtraGameModeName, GameModeType> = {
         timeFormat: 120,
         problemType: 'medium',
     },
-    "LCM": {
-        timeFormat: 60,
-        problemType: 'LCM'
-    }
+    // "LCM": {
+    //     timeFormat: 60,
+    //     problemType: 'LCM'
+    // }
 }
 
 // choosing a game: Gamemode -> operationsContext -> bounds
