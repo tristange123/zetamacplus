@@ -17,7 +17,6 @@ async function getLeaderboardData() {
                 sprint_1: true,
             }
         });
-        console.log(profiles);
         const testIds = profiles.flatMap((profile) => {
             return gameModes.flatMap((gameMode) => profile[`${gameMode}_1`] ?? []);
         });
@@ -44,6 +43,7 @@ async function getLeaderboardData() {
                         return [];
                     }
                     return [{
+                        testId: test.id,
                         username: profile.username,
                         score: test.score,
                         time: test.time.toISOString()

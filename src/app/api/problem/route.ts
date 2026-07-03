@@ -8,6 +8,31 @@ type problemRequest = {
     problemSet: Problem[]
 }
 
+export async function GET(req: Request){
+    try{
+        const {searchParams} = new URL(req.url);
+        const testId = searchParams.get('testId');
+        if (!testId){
+            return NextResponse.json({error: 'Missing test id'}, {status: 400});
+        }
+
+        const problems = await prisma.problem.findMany({
+            where: {
+                testId
+            },
+            orderBy: {
+                orderNumber: 'asc'
+            }
+        });
+
+        return NextResponse.json(problems);
+    }
+    catch(err: unknown){
+        console.log(err);
+        return NextResponse.json({error: "Server Error"}, {status: 500});
+    }
+}
+
 export async function POST(req: Request){
     try{
         const problemRequest: problemRequest = await req.json();
@@ -19,7 +44,7 @@ export async function POST(req: Request){
         const gameMode = problemRequest.gameMode;
         const problemSet = problemRequest.problemSet;
 
-        for (let problem of problemSet){
+        for (const problem of problemSet){
             if (typeof problem.firstNum === "number" && typeof problem.secondNum === "number" && typeof problem.answer === "number" && typeof problem.solveTime === "number" && typeof problem.operation === "string" && typeof problem.orderNumber === "number"){
                 await prisma.problem.create({
                     data: {
@@ -41,9 +66,9 @@ export async function POST(req: Request){
         }
         return NextResponse.json({ message: "Successful" });
     }
-    catch(err: any){
+    catch(err: unknown){
         console.log(err);
-        if (err.message == "Unauthorized"){
+        if (err instanceof Error && err.message == "Unauthorized"){
             return NextResponse.json({error: "Unauthorized User"}, {status: 403});
         }
         else{

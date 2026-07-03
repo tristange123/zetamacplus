@@ -1,9 +1,12 @@
 'use client'
 
+import {ChevronRight} from 'lucide-react';
 import {useState} from 'react';
+import {type ProblemDb} from '@/types/dbTypes';
 import {type MainGameModeName} from '@/types/frontendTypes';
 
 export type LeaderboardRow = {
+    testId: string,
     username: string,
     score: number,
     time: string
@@ -24,9 +27,46 @@ function formatTime(time: string) {
     return new Date(time).toLocaleString();
 }
 
+function formatSolveTime(seconds: number | null): string {
+    if (seconds == null) return '—';
+    return `${seconds.toFixed(1)}s`;
+}
+
 export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
     const [selectedGameMode, setSelectedGameMode] = useState<MainGameModeName>(gameModes[0] ?? 'standard');
+    const [selectedRow, setSelectedRow] = useState<LeaderboardRow | null>(null);
+    const [problems, setProblems] = useState<ProblemDb[]>([]);
+    const [loadingProblems, setLoadingProblems] = useState(false);
+    const [problemError, setProblemError] = useState('');
     const rows = leaderboards[selectedGameMode] ?? [];
+
+    async function toggleProblemSidebar(row: LeaderboardRow) {
+        if (selectedRow?.testId === row.testId){
+            setSelectedRow(null);
+            return;
+        }
+
+        setSelectedRow(row);
+        setProblems([]);
+        setProblemError('');
+        setLoadingProblems(true);
+
+        try{
+            const response = await fetch(`/api/problem?testId=${encodeURIComponent(row.testId)}`);
+            if (!response.ok){
+                setProblemError('Could not load problems for this test.');
+                return;
+            }
+            const testProblems: ProblemDb[] = await response.json();
+            setProblems(testProblems);
+        }
+        catch{
+            setProblemError('Could not load problems for this test.');
+        }
+        finally{
+            setLoadingProblems(false);
+        }
+    }
 
     return (
         <section className="flex min-h-[calc(100vh-9rem)] gap-5">
@@ -69,19 +109,41 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
                                 <th className="px-4 py-3">Username</th>
                                 <th className="px-4 py-3">Score</th>
                                 <th className="px-4 py-3">Time</th>
+                                <th className="w-12 px-4 py-3" aria-label="View problems"></th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                            {rows.map((row, index) => (
-                                <tr key={`${row.username}-${row.time}-${index}`} className="text-center text-gray-700">
-                                    <td className="px-4 py-3 font-medium text-gray-800">{row.username}</td>
-                                    <td className="px-4 py-3 tabular-nums">{row.score}</td>
-                                    <td className="px-4 py-3 text-gray-600">{formatTime(row.time)}</td>
-                                </tr>
-                            ))}
+                            {rows.map((row, index) => {
+                                const isSelected = selectedRow?.testId === row.testId;
+                                return (
+                                    <tr
+                                        key={`${row.username}-${row.time}-${index}`}
+                                        className={`text-center text-gray-700 transition hover:bg-gray-50 ${
+                                            isSelected ? 'bg-gray-50' : ''
+                                        }`}
+                                    >
+                                        <td className="px-4 py-3 font-medium text-gray-800">{row.username}</td>
+                                        <td className="px-4 py-3 tabular-nums">{row.score}</td>
+                                        <td className="px-4 py-3 text-gray-600">{formatTime(row.time)}</td>
+                                        <td className="px-4 py-3 text-gray-500">
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleProblemSidebar(row)}
+                                                className="mx-auto flex rounded-full p-1 transition hover:bg-gray-100"
+                                                aria-label={`${isSelected ? 'Hide' : 'View'} problems for ${row.username}`}
+                                            >
+                                                <ChevronRight
+                                                    className={`h-4 w-4 transition-transform ${isSelected ? 'rotate-180' : ''}`}
+                                                    aria-hidden="true"
+                                                />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                             {rows.length === 0 && (
                                 <tr>
-                                    <td colSpan={3} className="px-4 py-8 text-center text-sm text-gray-500">
+                                    <td colSpan={4} className="px-4 py-8 text-center text-sm text-gray-500">
                                         No leaderboard entries yet.
                                     </td>
                                 </tr>
@@ -90,6 +152,57 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
                     </table>
                 </div>
             </div>
+
+            {selectedRow && (
+                <aside className="w-full max-w-2xl shrink-0 rounded-2xl border border-gray-200 bg-gray-50/95 p-5 shadow-xl lg:w-[28rem]">
+                    <div>
+                        <div className="mb-4">
+                            <div>
+                                <h2 className="text-xl font-semibold tracking-tight text-gray-800">
+                                    {selectedRow.username} Problems
+                                </h2>
+                                <p className="mt-1 text-sm text-gray-500">
+                                    {selectedRow.score} pts - {formatGameMode(selectedGameMode)} - {formatTime(selectedRow.time)}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="max-h-[60vh] overflow-y-auto rounded-xl border border-gray-200 bg-white">
+                            {loadingProblems ? (
+                                <p className="px-4 py-6 text-center text-base text-gray-500 md:px-5 md:text-lg">Loading problems...</p>
+                            ) : problemError ? (
+                                <p className="px-4 py-6 text-center text-base text-gray-500 md:px-5 md:text-lg">{problemError}</p>
+                            ) : problems.length === 0 ? (
+                                <p className="px-4 py-6 text-center text-base text-gray-500 md:px-5 md:text-lg">No problems found.</p>
+                            ) : (
+                                <table className="w-full text-base md:text-lg">
+                                    <thead>
+                                        <tr className="border-b border-gray-50 bg-gray-50/80">
+                                            <th className="px-4 py-3 text-center font-semibold text-gray-700 md:px-5">Problem</th>
+                                            <th className="px-4 py-3 text-center font-semibold text-gray-700 md:px-5">Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {problems.map((problem) => (
+                                            <tr
+                                                key={problem.id}
+                                                className="border-b border-gray-200 last:border-b-0"
+                                            >
+                                                <td className="px-4 py-3 text-center text-gray-800 md:px-5">
+                                                    {problem.statement}{problem.answer}
+                                                </td>
+                                                <td className="px-4 py-3 text-center tabular-nums text-gray-600 md:px-5">
+                                                    {formatSolveTime(problem.solveTime)}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                </aside>
+            )}
         </section>
     );
 }

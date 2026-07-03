@@ -21,7 +21,7 @@ function chooseOperation(operations: OperationBounds): Operation{
 
 
 
-export default function generateProblem(operations: OperationBounds): Problem{
+export function generateProblem(operations: OperationBounds): Problem{
     const operation: Operation = chooseOperation(operations);
     const operationBounds = operations[operation]!;
     if (operation === '+'){
@@ -40,12 +40,16 @@ export default function generateProblem(operations: OperationBounds): Problem{
         return {'operation': '*', 'firstNum': first, 'secondNum': sec, 'answer': first * sec, 'statement': String(first) + ' × ' + String(sec) + ' = ', 'solveTime': null, 'orderNumber' : null};
     }
 
-    else{
+    else if (operation === '/'){
         const sec = randomInt(operationBounds['second'][0], operationBounds['second'][1]);
         const first = sec * randomInt(operationBounds['first'][0], operationBounds['first'][1]);
         return {'operation': '/', 'firstNum': first, 'secondNum': sec, 'answer': Math.floor(first / sec), 'statement': String(first) + ' ÷ ' + String(sec) + ' = ', 'solveTime': null, 'orderNumber' : null};
     }
+    else if (operation === 'LCM'){
+        
+    }
 }
+
 
 
 

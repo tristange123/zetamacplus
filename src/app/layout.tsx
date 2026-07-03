@@ -4,6 +4,7 @@
 import {ReactNode} from 'react';
 import {GameProvider} from './gameContext';
 import { authClient } from '@/lib/auth/auth-client';
+import {Crown, ChartNoAxesCombined as Chart, Play} from 'lucide-react'
 import Link from 'next/link';
 import "./globals.css";
 
@@ -25,6 +26,8 @@ export default function LayoutClientSide({children}: LayoutProps) {
     username = data.user.name;
     userVerified = data.user.emailVerified;
   }
+  const canViewStats = userLoggedIn && userVerified;
+  const statsDisabledMessage = userLoggedIn ? "Confirm your email to see stats" : "Log in to see stats";
 
   async function clickSignOut() {
       await authClient.signOut();
@@ -38,26 +41,72 @@ export default function LayoutClientSide({children}: LayoutProps) {
             <nav className="border-b border-gray-200 bg-gray-50/95 backdrop-blur">
                 <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
                     <div className="flex items-center gap-3">
-                        <h1 className="text-lg font-semibold tracking-wide text-gray-700">METAMAC</h1>
+                        <Link
+                            href="/"
+                            className="text-lg font-semibold tracking-wide text-gray-700 transition hover:text-gray-900"
+                        >
+                            ZETAMAC+
+                        </Link>
                         {userLoggedIn && (
                             <p className="text-sm text-gray-500">
                                 Welcome {username}
                             </p>
                         )}
-                        <Link
-                            href="/leaderboard"
-                            className="rounded-md px-3 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
-                        >
-                            Leaderboard
-                        </Link>
                     </div>
                     <div className="flex items-center gap-3 text-sm font-medium">
                         <Link
                             href="/"
-                            className="rounded-md px-3 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
+                            className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
                         >
+                            <Play size={18} aria-hidden="true" />
                             Play
                         </Link>
+                        <Link
+                            href="/leaderboard"
+                            className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
+                        >
+                            <Crown size={18} aria-hidden="true" />
+                            Leaderboard
+                        </Link>
+                        {canViewStats && (
+                            <Link
+                                href="/stats"
+                                className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
+                            >
+                                <Chart size={18} aria-hidden="true" />
+                                My Stats
+                            </Link>
+                        )}
+                        {!canViewStats && (
+                            <div
+                                className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
+                            >
+                                <Chart size={18} aria-hidden="true" />
+                                My Stats
+                            </div>
+                        )}
+                        {/* {!canViewStats && (
+                            <div className="group relative">
+                                <button
+                                    type="button"
+                                    role="button"
+                                    aria-label="My Stats"
+                                    aria-describedby="stats-disabled-tooltip"
+                                    aria-disabled="true"
+                                    className="peer flex cursor-not-allowed items-center gap-2 rounded-md px-3 py-2 text-gray-300"
+                                >
+                                    <Chart size={18} aria-hidden="true" />
+                                    My Stats
+                                </button>
+                                <div
+                                    id="stats-disabled-tooltip"
+                                    role="tooltip"
+                                    className="pointer-events-none absolute right-0 top-full z-10 mt-2 hidden whitespace-nowrap rounded-md bg-gray-800 px-3 py-2 text-xs font-medium text-gray-100 shadow-lg peer-hover:block peer-focus:block"
+                                >
+                                    {statsDisabledMessage}
+                                </div>
+                            </div>
+                        )} */}
                         {!userLoggedIn && (
                             <Link
                                 href="/login"
@@ -67,26 +116,12 @@ export default function LayoutClientSide({children}: LayoutProps) {
                             </Link>
                         )}
                         {userLoggedIn && (
-                            <>
-                                {userVerified && (
-                                    <Link
-                                        href="/stats"
-                                        className="rounded-md px-3 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
-                                    >
-                                        My Stats
-                                    </Link>
-                                )}
-                                {!userVerified && (
-                                    <div>Awaiting Email Verification</div>
-                                )}
-
-                                <button
-                                    onClick={clickSignOut}
-                                    className="rounded-md bg-gray-800 px-3 py-2 text-gray-100 transition hover:bg-gray-900"
-                                >
-                                    Sign Out
-                                </button>
-                            </>
+                            <button
+                                onClick={clickSignOut}
+                                className="rounded-md bg-gray-800 px-3 py-2 text-gray-100 transition hover:bg-gray-900"
+                            >
+                                Sign Out
+                            </button>
                         )}
                     </div>
                 </div>
