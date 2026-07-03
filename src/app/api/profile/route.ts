@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import prisma from '@/lib/db/prisma';
 import requireSession from '@/lib/auth/requireSession';
 import {MAIN_GAME_MODES} from "@/lib/game/gameModeGlobals"
@@ -159,6 +160,7 @@ export async function PATCH(req: Request){
                         testsCompleted
                     }
                 });
+                revalidatePath('/leaderboard');
             }
         }
         return NextResponse.json({message: "Successful post"}, {status: 201});

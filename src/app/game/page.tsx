@@ -46,7 +46,7 @@ export default function Game() {
     // }, [])
     async function updateTestsAttempted () {
         try{
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
+            await fetch('/api/profile', {
                 method: 'PATCH',
                 headers: { "Content-Type": 'application/json'},
                 body: JSON.stringify({testsAttempted: testsAttempted.current})

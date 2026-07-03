@@ -92,7 +92,7 @@ function Register() {
             );
             if (data){
                 async function createProfile(username: string, email: string, userId: string, timeJoined: Date){
-                    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
+                    await fetch('/api/profile', {
                         method: 'POST',
                         headers: { "Content-Type": 'application/json'},
                         body: JSON.stringify({username, email, userId, timeJoined})

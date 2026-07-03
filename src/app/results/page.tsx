@@ -66,18 +66,18 @@ export default function ClientSide() {
       async function postData(){
           const now = new Date();
           try{
-              const testRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/test`, {
+              const testRes = await fetch('/api/test', {
                   method: 'POST',
                   headers: { "Content-Type": 'application/json'},
                   body: JSON.stringify({score, time: now, gameMode: gameContext.gameMode})
               });
               const testJson = await testRes.json();
-              await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
+              await fetch('/api/profile', {
                   method: 'PATCH',
                   headers: { "Content-Type": 'application/json'},
                   body: JSON.stringify({testId: testJson.testId, score, gameMode: gameContext.gameMode, testsAttempted: gameContext.testsAttempted})
               });
-              await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/problem`, {
+              await fetch('/api/problem', {
                   method: 'POST',
                   headers: { "Content-Type": 'application/json'},
                   body: JSON.stringify({testId: testJson.testId, gameMode: gameContext.gameMode, problemSet: gameContext.problemSet})

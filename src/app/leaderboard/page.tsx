@@ -3,6 +3,8 @@ import {MAIN_GAME_MODES} from '@/lib/game/gameModeGlobals'
 import {type MainGameModeName} from '@/types/frontendTypes'
 import ClientSide, {type LeaderboardData} from './clientSide'
 
+export const dynamic = 'force-dynamic';
+
 async function getLeaderboardData() {
     const gameModes = Object.keys(MAIN_GAME_MODES) as MainGameModeName[];
     try{
@@ -15,6 +17,7 @@ async function getLeaderboardData() {
                 sprint_1: true,
             }
         });
+        console.log(profiles);
         const testIds = profiles.flatMap((profile) => {
             return gameModes.flatMap((gameMode) => profile[`${gameMode}_1`] ?? []);
         });
