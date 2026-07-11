@@ -9,6 +9,7 @@ import { useGameContext} from '@/app/gameContext'
 
 
 
+
 export default function Game() {
     // Load gameContext
     const router = useRouter();
@@ -24,8 +25,12 @@ export default function Game() {
     const gameMode: GameModeName = context?.gameMode ?? 'standard'
 
     // Gameplay States
-    const [currProblem, setCurrProblem] = useState<Problem>(() => generateProblem(operations));
+    const [currProblem, setCurrProblem] = useState<Problem>(() => generateProblem(operations, 1));
+    if (problemType == 'daily'){
+
+    }
     const [display, setDisplay] = useState('');
+    const [inputKey, setInputKey] = useState(0);
     const [score, setScore] = useState(0);
     const [time, setTime] = useState(timeFormat);
     const [finished, setFinished] = useState(false);
@@ -105,7 +110,7 @@ export default function Game() {
             setScore(score + 1);
             setDisplay('');
 
-            let newProb:Problem = generateProblem(operations);
+            let newProb:Problem = generateProblem(operations, score + 1);
             setCurrProblem(newProb);
         }
     }
@@ -114,10 +119,11 @@ export default function Game() {
         setScore(0)
         setTime(timeFormat);
         setDisplay('');
+        setInputKey((k) => k + 1);
         testsAttempted.current = testsAttempted.current + 1;
         pastProblems.current = [];
         solveTimes.current = [];
-        let newProb: Problem = generateProblem(operations)
+        let newProb: Problem = generateProblem(operations, 0)
         setCurrProblem(newProb);
         inputRef.current?.focus();
     }
@@ -136,16 +142,17 @@ export default function Game() {
             <div className="-mt-40 flex flex-col justify-center">
                 <div className="relative left-1/2 right-1/2 w-screen -translate-x-1/2 bg-gray-200 py-8">
                     <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-4 px-6">
-                        <h2 className="text-4xl font-semibold tracking-tight text-gray-800 md:text-3xl">
+                        <h2 className="text-6xl font-semibold tracking-tight text-gray-800 md:text-5xl">
                             {currProblem.statement}
                         </h2>
                         <input
+                            key={inputKey}
                             ref={inputRef}
                             autoFocus
                             type="number"
                             value={display}
                             onChange={(e) => checkDisplay(e, currProblem.answer)}
-                            className="w-32 rounded-md border border-gray-300 bg-white px-3 py-2 text-center text-lg text-gray-800 shadow-sm outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-300"
+                            className="w-48 rounded-md border border-gray-300 bg-white px-4 py-3 text-center text-[1.6875rem] text-gray-800 shadow-sm outline-none transition [appearance:textfield] focus:border-gray-500 focus:ring-2 focus:ring-gray-300 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         />
                     </div>
                 </div>

@@ -27,7 +27,9 @@ export default function LayoutClientSide({children}: LayoutProps) {
     userVerified = data.user.emailVerified;
   }
   const canViewStats = userLoggedIn && userVerified;
-  const statsDisabledMessage = userLoggedIn ? "Confirm your email to see stats" : "Log in to see stats";
+  const canViewLeaderboard = userLoggedIn && userVerified;
+  const statsDisabledMessage = userLoggedIn ? "Verify email to view stats" : "Log in to view stats";
+  const leaderboardDisabledMessage = userLoggedIn ? "Verify email to view leaderboard" : "Log in to view leaderboard";
 
   async function clickSignOut() {
       await authClient.signOut();
@@ -48,9 +50,16 @@ export default function LayoutClientSide({children}: LayoutProps) {
                             ZETAMAC+
                         </Link>
                         {userLoggedIn && (
-                            <p className="text-sm text-gray-500">
-                                Welcome {username}
-                            </p>
+                            <div className="flex items-center gap-3">
+                                <p className="text-sm text-gray-500">
+                                    Welcome {username}
+                                </p>
+                                {!userVerified && (
+                                    <p className="text-sm text-amber-600">
+                                        Email verification required
+                                    </p>
+                                )}
+                            </div>
                         )}
                     </div>
                     <div className="flex items-center gap-3 text-sm font-medium">
@@ -61,13 +70,36 @@ export default function LayoutClientSide({children}: LayoutProps) {
                             <Play size={18} aria-hidden="true" />
                             Play
                         </Link>
-                        <Link
-                            href="/leaderboard"
-                            className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
-                        >
-                            <Crown size={18} aria-hidden="true" />
-                            Leaderboard
-                        </Link>
+                        {canViewLeaderboard && (
+                            <Link
+                                href="/leaderboard"
+                                className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
+                            >
+                                <Crown size={18} aria-hidden="true" />
+                                Leaderboard
+                            </Link>
+                        )}
+                        {!canViewLeaderboard && (
+                            <div className="group relative">
+                                <button
+                                    type="button"
+                                    aria-label="Leaderboard"
+                                    aria-describedby="leaderboard-disabled-tooltip"
+                                    aria-disabled="true"
+                                    className="peer flex cursor-not-allowed items-center gap-2 rounded-md px-3 py-2 text-gray-300"
+                                >
+                                    <Crown size={18} aria-hidden="true" />
+                                    Leaderboard
+                                </button>
+                                <div
+                                    id="leaderboard-disabled-tooltip"
+                                    role="tooltip"
+                                    className="pointer-events-none absolute right-0 top-full z-10 mt-2 hidden whitespace-nowrap rounded-md bg-gray-800 px-3 py-2 text-xs font-medium text-gray-100 shadow-lg peer-hover:block peer-focus:block"
+                                >
+                                    {leaderboardDisabledMessage}
+                                </div>
+                            </div>
+                        )}
                         {canViewStats && (
                             <Link
                                 href="/stats"
@@ -78,18 +110,9 @@ export default function LayoutClientSide({children}: LayoutProps) {
                             </Link>
                         )}
                         {!canViewStats && (
-                            <div
-                                className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
-                            >
-                                <Chart size={18} aria-hidden="true" />
-                                My Stats
-                            </div>
-                        )}
-                        {/* {!canViewStats && (
                             <div className="group relative">
                                 <button
                                     type="button"
-                                    role="button"
                                     aria-label="My Stats"
                                     aria-describedby="stats-disabled-tooltip"
                                     aria-disabled="true"
@@ -106,7 +129,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
                                     {statsDisabledMessage}
                                 </div>
                             </div>
-                        )} */}
+                        )}
                         {!userLoggedIn && (
                             <Link
                                 href="/login"

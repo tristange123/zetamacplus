@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import {useGameContext} from '../gameContext'
 import {useEffect } from 'react';
 import {type GameContext} from '@/types/contextTypes'
+import {authClient} from '@/lib/auth/auth-client'
+
 
 
 function formatSolveTime(seconds: number | null): string {
@@ -60,28 +62,33 @@ export default function ClientSide() {
     const timeFormat = gameContext?.timeFormat
     const problemList = gameContext?.problemSet
     const score = gameContext?.score
+    const {data: session} = authClient.useSession()
     const solveTimes: number[] = []
+    
     
     useEffect (() => {
       async function postData(){
           const now = new Date();
           try{
-              const testRes = await fetch('/api/test', {
-                  method: 'POST',
-                  headers: { "Content-Type": 'application/json'},
-                  body: JSON.stringify({score, time: now, gameMode: gameContext.gameMode})
-              });
-              const testJson = await testRes.json();
-              await fetch('/api/profile', {
-                  method: 'PATCH',
-                  headers: { "Content-Type": 'application/json'},
-                  body: JSON.stringify({testId: testJson.testId, score, gameMode: gameContext.gameMode, testsAttempted: gameContext.testsAttempted})
-              });
-              await fetch('/api/problem', {
-                  method: 'POST',
-                  headers: { "Content-Type": 'application/json'},
-                  body: JSON.stringify({testId: testJson.testId, gameMode: gameContext.gameMode, problemSet: gameContext.problemSet})
-              });
+              if (session && session.user.emailVerified){
+
+                const testRes = await fetch('/api/test', {
+                    method: 'POST',
+                    headers: { "Content-Type": 'application/json'},
+                    body: JSON.stringify({score, time: now, gameMode: gameContext.gameMode})
+                });
+                const testJson = await testRes.json();
+                await fetch('/api/profile', {
+                    method: 'PATCH',
+                    headers: { "Content-Type": 'application/json'},
+                    body: JSON.stringify({testId: testJson.testId, score, gameMode: gameContext.gameMode, testsAttempted: gameContext.testsAttempted})
+                });
+                await fetch('/api/problem', {
+                    method: 'POST',
+                    headers: { "Content-Type": 'application/json'},
+                    body: JSON.stringify({testId: testJson.testId, gameMode: gameContext.gameMode, problemSet: gameContext.problemSet})
+                });
+              }
           } 
           catch (err){
               console.log(err);
@@ -105,6 +112,20 @@ export default function ClientSide() {
 
     const solveRates = exponentialSmoothing(PPM(solveTimes, timeFormat));
     const timeTicks = getTimeTicks(timeFormat);
+
+    let cumulativeTime = 0;
+    const problemRows = problemList.map((problem, index) => {
+        if (problem.solveTime != null) {
+            cumulativeTime += problem.solveTime;
+        }
+        return {
+            key: problem.orderNumber ?? index,
+            number: (problem.orderNumber ?? index) + 1,
+            statement: `${problem.statement}${problem.answer}`,
+            cumulativeTime,
+            solveTime: problem.solveTime,
+        };
+    });
 
     return (
         <section className="flex min-h-[calc(100vh-9rem)] flex-col gap-20 py-6 md:gap-25 md:py-8">
@@ -174,22 +195,31 @@ export default function ClientSide() {
                         <table className="w-full text-base md:text-lg">
                             <thead>
                                 <tr className="border-b border-gray-50 bg-gray-50/80">
+                                    <th className="px-4 py-3 text-center font-semibold text-gray-700 md:px-5">#</th>
                                     <th className="px-4 py-3 text-center font-semibold text-gray-700 md:px-5">Problem</th>
-                                    <th className="px-4 py-3 text-center font-semibold text-gray-700 md:px-5">Time</th>
+                                    <th className="px-4 py-3 text-center font-semibold text-gray-700 md:px-5">Solve Time</th>
+                                    {/* <th className="px-4 py-3 text-center font-semibold text-gray-700 md:px-5">Cum. Time</th> */}
                                 </tr>
                             </thead>
                             <tbody>
-                                {problemList.map((problem, index) => (
+                                {problemRows.map((row) => (
                                     <tr
-                                        key={problem.orderNumber ?? index}
+                                        key={row.key}
                                         className="border-b border-gray-200 last:border-b-0"
                                     >
-                                        <td className="px-4 py-3 text-center text-gray-800 md:px-5">
-                                            {problem.statement}{problem.answer}
-                                        </td>
                                         <td className="px-4 py-3 text-center tabular-nums text-gray-600 md:px-5">
-                                            {formatSolveTime(problem.solveTime)}
+                                            {row.number}
                                         </td>
+                                        <td className="px-4 py-3 text-center text-gray-800 md:px-5">
+                                            {row.statement}
+                                        </td>
+                                        
+                                        <td className="px-4 py-3 text-center tabular-nums text-gray-600 md:px-5">
+                                            {formatSolveTime(row.solveTime)}
+                                        </td>
+                                        {/* <td className="px-4 py-3 text-center tabular-nums text-gray-600 md:px-5">
+                                            {formatSolveTime(row.cumulativeTime)}
+                                        </td> */}
                                     </tr>
                                 ))}
                             </tbody>

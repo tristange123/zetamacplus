@@ -1,10 +1,37 @@
 'use client'
 
-import {ChevronRight} from 'lucide-react';
+import {Calculator, ChevronRight, Rabbit, Skull, SportShoe, type LucideIcon} from 'lucide-react';
 import {useState} from 'react';
-import {type ProblemDb, type ProfileDb, type TestDb} from '@/types/dbTypes.js'
+import {type GameModeTopTests, type ProblemDb, type ProfileDb, type TestDb} from '@/types/dbTypes.js'
 import {type MainGameModeName} from '@/types/frontendTypes'
 
+const GAME_MODE_ICONS: Record<MainGameModeName, LucideIcon> = {
+    standard: Calculator,
+    rapid: Rabbit,
+    sprint: SportShoe,
+    hard: Skull,
+};
+
+const RANK_CONFIG = [
+    {
+        key: 'first' as const,
+        label: '1.',
+        barClassName: 'border-amber-200 bg-gradient-to-r from-amber-200/65 to-stone-100/75',
+        textClassName: 'text-stone-800',
+    },
+    {
+        key: 'second' as const,
+        label: '2.',
+        barClassName: 'border-gray-200 bg-gradient-to-r from-gray-200/70 to-gray-100/75',
+        textClassName: 'text-gray-700',
+    },
+    {
+        key: 'third' as const,
+        label: '3.',
+        barClassName: 'border-orange-200 bg-gradient-to-r from-orange-200/60 to-stone-200/65',
+        textClassName: 'text-stone-800',
+    },
+];
 
 type PastRunsProps = {
     tests: TestDb[],
@@ -14,7 +41,7 @@ type PastRunsProps = {
 function PastRuns({tests, selectedTestId, onSelectTest}: PastRunsProps) {
     return (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white p-4">
-            <h3 className="mb-3 text-sm font-semibold text-gray-700">Past Runs</h3>
+            <h3 className="mb-3 text-2xl font-semibold text-gray-700">Past Runs</h3>
             <div className="max-h-100 overflow-auto rounded-xl border border-gray-200">
                 <table className="w-full text-xs md:text-sm">
                     <thead className="sticky top-0 z-10">
@@ -137,7 +164,7 @@ function Profile({profile}: ProfileProps) {
 
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-4">
-            <h3 className="mb-3 text-sm font-semibold text-gray-700">Profile</h3>
+            <h3 className="mb-3 text-xl font-semibold text-gray-700">Profile</h3>
             <div className="text-sm text-gray-700">{profile.email}</div>
             <div className="mt-1 text-xs text-gray-500 md:text-sm">Date Joined: {new Date(profile.timeJoined).toLocaleString()}</div>
         </div>
@@ -150,22 +177,81 @@ type UserStatsProps = {
 function UserStats({ testsAttempted, testsCompleted }: UserStatsProps) {
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-4">
-            <h3 className="mb-3 text-sm font-semibold text-gray-700">User Stats</h3>
+            <h3 className="mb-3 text-xl font-semibold text-gray-700">User Stats</h3>
             <div className="text-sm text-gray-700">Tests Attempted: {testsAttempted ?? 0}</div>
             <div className="mt-1 text-sm text-gray-700">Tests Completed: {testsCompleted ?? 0}</div>
         </div>
     );
 }
+
+type TopRunBarProps = {
+    rankLabel: string,
+    barClassName: string,
+    textClassName: string,
+    test: TestDb | null,
+    selectedTestId: string | null,
+    onSelectTest: (test: TestDb) => void,
+}
+
+function TopRunBar({
+    rankLabel,
+    barClassName,
+    textClassName,
+    test,
+    selectedTestId,
+    onSelectTest,
+}: TopRunBarProps) {
+    const isSelected = test?.id === selectedTestId;
+
+    return (
+        <div
+            className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 shadow-sm ${
+                test ? barClassName : 'border-gray-200 bg-gray-100/80'
+            }`}
+        >
+            <div className={`flex min-w-0 flex-1 items-center gap-3 text-sm ${test ? textClassName : 'text-gray-400'}`}>
+                <span className="w-5 shrink-0 font-semibold">{rankLabel}</span>
+                {test ? (
+                    <>
+                        <span className="shrink-0 font-semibold">{test.score} pts</span>
+                        <span className="min-w-0 truncate text-xs opacity-90 md:text-sm">
+                            {new Date(test.time).toLocaleString()}
+                        </span>
+                    </>
+                ) : (
+                    <span className="text-xs md:text-sm">No run yet</span>
+                )}
+            </div>
+            {test && (
+                <button
+                    type="button"
+                    onClick={() => onSelectTest(test)}
+                    className={`shrink-0 rounded-full p-1 transition ${
+                        isSelected ? 'bg-black/10' : 'hover:bg-black/10'
+                    }`}
+                    aria-label={`${isSelected ? 'Hide' : 'View'} problems for this run`}
+                >
+                    <ChevronRight
+                        className={`h-4 w-4 transition-transform ${isSelected ? 'rotate-180' : ''}`}
+                        aria-hidden="true"
+                    />
+                </button>
+            )}
+        </div>
+    );
+}
+
 type FormatStatsProps = {
     title: MainGameModeName,
     profile: ProfileDb,
-    scoreByTestId: Map<string, number>
+    topTests: GameModeTopTests,
+    selectedTestId: string | null,
+    onSelectTest: (test: TestDb) => void,
 }
-function FormatStats({ title, profile, scoreByTestId }: FormatStatsProps) {
+
+function FormatStats({ title, profile, topTests, selectedTestId, onSelectTest }: FormatStatsProps) {
+    const ModeIcon = GAME_MODE_ICONS[title];
     const pastTenTests = profile?.[`${title}PastTenTests`];
-    const highestScore = scoreByTestId.get(profile[`${title}_1`] ?? '') ?? 0;
-    const secondBestScore = scoreByTestId.get(profile[`${title}_2`] ?? '') ?? 0;
-    const thirdBestScore = scoreByTestId.get(profile[`${title}_3`] ?? '') ?? 0;
 
     const lastTenAverage = pastTenTests?.length
         ? Math.round(
@@ -176,11 +262,26 @@ function FormatStats({ title, profile, scoreByTestId }: FormatStatsProps) {
 
     return (
         <div className="h-full rounded-xl border border-gray-200 bg-white p-5">
-            <h3 className="mb-4 text-lg font-semibold text-gray-800">{title}</h3>
-            <div className="space-y-2 text-sm text-gray-700">
-                <div>Highest: {highestScore}</div>
-                <div>Second Best: {secondBestScore}</div>
-                <div>Third Best: {thirdBestScore}</div>
+            <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold capitalize text-gray-800">
+                {title}
+                <ModeIcon size={20} className="text-gray-500" aria-hidden="true" />
+            </h3>
+
+            <div className="space-y-2">
+                {RANK_CONFIG.map(({ key, label, barClassName, textClassName }) => (
+                    <TopRunBar
+                        key={key}
+                        rankLabel={label}
+                        barClassName={barClassName}
+                        textClassName={textClassName}
+                        test={topTests[key]}
+                        selectedTestId={selectedTestId}
+                        onSelectTest={onSelectTest}
+                    />
+                ))}
+            </div>
+
+            <div className="mt-4 space-y-2 border-t border-gray-100 pt-4 text-sm text-gray-700">
                 <div>Average Score: {profile?.[`${title}Average`].toFixed(1)}</div>
                 <div>Past 10 Average: {lastTenAverage.toFixed(1)}</div>
                 <div>Tests Completed: {profile?.[`${title}TotalTests`]}</div>
@@ -188,13 +289,14 @@ function FormatStats({ title, profile, scoreByTestId }: FormatStatsProps) {
         </div>
     );
 }
+
 type ClientSideProps = {
     profile: ProfileDb,
-    tests: TestDb[]
+    tests: TestDb[],
+    topTestsByMode: Record<MainGameModeName, GameModeTopTests>,
 }
 
-export default function ClientSide({profile, tests}: ClientSideProps) {
-    const scoreByTestId = new Map(tests.map((test) => [test.id, test.score]));
+export default function ClientSide({profile, tests, topTestsByMode}: ClientSideProps) {
     const [selectedTest, setSelectedTest] = useState<TestDb | null>(null);
     const [problems, setProblems] = useState<ProblemDb[]>([]);
     const [loadingProblems, setLoadingProblems] = useState(false);
@@ -240,17 +342,41 @@ export default function ClientSide({profile, tests}: ClientSideProps) {
                         User Stats
                     </h2>
                     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                        <Profile profile = {profile}/>
+                        <Profile profile={profile}/>
                         <UserStats testsAttempted={profile.testsAttempted} testsCompleted={profile.testsCompleted} />
                     </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto rounded-2xl border border-gray-200 bg-gray-100 p-4 md:p-5">
                     <div className="grid min-h-full grid-cols-1 gap-4 md:grid-cols-2">
-                        <FormatStats title="standard" profile={profile} scoreByTestId={scoreByTestId} />
-                        <FormatStats title="sprint" profile={profile} scoreByTestId={scoreByTestId} />
-                        <FormatStats title="rapid" profile={profile} scoreByTestId={scoreByTestId} />
-                        <FormatStats title="hard" profile={profile} scoreByTestId={scoreByTestId} />
+                        <FormatStats
+                            title="standard"
+                            profile={profile}
+                            topTests={topTestsByMode.standard}
+                            selectedTestId={selectedTest?.id ?? null}
+                            onSelectTest={toggleProblemPanel}
+                        />
+                        <FormatStats
+                            title="sprint"
+                            profile={profile}
+                            topTests={topTestsByMode.sprint}
+                            selectedTestId={selectedTest?.id ?? null}
+                            onSelectTest={toggleProblemPanel}
+                        />
+                        <FormatStats
+                            title="rapid"
+                            profile={profile}
+                            topTests={topTestsByMode.rapid}
+                            selectedTestId={selectedTest?.id ?? null}
+                            onSelectTest={toggleProblemPanel}
+                        />
+                        <FormatStats
+                            title="hard"
+                            profile={profile}
+                            topTests={topTestsByMode.hard}
+                            selectedTestId={selectedTest?.id ?? null}
+                            onSelectTest={toggleProblemPanel}
+                        />
                     </div>
                 </div>
 
@@ -271,6 +397,4 @@ export default function ClientSide({profile, tests}: ClientSideProps) {
             )}
         </section>
     );
-    
 }
-

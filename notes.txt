@@ -5,20 +5,28 @@ Next + Postgres + BetterAuth + Prisma
 Features:
 keyboard view
 daily level
-leaderboard
+
 hot keys
 visual settings
 calender
 histroy graph
 
 
-Things to do:
+achievmennts
+
+new best indicator
+
+fix need email verif bug
+
+advanced stats
+
+
 
 using error handling on the frontend
 google sign on
 forgot password
 mkae email verif nicer
-svgs
+
 
 
 

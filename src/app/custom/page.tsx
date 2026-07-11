@@ -5,14 +5,19 @@ import { useState } from 'react';
 import { useGameContext } from '../gameContext';
 import { type Operation } from '@/types/frontendTypes';
 
-type OperationBounds = {
+type NumberBounds = {
     min: number;
     max: number;
 };
 
-type EditableOperationBounds = {
+type EditableNumberBounds = {
     min: number | '';
     max: number | '';
+};
+
+type OperationNumberBounds = {
+    first: EditableNumberBounds;
+    second: EditableNumberBounds;
 };
 
 const OPERATIONS: {
@@ -26,24 +31,37 @@ const OPERATIONS: {
     { op: '/', label: 'Division', maxAllowed: 100 },
 ];
 
-const DEFAULT_OPERATION_BOUNDS: Record<Operation, OperationBounds> = {
-    '+': { min: 2, max: 100 },
-    '-': { min: 2, max: 100 },
-    '*': { min: 2, max: 12 },
-    '/': { min: 2, max: 12 },
+const DEFAULT_OPERATION_BOUNDS: Record<Operation, OperationNumberBounds> = {
+    '+': {
+        first: { min: 2, max: 100 },
+        second: { min: 2, max: 100 },
+    },
+    '-': {
+        first: { min: 2, max: 100 },
+        second: { min: 2, max: 100 },
+    },
+    '*': {
+        first: { min: 2, max: 100 },
+        second: { min: 2, max: 12 },
+    },
+    '/': {
+        first: { min: 2, max: 100 },
+        second: { min: 2, max: 12 },
+    },
 };
 
 function buildOperations(
-    bounds: Record<Operation, OperationBounds>,
+    bounds: Record<Operation, OperationNumberBounds>,
     enabledOperations: Record<Operation, boolean>
 ) {
     const selectedOperations: Partial<Record<Operation, Record<string, number[]>>> = {};
 
     for (const { op } of OPERATIONS) {
         if (enabledOperations[op]) {
+            const { first, second } = bounds[op];
             selectedOperations[op] = {
-                first: [bounds[op].min, bounds[op].max],
-                second: [bounds[op].min, bounds[op].max],
+                first: [first.min as number, first.max as number],
+                second: [second.min as number, second.max as number],
             };
         }
     }
@@ -51,23 +69,47 @@ function buildOperations(
     return selectedOperations;
 }
 
-function getDefaultBounds(gameContext: ReturnType<typeof useGameContext>): Record<Operation, OperationBounds> {
+function getDefaultBounds(gameContext: ReturnType<typeof useGameContext>): Record<Operation, OperationNumberBounds> {
     return {
         '+': {
-            min: gameContext?.operations['+']?.first[0] ?? DEFAULT_OPERATION_BOUNDS['+'].min,
-            max: gameContext?.operations['+']?.first[1] ?? DEFAULT_OPERATION_BOUNDS['+'].max,
+            first: {
+                min: gameContext?.operations['+']?.first[0] ?? DEFAULT_OPERATION_BOUNDS['+'].first.min,
+                max: gameContext?.operations['+']?.first[1] ?? DEFAULT_OPERATION_BOUNDS['+'].first.max,
+            },
+            second: {
+                min: gameContext?.operations['+']?.second[0] ?? DEFAULT_OPERATION_BOUNDS['+'].second.min,
+                max: gameContext?.operations['+']?.second[1] ?? DEFAULT_OPERATION_BOUNDS['+'].second.max,
+            },
         },
         '-': {
-            min: gameContext?.operations['-']?.first[0] ?? DEFAULT_OPERATION_BOUNDS['-'].min,
-            max: gameContext?.operations['-']?.first[1] ?? DEFAULT_OPERATION_BOUNDS['-'].max,
+            first: {
+                min: gameContext?.operations['-']?.first[0] ?? DEFAULT_OPERATION_BOUNDS['-'].first.min,
+                max: gameContext?.operations['-']?.first[1] ?? DEFAULT_OPERATION_BOUNDS['-'].first.max,
+            },
+            second: {
+                min: gameContext?.operations['-']?.second[0] ?? DEFAULT_OPERATION_BOUNDS['-'].second.min,
+                max: gameContext?.operations['-']?.second[1] ?? DEFAULT_OPERATION_BOUNDS['-'].second.max,
+            },
         },
         '*': {
-            min: gameContext?.operations['*']?.first[0] ?? DEFAULT_OPERATION_BOUNDS['*'].min,
-            max: gameContext?.operations['*']?.first[1] ?? DEFAULT_OPERATION_BOUNDS['*'].max,
+            first: {
+                min: gameContext?.operations['*']?.first[0] ?? DEFAULT_OPERATION_BOUNDS['*'].first.min,
+                max: gameContext?.operations['*']?.first[1] ?? DEFAULT_OPERATION_BOUNDS['*'].first.max,
+            },
+            second: {
+                min: gameContext?.operations['*']?.second[0] ?? DEFAULT_OPERATION_BOUNDS['*'].second.min,
+                max: gameContext?.operations['*']?.second[1] ?? DEFAULT_OPERATION_BOUNDS['*'].second.max,
+            },
         },
         '/': {
-            min: gameContext?.operations['/']?.first[0] ?? DEFAULT_OPERATION_BOUNDS['/'].min,
-            max: gameContext?.operations['/']?.first[1] ?? DEFAULT_OPERATION_BOUNDS['/'].max,
+            first: {
+                min: gameContext?.operations['/']?.first[0] ?? DEFAULT_OPERATION_BOUNDS['/'].first.min,
+                max: gameContext?.operations['/']?.first[1] ?? DEFAULT_OPERATION_BOUNDS['/'].first.max,
+            },
+            second: {
+                min: gameContext?.operations['/']?.second[0] ?? DEFAULT_OPERATION_BOUNDS['/'].second.min,
+                max: gameContext?.operations['/']?.second[1] ?? DEFAULT_OPERATION_BOUNDS['/'].second.max,
+            },
         },
     };
 }
@@ -84,12 +126,32 @@ function getDefaultEnabledOperations(gameContext: ReturnType<typeof useGameConte
     };
 }
 
+function isNumberBoundsInvalid(bounds: EditableNumberBounds, maxAllowed: number) {
+    const { min, max } = bounds;
+
+    return min === '' || max === '' || min < 2 || max > maxAllowed || min > max;
+}
+
+function isBoundFieldInvalid(
+    bounds: EditableNumberBounds,
+    field: keyof EditableNumberBounds,
+    maxAllowed: number
+) {
+    const { min, max } = bounds;
+
+    if (field === 'min') {
+        return min === '' || min < 2 || (max !== '' && min > max);
+    }
+
+    return max === '' || max > maxAllowed || (min !== '' && min > max);
+}
+
 export default function Custom() {
     const router = useRouter();
     const gameContext = useGameContext();
 
     const [timeFormat, setTimeFormat] = useState(gameContext?.timeFormat ?? 120);
-    const [operationBounds, setOperationBounds] = useState<Record<Operation, EditableOperationBounds>>(() =>
+    const [operationBounds, setOperationBounds] = useState<Record<Operation, OperationNumberBounds>>(() =>
         getDefaultBounds(gameContext)
     );
     const [enabledOperations, setEnabledOperations] = useState<Record<Operation, boolean>>(() =>
@@ -97,13 +159,21 @@ export default function Custom() {
     );
     const [error, setError] = useState('');
 
-    function updateOperationBound(op: Operation, field: keyof OperationBounds, value: string) {
+    function updateOperationBound(
+        op: Operation,
+        number: 'first' | 'second',
+        field: keyof NumberBounds,
+        value: string
+    ) {
         if (value === '') {
             setOperationBounds((prev) => ({
                 ...prev,
                 [op]: {
                     ...prev[op],
-                    [field]: '',
+                    [number]: {
+                        ...prev[op][number],
+                        [field]: '',
+                    },
                 },
             }));
             setError('');
@@ -119,7 +189,10 @@ export default function Custom() {
             ...prev,
             [op]: {
                 ...prev[op],
-                [field]: parsed,
+                [number]: {
+                    ...prev[op][number],
+                    [field]: parsed,
+                },
             },
         }));
         setError('');
@@ -143,19 +216,36 @@ export default function Custom() {
                 continue;
             }
 
-            const { min, max } = operationBounds[op];
+            const { first, second } = operationBounds[op];
 
-            if (min === '' || max === '') {
-                return `${label} min and max are required.`;
+            if (isNumberBoundsInvalid(first, maxAllowed)) {
+                if (first.min === '' || first.max === '') {
+                    return `${label} first number min and max are required.`;
+                }
+                if (first.min < 2) {
+                    return `${label} first number minimum must be at least 2.`;
+                }
+                if (first.max > maxAllowed) {
+                    return `${label} first number maximum cannot exceed ${maxAllowed}.`;
+                }
+                if (first.min > first.max) {
+                    return `${label} first number minimum cannot be greater than maximum.`;
+                }
             }
-            if (min < 2) {
-                return `${label} minimum must be at least 2.`;
-            }
-            if (max > maxAllowed) {
-                return `${label} maximum cannot exceed ${maxAllowed}.`;
-            }
-            if (min > max) {
-                return `${label} minimum cannot be greater than maximum.`;
+
+            if (isNumberBoundsInvalid(second, maxAllowed)) {
+                if (second.min === '' || second.max === '') {
+                    return `${label} second number min and max are required.`;
+                }
+                if (second.min < 2) {
+                    return `${label} second number minimum must be at least 2.`;
+                }
+                if (second.max > maxAllowed) {
+                    return `${label} second number maximum cannot exceed ${maxAllowed}.`;
+                }
+                if (second.min > second.max) {
+                    return `${label} second number minimum cannot be greater than maximum.`;
+                }
             }
         }
 
@@ -167,23 +257,9 @@ export default function Custom() {
             return false;
         }
 
-        const { min, max } = operationBounds[op];
+        const { first, second } = operationBounds[op];
 
-        return min === '' || max === '' || min < 2 || max > maxAllowed || min > max;
-    }
-
-    function isBoundInvalid(op: Operation, field: keyof EditableOperationBounds, maxAllowed: number) {
-        if (!enabledOperations[op]) {
-            return false;
-        }
-
-        const { min, max } = operationBounds[op];
-
-        if (field === 'min') {
-            return min === '' || min < 2 || (max !== '' && min > max);
-        }
-
-        return max === '' || max > maxAllowed || (min !== '' && min > max);
+        return isNumberBoundsInvalid(first, maxAllowed) || isNumberBoundsInvalid(second, maxAllowed);
     }
 
     function startCustomGame() {
@@ -195,7 +271,7 @@ export default function Custom() {
 
         gameContext?.setGameMode('custom');
         gameContext?.setTimeFormat(timeFormat);
-        gameContext?.setOperations(buildOperations(operationBounds as Record<Operation, OperationBounds>, enabledOperations));
+        gameContext?.setOperations(buildOperations(operationBounds, enabledOperations));
         router.push('/game');
     }
 
@@ -218,6 +294,7 @@ export default function Custom() {
                     {OPERATIONS.map(({ op, label, maxAllowed }) => {
                         const isEnabled = enabledOperations[op];
                         const isInvalid = isOperationInvalid(op, maxAllowed);
+                        const { first, second } = operationBounds[op];
 
                         return (
                             <div
@@ -247,34 +324,94 @@ export default function Custom() {
                                         />
                                     </label>
                                 </div>
-                                <div className="grid grid-cols-2 gap-3">
+
+                                <div className="space-y-3">
                                     <div>
-                                        <label className="mb-1 block text-xs font-medium text-gray-600">
-                                            Min
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min={2}
-                                            max={maxAllowed}
-                                            value={operationBounds[op].min}
-                                            onChange={(e) => updateOperationBound(op, 'min', e.target.value)}
-                                            className={isBoundInvalid(op, 'min', maxAllowed) ? invalidInputClassName : inputClassName}
-                                            disabled={!isEnabled}
-                                        />
+                                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                            First Number
+                                        </p>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="mb-1 block text-xs font-medium text-gray-600">
+                                                    Min
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min={2}
+                                                    max={maxAllowed}
+                                                    value={first.min}
+                                                    onChange={(e) => updateOperationBound(op, 'first', 'min', e.target.value)}
+                                                    className={
+                                                        isEnabled && isBoundFieldInvalid(first, 'min', maxAllowed)
+                                                            ? invalidInputClassName
+                                                            : inputClassName
+                                                    }
+                                                    disabled={!isEnabled}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="mb-1 block text-xs font-medium text-gray-600">
+                                                    Max
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min={2}
+                                                    max={maxAllowed}
+                                                    value={first.max}
+                                                    onChange={(e) => updateOperationBound(op, 'first', 'max', e.target.value)}
+                                                    className={
+                                                        isEnabled && isBoundFieldInvalid(first, 'max', maxAllowed)
+                                                            ? invalidInputClassName
+                                                            : inputClassName
+                                                    }
+                                                    disabled={!isEnabled}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
+
                                     <div>
-                                        <label className="mb-1 block text-xs font-medium text-gray-600">
-                                            Max
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min={2}
-                                            max={maxAllowed}
-                                            value={operationBounds[op].max}
-                                            onChange={(e) => updateOperationBound(op, 'max', e.target.value)}
-                                            className={isBoundInvalid(op, 'max', maxAllowed) ? invalidInputClassName : inputClassName}
-                                            disabled={!isEnabled}
-                                        />
+                                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                            Second Number
+                                        </p>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="mb-1 block text-xs font-medium text-gray-600">
+                                                    Min
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min={2}
+                                                    max={maxAllowed}
+                                                    value={second.min}
+                                                    onChange={(e) => updateOperationBound(op, 'second', 'min', e.target.value)}
+                                                    className={
+                                                        isEnabled && isBoundFieldInvalid(second, 'min', maxAllowed)
+                                                            ? invalidInputClassName
+                                                            : inputClassName
+                                                    }
+                                                    disabled={!isEnabled}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="mb-1 block text-xs font-medium text-gray-600">
+                                                    Max
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min={2}
+                                                    max={maxAllowed}
+                                                    value={second.max}
+                                                    onChange={(e) => updateOperationBound(op, 'second', 'max', e.target.value)}
+                                                    className={
+                                                        isEnabled && isBoundFieldInvalid(second, 'max', maxAllowed)
+                                                            ? invalidInputClassName
+                                                            : inputClassName
+                                                    }
+                                                    disabled={!isEnabled}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

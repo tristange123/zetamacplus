@@ -25,10 +25,11 @@ export function GameProvider({ children } : GameProviderProps) {
     const [score, setScore] = useState<number>(0);
     const [testsAttempted, setTestsAttempted] = useState<number>(0);
     const [problemSet, setProblemSet] = useState<Problem[]>([]);
+    const [dailyProblems, setDailyProblems] = useState<Problem[]>([]);
     
 
     return (
-        <GameContext.Provider value={{ timeFormat, setTimeFormat, gameMode, setGameMode, problemType, setProblemType, operations, setOperations, score, setScore, testsAttempted, setTestsAttempted, problemSet, setProblemSet}}>
+        <GameContext.Provider value={{ timeFormat, setTimeFormat, gameMode, setGameMode, problemType, setProblemType, operations, setOperations, score, setScore, testsAttempted, setTestsAttempted, problemSet, setProblemSet, dailyProblems, setDailyProblems}}>
             {children}
         </GameContext.Provider>
     );

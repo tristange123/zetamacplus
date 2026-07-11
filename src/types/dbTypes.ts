@@ -56,3 +56,9 @@ export type TestDb = {
   userId: string | null
 }
 
+export type GameModeTopTests = {
+  first: TestDb | null,
+  second: TestDb | null,
+  third: TestDb | null,
+}
+

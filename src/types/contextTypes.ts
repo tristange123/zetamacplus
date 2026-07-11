@@ -15,4 +15,6 @@ export type GameContext = {
     setTestsAttempted: (name: number) => void,
     problemSet: Problem[],
     setProblemSet: (name: Problem[]) => void,
+    dailyProblems: Problem[],
+    setDailyProblems: (name: Problem[]) => void
 }

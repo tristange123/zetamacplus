@@ -5,7 +5,7 @@ export type Problem = {
     answer: number,
     statement: string,
     solveTime: number | null,
-    orderNumber: number | null
+    orderNumber: number
 
 }
 
@@ -13,9 +13,9 @@ export type GameModeName = MainGameModeName | ExtraGameModeName;
 
 export type MainGameModeName = "standard" | "rapid" | "sprint" | "hard";
 
-export type ExtraGameModeName = "custom" 
+export type ExtraGameModeName = "custom" | "daily" 
 
-export type ProblemType = "easy" | "medium" | "hard" 
+export type ProblemType = "easy" | "medium" | "hard" | "daily" | "easy-medium"
 
 export type Operation = "+" | "-" | "*" | "/" 
 

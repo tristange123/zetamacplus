@@ -146,3 +146,18 @@ model Problem {
 
   @@index([testId])
 }
+
+model Daily {
+  id String @id @default(uuid())
+  operation String
+  firstNum Int
+  secondNum Int
+  answer Int
+  statement String
+  orderNumber Int
+  solveTime Float?
+}
+
+model DailyDate {
+  date DateTime @id
+}
