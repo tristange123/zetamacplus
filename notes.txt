@@ -20,7 +20,7 @@ fix need email verif bug
 
 advanced stats
 
-
+fix reload page glitch!! for submited 0 runs
 
 using error handling on the frontend
 google sign on
@@ -41,3 +41,5 @@ sitemap robots.txt?
 metadata descriptoin
 
 Local database: "postgresql://postgres:$Pizza2122@localhost:5432/metamac_reborn"
+
+Google:

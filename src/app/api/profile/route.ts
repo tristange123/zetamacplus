@@ -4,6 +4,8 @@ import prisma from '@/lib/db/prisma';
 import requireSession from '@/lib/auth/requireSession';
 import {MAIN_GAME_MODES} from "@/lib/game/gameModeGlobals"
 import {type MainGameModeName} from "@/types/frontendTypes"
+import { auth, createProfileForUser } from "@/lib/auth/auth";
+import { headers } from "next/headers";
 
 function isMainGameModeName(gameMode: string): gameMode is MainGameModeName {
     return gameMode in MAIN_GAME_MODES;
@@ -33,27 +35,22 @@ export async function GET(){
     }
 }
 
-export async function POST (req: Request){
+export async function POST (){
     try {
-        const body = await req.json();
-        if (body.username && body.email && body.timeJoined && body.userId){
-            await prisma.profile.create({
-                data: {
-                    username: body.username,
-                    email: body.email,
-                    timeJoined: body.timeJoined,
-                    userId: body.userId
-                }
-            });
-            return NextResponse.json({username: body.username, email: body.email, timeJoined: body.timeJoined, userId: body.userId});
+        const session = await auth.api.getSession({
+            headers: await headers(),
+        });
+        if (session){
+            const profile = await createProfileForUser(session.user);
+            return NextResponse.json(profile);
         }
         else{
-            return NextResponse.json({error: "Missing fields"}, {status: 400});
+            return NextResponse.json({error: "Missing session"}, {status: 400});
         }
     }
     catch (err){
         console.log(err);
-        return NextResponse.json({error: "Sever Error"}, {status: 500});
+        return NextResponse.json({error: err}, {status: 500});
     }
 }
 
