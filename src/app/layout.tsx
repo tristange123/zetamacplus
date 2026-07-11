@@ -4,6 +4,7 @@
 import {ReactNode} from 'react';
 import {GameProvider} from './gameContext';
 import { authClient } from '@/lib/auth/auth-client';
+import { useRouter } from 'next/navigation'
 import {Crown, ChartNoAxesCombined as Chart, Play} from 'lucide-react'
 import Link from 'next/link';
 import "./globals.css";
@@ -14,7 +15,8 @@ type LayoutProps = {
 }
 export default function LayoutClientSide({children}: LayoutProps) {
 
-  
+  const router = useRouter();
+
   let userLoggedIn = true;
   let userVerified = true;
   let username;
@@ -33,6 +35,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
 
   async function clickSignOut() {
       await authClient.signOut();
+      router.push("/");
   }
 
 
