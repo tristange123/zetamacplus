@@ -125,6 +125,7 @@ model Test {
   userId String?
   user User? @relation(fields:[userId], references: [id] , onDelete: Cascade) 
   problems Problem[]
+  completed Boolean   @default(false)
 
   @@index([userId])
   @@index([gameMode, score])

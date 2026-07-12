@@ -11,6 +11,8 @@ type startProps = {
     username: string | null
 }
 
+
+
 export default function StartClientSide({userLoggedIn, username}: startProps) {
     const router = useRouter();
     const gameContext = useGameContext();
@@ -33,6 +35,35 @@ export default function StartClientSide({userLoggedIn, username}: startProps) {
             { label: 'Sprint', subtitle: '10 secs', gameMode: 'sprint', tooltip: "Addition and Subtraction: (2-10) by (2-10)\nMultiplication and Division: (2-10) by (2-10)", icon: SportShoe },
             { label: 'Hard', subtitle: '180 secs', gameMode: 'hard', tooltip: "Addition and Subtraction: (20-1000) by (20-1000)\nMultiplication and Division: (20-100) by (6-20)", icon: Skull },
     ];
+
+    async function handleStart () {
+        
+        try{
+            const testIdRes = await fetch('/api/test', {
+                method: 'POST',
+                headers: { "Content-Type": 'application/json'},
+                body: JSON.stringify({gameMode: gameModeInput})
+            });
+            if (testIdRes.ok){
+                const testIdJson = await testIdRes.json();
+
+                gameContext?.setGameMode(gameModeInput);
+                gameContext?.setProblemType(problemTypeInput);
+                gameContext?.setTimeFormat(timeFormatInput);
+                gameContext?.setOperations(BOUNDS[problemTypeInput])
+                gameContext?.setScore(0);
+                gameContext?.setTestsAttempted(0);
+                gameContext?.setProblemSet([]);
+                router.push(`/game/${gameModeInput}/${testIdJson.testId}`);
+            }
+            else{
+                throw new Error('Failed to create test');
+            }
+        }
+        catch(err){
+            console.log(err);
+        }
+    }
 
     return (
         <section className="flex min-h-[calc(100vh-9rem)] flex-col items-center justify-center">
@@ -112,16 +143,7 @@ export default function StartClientSide({userLoggedIn, username}: startProps) {
 
                 <div className="mt-6 flex justify-center">
                     <button
-                        onClick={() => {
-                            gameContext?.setGameMode(gameModeInput);
-                            gameContext?.setProblemType(problemTypeInput);
-                            gameContext?.setTimeFormat(timeFormatInput);
-                            gameContext?.setOperations(BOUNDS[problemTypeInput])
-                            gameContext?.setScore(0);
-                            gameContext?.setTestsAttempted(0);
-                            gameContext?.setProblemSet([]);
-                            router.push('/game');
-                        }}
+                        onClick={() => {handleStart()}}
                         className="rounded-lg bg-gray-800 px-8 py-3 text-base font-semibold text-gray-100 transition hover:bg-gray-900"
                     >
                         Start

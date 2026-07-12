@@ -1,26 +1,26 @@
 "use client"
 
-import { type Problem, type ProblemType, type GameModeName, type OperationBounds } from '@/types/frontendTypes'
+import { type Problem, type ProblemType, type MainGameModeName, type OperationBounds } from '@/types/frontendTypes'
+import {MAIN_GAME_MODES, BOUNDS} from '@/lib/game/gameModeGlobals'
 import {generateProblem} from '@/lib/game/generateProblem'
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGameContext} from '@/app/gameContext'
 
 
+type props = {
+    gameMode: MainGameModeName,
+    testId: string
+}
 
-export default function Game() {
+
+export default function MainGameModeGame({gameMode, testId}: props) {
     // Load gameContext
     const router = useRouter();
     const context = useGameContext();
-    const timeFormat = context?.timeFormat ?? 120;
-    const problemType: ProblemType = context?.problemType ?? 'medium';
-    const operations: OperationBounds = context?.operations ?? {
-            '+': {first: [2,100], second: [2,100]}, 
-            '-': {first: [2,100], second: [2,100]}, 
-            '*': {first: [2,100], second: [2,12]}, 
-            '/': {first: [2,100], second: [2,12]}
-        };
-    const gameMode: GameModeName = context?.gameMode ?? 'standard'
+    const timeFormat = MAIN_GAME_MODES[gameMode].timeFormat;
+    const problemType = MAIN_GAME_MODES[gameMode].problemType;
+    const operations: OperationBounds = BOUNDS[problemType];
 
     // Gameplay States
     const [currProblem, setCurrProblem] = useState<Problem>(() => generateProblem(operations, 1));
@@ -41,7 +41,6 @@ export default function Game() {
     const inputRef = useRef<HTMLInputElement>(null);
 
     
-  
     async function updateTestsAttempted () {
         try{
             await fetch('/api/profile', {
@@ -76,7 +75,7 @@ export default function Game() {
             context?.setTestsAttempted(testsAttempted.current);
             context?.setProblemSet(pastProblems.current);
             context?.setScore(score);
-            router.replace('results');
+            router.push(`/results/${testId}`);
         }
     }, [time, finished]);
 
@@ -160,7 +159,7 @@ export default function Game() {
                     <button
                         onClick={() => {
                             updateTestsAttempted();
-                            router.back();
+                            router.push('/');
                         }}
                         className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
                     >
@@ -172,3 +171,4 @@ export default function Game() {
         </section>
     );
 } 
+

@@ -2,10 +2,12 @@
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { useRouter } from 'next/navigation';
-import {useGameContext} from '../gameContext'
+import {useGameContext} from '../../gameContext'
 import {useEffect } from 'react';
 import {type GameContext} from '@/types/contextTypes'
+import {type TestDb} from '@/types/dbTypes'
 import {authClient} from '@/lib/auth/auth-client'
+import {MAIN_GAME_MODES} from '@/lib/game/gameModeGlobals'
 
 
 
@@ -56,7 +58,7 @@ function exponentialSmoothing(data: Record<string, number>[], alpha = 0.5) {
     return smoothed;
 }
 
-export default function ClientSide() {
+export default function ClientSide({testId}: {testId: string}) {
     const router = useRouter();
     const gameContext: GameContext = useGameContext();
     const timeFormat = gameContext?.timeFormat
@@ -72,23 +74,37 @@ export default function ClientSide() {
           try{
               if (session && session.user.emailVerified){
 
-                const testRes = await fetch('/api/test', {
-                    method: 'POST',
-                    headers: { "Content-Type": 'application/json'},
-                    body: JSON.stringify({score, time: now, gameMode: gameContext.gameMode})
-                });
-                const testJson = await testRes.json();
-                await fetch('/api/profile', {
+                const testResultRes = await fetch('/api/test', {
                     method: 'PATCH',
                     headers: { "Content-Type": 'application/json'},
-                    body: JSON.stringify({testId: testJson.testId, score, gameMode: gameContext.gameMode, testsAttempted: gameContext.testsAttempted})
+                    body: JSON.stringify({testId, time: now, gameMode: gameContext.gameMode})
                 });
-                await fetch('/api/problem', {
-                    method: 'POST',
-                    headers: { "Content-Type": 'application/json'},
-                    body: JSON.stringify({testId: testJson.testId, gameMode: gameContext.gameMode, problemSet: gameContext.problemSet})
-                });
+
+                if (testResultRes.ok){
+                    await fetch('/api/profile', {
+                        method: 'PATCH',
+                        headers: { "Content-Type": 'application/json'},
+                        body: JSON.stringify({testId, score, gameMode: gameContext.gameMode, testsAttempted: gameContext.testsAttempted})
+                    });
+                    await fetch('/api/problem', {
+                        method: 'POST',
+                        headers: { "Content-Type": 'application/json'},
+                        body: JSON.stringify({testId, gameMode: gameContext.gameMode, problemSet: gameContext.problemSet})
+                     
+                    });
+                }
+
+                const testResult = await testResultRes.json();
+                gameContext?.setGameMode(testResult.gameMode);
+                gameContext?.setProblemType(MAIN_GAME_MODES[testResult.gameMode].timeFormat);
+                gameContext?.setTimeFormat(timeFormatInput);
+                gameContext?.setOperations(BOUNDS[problemTypeInput])
+                gameContext?.setScore(0);
+                gameContext?.setTestsAttempted(0);
+                gameContext?.setProblemSet([]);
               }
+               
+              
           } 
           catch (err){
               console.log(err);

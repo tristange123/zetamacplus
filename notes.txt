@@ -41,5 +41,8 @@ sitemap robots.txt?
 metadata descriptoin
 
 Local database: "postgresql://postgres:$Pizza2122@localhost:5432/metamac_reborn"
+rank to leaderboard,
+ex button for chervon
 
-Google:
+
+for stats use completed = true

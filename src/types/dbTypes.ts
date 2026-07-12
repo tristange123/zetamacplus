@@ -53,8 +53,11 @@ export type TestDb = {
   score: number,
   time: Date,
   gameMode: string,
-  userId: string | null
+  userId: string | null,
+  completed: boolean
 }
+
+
 
 export type GameModeTopTests = {
   first: TestDb | null,
