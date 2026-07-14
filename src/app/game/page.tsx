@@ -47,11 +47,14 @@ export default function Game() {
 
     // timer logic
     useEffect(() => {
+        const localOperations = JSON.parse(localStorage.getItem("operations") ?? "{'+': {first: [2,100], second: [2,100]},  '-': {first: [2,100], second: [2,100]},  '*': {first: [2,100], second: [2,12]}, '/': {first: [2,100], second: [2,12]}}")
+        const localTimeFormat = Number(localStorage.getItem("timeFormat") ?? "120");
+        setOperations(localOperations);
+        setTimeFormat(localTimeFormat);
+        setTime(localTimeFormat);
 
-        setOperations(JSON.parse(localStorage.getItem("operations") ?? "{'+': {first: [2,100], second: [2,100]},  '-': {first: [2,100], second: [2,100]},  '*': {first: [2,100], second: [2,12]}, '/': {first: [2,100], second: [2,12]}}"));
-        setTimeFormat(Number(localStorage.getItem("timeFormat") ?? "120"));
-        setTime(Number(localStorage.getItem("timeFormat") ?? "120"));
-        setCurrProblem(generateProblem(JSON.parse(localStorage.getItem("operations") ?? "{'+': {first: [2,100], second: [2,100]},  '-': {first: [2,100], second: [2,100]},  '*': {first: [2,100], second: [2,12]}, '/': {first: [2,100], second: [2,12]}}"), 1))
+        context.setGameMode(localStorage.getItem("gameMode") as GameModeName ?? 'standard')
+        setCurrProblem(generateProblem(localOperations, 1))
         const timeId = setInterval(() => {setTime((t) => {
                 if (t > 0){
                     return t - 0.1;

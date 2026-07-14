@@ -68,15 +68,15 @@ export default function ClientSide() {
     const {data: session} = authClient.useSession()
     const solveTimes: number[] = []
 
-    useEffect(() => {
-        setTimeFormat(Number(localStorage.getItem("timeFormat") ?? "120"))
-        setProblemList(JSON.parse(localStorage.getItem("problemSet") ?? "[]"));
-        setScore(Number(localStorage.getItem("score") ?? "0"));
-    },[])
+
     
     
     useEffect (() => {
+      setTimeFormat(Number(localStorage.getItem("timeFormat") ?? "120"))
+      setProblemList(JSON.parse(localStorage.getItem("problemSet") ?? "[]"));
+      setScore(Number(localStorage.getItem("score") ?? "0"));
       async function postData(){
+        
           const now = new Date();
           try{
               if (session && session.user.emailVerified && localStorage.getItem("testLogged") == "false"){
