@@ -37,20 +37,22 @@ export default function LayoutClientSide({children}: LayoutProps) {
       await authClient.signOut();
       router.push("/");
   }
+  
+//   LOADING SCREEN: not sure if I want to have this
 
-  if (isPending) {
-    return (
-      <html>
-        <body>
-          <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100 text-gray-800">
-            <p className="text-lg font-medium text-gray-700">Loading User Information</p>
-            {/* <Loader2 className="mt-4 h-8 w-8 animate-spin text-gray-600" aria-hidden="true" />
-            <span className="sr-only">Loading</span> */}
-          </div>
-        </body>
-      </html>
-    );
-  }
+//   if (isPending) {
+//     return (
+//       <html>
+//         <body>
+//           <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100 text-gray-800">
+//             <p className="text-lg font-medium text-gray-700">Loading User Information</p>
+//             {/* <Loader2 className="mt-4 h-8 w-8 animate-spin text-gray-600" aria-hidden="true" />
+//             <span className="sr-only">Loading</span> */}
+//           </div>
+//         </body>
+//       </html>
+//     );
+//   }
 
 
   return (

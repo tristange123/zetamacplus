@@ -12,25 +12,15 @@ export default function Game() {
     // Load gameContext
     const router = useRouter();
     const context = useGameContext();
-    const timeFormat = context?.timeFormat ?? 120;
-    const problemType: ProblemType = context?.problemType ?? 'medium';
-    const operations: OperationBounds = context?.operations ?? {
-            '+': {first: [2,100], second: [2,100]}, 
-            '-': {first: [2,100], second: [2,100]}, 
-            '*': {first: [2,100], second: [2,12]}, 
-            '/': {first: [2,100], second: [2,12]}
-        };
-    const gameMode: GameModeName = context?.gameMode ?? 'standard'
-
+    const [timeFormat, setTimeFormat] = useState<number>(context.timeFormat);
+    const [operations, setOperations] = useState<OperationBounds>({'+': {first: [2,100], second: [2,100]},  '-': {first: [2,100], second: [2,100]},  '*': {first: [2,100], second: [2,12]}, '/': {first: [2,100], second: [2,12]}});
     // Gameplay States
-    const [currProblem, setCurrProblem] = useState<Problem>(() => generateProblem(operations, 1));
-    if (problemType == 'daily'){
-
-    }
+    const [currProblem, setCurrProblem] = useState<Problem>();
+   
     const [display, setDisplay] = useState('');
     const [inputKey, setInputKey] = useState(0);
     const [score, setScore] = useState(0);
-    const [time, setTime] = useState(timeFormat);
+    const [time, setTime] = useState<number>(context.timeFormat);
     const [finished, setFinished] = useState(false);
 
 
@@ -41,7 +31,7 @@ export default function Game() {
     const inputRef = useRef<HTMLInputElement>(null);
 
     
-  
+    
     async function updateTestsAttempted () {
         try{
             await fetch('/api/profile', {
@@ -57,6 +47,11 @@ export default function Game() {
 
     // timer logic
     useEffect(() => {
+
+        setOperations(JSON.parse(localStorage.getItem("operations") ?? "{'+': {first: [2,100], second: [2,100]},  '-': {first: [2,100], second: [2,100]},  '*': {first: [2,100], second: [2,12]}, '/': {first: [2,100], second: [2,12]}}"));
+        setTimeFormat(Number(localStorage.getItem("timeFormat") ?? "120"));
+        setTime(Number(localStorage.getItem("timeFormat") ?? "120"));
+        setCurrProblem(generateProblem(JSON.parse(localStorage.getItem("operations") ?? "{'+': {first: [2,100], second: [2,100]},  '-': {first: [2,100], second: [2,100]},  '*': {first: [2,100], second: [2,12]}, '/': {first: [2,100], second: [2,12]}}"), 1))
         const timeId = setInterval(() => {setTime((t) => {
                 if (t > 0){
                     return t - 0.1;
@@ -76,6 +71,11 @@ export default function Game() {
             context?.setTestsAttempted(testsAttempted.current);
             context?.setProblemSet(pastProblems.current);
             context?.setScore(score);
+
+            localStorage.setItem("testsAttempted", JSON.stringify(testsAttempted.current));
+            localStorage.setItem("problemSet", JSON.stringify(pastProblems.current));
+            localStorage.setItem("score", String(score));
+
             router.replace('results');
         }
     }, [time, finished]);
@@ -93,18 +93,20 @@ export default function Game() {
             else{
                 timeSpent = solveTimes?.current[solveTimes.current.length - 1] - time;
             }
+            if(currProblem) {
+                let currProblemTimed = currProblem;
+                
+                currProblemTimed.solveTime = timeSpent;
+                currProblemTimed.orderNumber = score;
+                pastProblems.current.push(currProblemTimed);
+                solveTimes.current.push(time);
 
-            let currProblemTimed = currProblem;
-            currProblemTimed.solveTime = timeSpent;
-            currProblemTimed.orderNumber = score;
-            pastProblems.current.push(currProblemTimed);
-            solveTimes.current.push(time);
+                setScore(score + 1);
+                setDisplay('');
 
-            setScore(score + 1);
-            setDisplay('');
-
-            let newProb:Problem = generateProblem(operations, score + 1);
-            setCurrProblem(newProb);
+                let newProb:Problem = generateProblem(operations, score + 1);
+                setCurrProblem(newProb);
+            }
         }
     }
 
@@ -136,7 +138,7 @@ export default function Game() {
                 <div className="relative left-1/2 right-1/2 w-screen -translate-x-1/2 bg-gray-200 py-8">
                     <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-4 px-6">
                         <h2 className="text-6xl font-semibold tracking-tight text-gray-800 md:text-5xl">
-                            {currProblem.statement}
+                            {currProblem?.statement}
                         </h2>
                         <input
                             key={inputKey}
@@ -144,7 +146,7 @@ export default function Game() {
                             autoFocus
                             type="number"
                             value={display}
-                            onChange={(e) => checkDisplay(e, currProblem.answer)}
+                            onChange={(e) => checkDisplay(e, currProblem?.answer ?? 999)}
                             className="w-48 rounded-md border border-gray-300 bg-white px-4 py-3 text-center text-[1.6875rem] text-gray-800 shadow-sm outline-none transition [appearance:textfield] focus:border-gray-500 focus:ring-2 focus:ring-gray-300 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         />
                     </div>

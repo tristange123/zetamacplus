@@ -2,8 +2,8 @@
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { useRouter } from 'next/navigation';
-import {useGameContext} from '../../gameContext'
-import {useEffect } from 'react';
+import {useGameContext} from '../gameContext'
+import {useState, useEffect } from 'react';
 import {type GameContext} from '@/types/contextTypes'
 import { type Problem } from '@/types/frontendTypes'
 import {type TestDb} from '@/types/dbTypes'
@@ -59,41 +59,49 @@ function exponentialSmoothing(data: Record<string, number>[], alpha = 0.5) {
     return smoothed;
 }
 
-export default function ClientSide({testId}: {testId: string}) {
+export default function ClientSide() {
     const router = useRouter();
     const gameContext: GameContext = useGameContext();
-    const timeFormat = Number(localStorage.getItem("timeFormat")) ?? 120;
-    const problemList: Problem[] = JSON.parse(localStorage.getItem("problemSet") ?? "[]");
-    const score = Number(localStorage.getItem("score")) ?? 0;
+    const [timeFormat, setTimeFormat] = useState(gameContext.timeFormat);
+    const [problemList, setProblemList] = useState<Problem[]>(gameContext.problemSet)
+    const [score, setScore] = useState(gameContext.score);
     const {data: session} = authClient.useSession()
     const solveTimes: number[] = []
+
+    useEffect(() => {
+        setTimeFormat(Number(localStorage.getItem("timeFormat") ?? "120"))
+        setProblemList(JSON.parse(localStorage.getItem("problemSet") ?? "[]"));
+        setScore(Number(localStorage.getItem("score") ?? "0"));
+    },[])
     
     
     useEffect (() => {
       async function postData(){
           const now = new Date();
           try{
-              if (session && session.user.emailVerified){
+              if (session && session.user.emailVerified && localStorage.getItem("testLogged") == "false"){
 
                 const testResultRes = await fetch('/api/test', {
-                    method: 'PATCH',
+                    method: 'POST',
                     headers: { "Content-Type": 'application/json'},
-                    body: JSON.stringify({testId, time: now, gameMode: gameContext.gameMode})
+                    body: JSON.stringify({time: now, gameMode: gameContext.gameMode, score: gameContext.score})
                 });
 
-                if (testResultRes.ok){
-                    await fetch('/api/profile', {
-                        method: 'PATCH',
-                        headers: { "Content-Type": 'application/json'},
-                        body: JSON.stringify({testId, score, gameMode: gameContext.gameMode, testsAttempted: gameContext.testsAttempted})
-                    });
-                    await fetch('/api/problem', {
-                        method: 'POST',
-                        headers: { "Content-Type": 'application/json'},
-                        body: JSON.stringify({testId, gameMode: gameContext.gameMode, problemSet: gameContext.problemSet})
+                const testResult = await testResultRes.json();
+
+                await fetch('/api/profile', {
+                    method: 'PATCH',
+                    headers: { "Content-Type": 'application/json'},
+                    body: JSON.stringify({testId: testResult.id, score, gameMode: gameContext.gameMode, testsAttempted: gameContext.testsAttempted})
+                });
+                await fetch('/api/problem', {
+                    method: 'POST',
+                    headers: { "Content-Type": 'application/json'},
+                    body: JSON.stringify({testId: testResult.id, gameMode: gameContext.gameMode, problemSet: gameContext.problemSet})
                      
-                    });
-                }
+                });
+                localStorage.setItem("testLogged", "true");
+
               }
                
               
@@ -181,7 +189,10 @@ export default function ClientSide({testId}: {testId: string}) {
 
                 <div className="mt-6 flex justify-center gap-3">
                     <button
-                        onClick={() => {router.replace("/game");}}
+                        onClick={() => {
+                            localStorage.setItem("testLogged", "false");
+                            router.replace("/game");
+                        }}
                         className="rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-300"
                     >
                         Restart

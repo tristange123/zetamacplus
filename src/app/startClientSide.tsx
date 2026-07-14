@@ -39,26 +39,22 @@ export default function StartClientSide({userLoggedIn, username}: startProps) {
     async function handleStart () {
         
         try{
-            const testIdRes = await fetch('/api/test', {
-                method: 'POST',
-                headers: { "Content-Type": 'application/json'},
-                body: JSON.stringify({gameMode: gameModeInput})
-            });
-            if (testIdRes.ok){
-                const testIdJson = await testIdRes.json();
+            
 
-                gameContext?.setGameMode(gameModeInput);
-                gameContext?.setProblemType(problemTypeInput);
-                gameContext?.setTimeFormat(timeFormatInput);
-                gameContext?.setOperations(BOUNDS[problemTypeInput])
-                gameContext?.setScore(0);
-                gameContext?.setTestsAttempted(0);
-                gameContext?.setProblemSet([]);
-                router.push(`/game/${gameModeInput}/${testIdJson.testId}`);
-            }
-            else{
-                throw new Error('Failed to create test');
-            }
+            gameContext?.setGameMode(gameModeInput);
+            localStorage.setItem("gameMode", gameModeInput);
+            gameContext?.setProblemType(problemTypeInput);
+            localStorage.setItem("problemType", problemTypeInput);
+            gameContext?.setTimeFormat(timeFormatInput);
+            localStorage.setItem("timeFormat", String(timeFormatInput));
+            gameContext?.setOperations(BOUNDS[problemTypeInput])
+            localStorage.setItem("operations", JSON.stringify(BOUNDS[problemTypeInput]));
+            gameContext?.setScore(0);
+            gameContext?.setTestsAttempted(0);
+            gameContext?.setProblemSet([]);
+
+            localStorage.setItem("testLogged","false");
+            router.push(`/game`);
         }
         catch(err){
             console.log(err);

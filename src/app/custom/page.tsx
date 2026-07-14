@@ -270,8 +270,14 @@ export default function Custom() {
         }
 
         gameContext?.setGameMode('custom');
+        localStorage.setItem("gameMode", "custom");
         gameContext?.setTimeFormat(timeFormat);
+        localStorage.setItem("timeFormat", String(timeFormat));
         gameContext?.setOperations(buildOperations(operationBounds, enabledOperations));
+        localStorage.setItem("operations", JSON.stringify(buildOperations(operationBounds, enabledOperations)));
+
+        localStorage.setItem("testLogged", "false");
+        
         router.push('/game');
     }
 
