@@ -1,41 +1,59 @@
 import prisma from "@/lib/db/prisma"
 import { NextResponse } from "next/server";
-import { Problem } from "@/types/frontendTypes"
+import { type Problem } from "@/types/frontendTypes"
 import {generateDailyGame} from "@/lib/game/generateDailyGame"
 
 
+function getUtcDateKey(date: Date) {
+    return date.toISOString().slice(0, 10);
+}
+
+function getUtcDayStart(date = new Date()) {
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+}
+
+async function replaceDailyGame(date: Date): Promise<Problem[]> {
+    const problems = generateDailyGame();
+
+    await prisma.$transaction([
+        prisma.daily.deleteMany(),
+        prisma.dailyDate.deleteMany(),
+        prisma.dailyDate.create({
+            data: {date}
+        }),
+        prisma.daily.createMany({
+            data: problems
+        })
+    ]);
+
+    return problems;
+}
+
 export async function GET(){
     try {
-        const dbDateArr = await prisma.dailyDate.findMany();
-        if (dbDateArr.length == 0){
-            return NextResponse.json({error: "Could not find Daily Date database"}, {status: 404});
-        }
-        const dbDate = dbDateArr[0]['date'];
-        const currDate = new Date()
-        let problems: Problem[] = [];
-        if (dbDate != currDate){ 
-            await prisma.dailyDate.deleteMany();
-            await prisma.dailyDate.createMany({
-                data: [
-                    {date: currDate}
-                ]
-            });
-            problems = generateDailyGame();
-            await prisma.daily.deleteMany();
-            await prisma.daily.createMany({
-                data: problems
-            });
-        }
-        else{
-            problems = await prisma.daily.findMany({
+        const currDate = getUtcDayStart();
+        const [dbDate, existingProblems] = await Promise.all([
+            prisma.dailyDate.findFirst({
+                orderBy: {
+                    date: "desc"
+                }
+            }),
+            prisma.daily.findMany({
                 orderBy: {
                     orderNumber:"asc"
                 }
-            });
+            })
+        ]);
+
+        if (!dbDate || existingProblems.length === 0 || getUtcDateKey(dbDate.date) !== getUtcDateKey(currDate)){
+            const problems = await replaceDailyGame(currDate);
+            return NextResponse.json(problems);
         }
-        return NextResponse.json(problems);
+
+        return NextResponse.json(existingProblems);
     }
     catch (err) {
-        return NextResponse.json({error: err}, {status: 500});
+        const message = err instanceof Error ? err.message : "Failed to load daily game";
+        return NextResponse.json({error: message}, {status: 500});
     }
 }
