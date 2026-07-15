@@ -1,15 +1,19 @@
 'use client'
 
-import {Calculator, ChevronRight, Rabbit, Skull, SportShoe, X, type LucideIcon} from 'lucide-react';
+import {Calculator, ChevronRight, Clock, Rabbit, Skull, SportShoe, X, type LucideIcon} from 'lucide-react';
+import {Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis} from 'recharts';
 import {useState} from 'react';
 import {type GameModeTopTests, type ProblemDb, type ProfileDb, type TestDb} from '@/types/dbTypes.js'
 import {type MainGameModeName} from '@/types/frontendTypes'
 
-const GAME_MODE_ICONS: Record<MainGameModeName, LucideIcon> = {
+type StatsGameModeName = MainGameModeName | 'daily';
+
+const GAME_MODE_ICONS: Record<StatsGameModeName, LucideIcon> = {
     standard: Calculator,
     rapid: Rabbit,
     sprint: SportShoe,
     hard: Skull,
+    daily: Clock,
 };
 
 const RANK_CONFIG = [
@@ -253,7 +257,7 @@ function TopRunBar({
 }
 
 type FormatStatsProps = {
-    title: MainGameModeName,
+    title: StatsGameModeName,
     profile: ProfileDb,
     topTests: GameModeTopTests,
     selectedTestId: string | null,
@@ -301,13 +305,68 @@ function FormatStats({ title, profile, topTests, selectedTestId, onSelectTest }:
     );
 }
 
+type DailyScoreChartProps = {
+    tests: TestDb[]
+}
+
+function DailyScoreChart({tests}: DailyScoreChartProps) {
+    const chartData = tests.map((test, index) => ({
+        id: test.id,
+        label: `#${index + 1}`,
+        score: test.score,
+        date: new Date(test.time).toLocaleDateString(),
+    }));
+    const chartWidth = Math.max(420, chartData.length * 80);
+
+    return (
+        <div className="h-full rounded-xl border border-gray-200 bg-white p-5">
+            <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">Past Daily Scores</h3>
+                <p className="mt-1 text-xs text-gray-500">Most recent daily is shown on the left.</p>
+            </div>
+
+            {chartData.length === 0 ? (
+                <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-gray-200 text-sm text-gray-500">
+                    No daily runs yet.
+                </div>
+            ) : (
+                <div className="overflow-x-auto">
+                    <div style={{width: chartWidth}} className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={chartData} margin={{top: 8, right: 12, left: -20, bottom: 8}}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                <XAxis dataKey="label" tick={{fill: '#4b5563', fontSize: 12}} />
+                                <YAxis tick={{fill: '#4b5563', fontSize: 12}} allowDecimals={false} />
+                                <Tooltip
+                                    labelFormatter={(_, payload) => {
+                                        const data = payload?.[0]?.payload as {date?: string, id?: string} | undefined;
+                                        return data ? `${data.date} - ${data.id}` : 'Daily run';
+                                    }}
+                                    formatter={(value) => [value, 'Score']}
+                                    contentStyle={{
+                                        borderRadius: '0.5rem',
+                                        border: '1px solid #d1d5db',
+                                        color: '#1f2937',
+                                    }}
+                                />
+                                <Bar dataKey="score" fill="#4b5563" radius={[6, 6, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
 type ClientSideProps = {
     profile: ProfileDb,
     tests: TestDb[],
-    topTestsByMode: Record<MainGameModeName, GameModeTopTests>,
+    topTestsByMode: Record<StatsGameModeName, GameModeTopTests>,
+    dailyTests: TestDb[],
 }
 
-export default function ClientSide({profile, tests, topTestsByMode}: ClientSideProps) {
+export default function ClientSide({profile, tests, topTestsByMode, dailyTests}: ClientSideProps) {
     const [selectedTest, setSelectedTest] = useState<TestDb | null>(null);
     const [problems, setProblems] = useState<ProblemDb[]>([]);
     const [loadingProblems, setLoadingProblems] = useState(false);
@@ -389,6 +448,17 @@ export default function ClientSide({profile, tests, topTestsByMode}: ClientSideP
                             onSelectTest={toggleProblemPanel}
                         />
                     </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 rounded-2xl border border-gray-200 bg-gray-100 p-4 lg:grid-cols-2 md:p-5">
+                    <FormatStats
+                        title="daily"
+                        profile={profile}
+                        topTests={topTestsByMode.daily}
+                        selectedTestId={selectedTest?.id ?? null}
+                        onSelectTest={toggleProblemPanel}
+                    />
+                    <DailyScoreChart tests={dailyTests} />
                 </div>
 
                 <PastRuns

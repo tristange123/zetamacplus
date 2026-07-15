@@ -11,14 +11,14 @@ export default function ClientSide({dailyProblems}: {dailyProblems: Problem[]}) 
     // Load gameContext
     const router = useRouter();
     const context = useGameContext();
-    const [timeFormat, setTimeFormat] = useState<number>(120);
+    const [timeFormat, setTimeFormat] = useState<number>(context.timeFormat);
     // Gameplay States
     const [currProblem, setCurrProblem] = useState<Problem>(dailyProblems[0]);
    
     const [display, setDisplay] = useState('');
     const [inputKey, setInputKey] = useState(0);
     const [score, setScore] = useState(0);
-    const [time, setTime] = useState<number>(120);
+    const [time, setTime] = useState<number>(context.timeFormat);
     const [finished, setFinished] = useState(false);
 
 
@@ -55,7 +55,7 @@ export default function ClientSide({dailyProblems}: {dailyProblems: Problem[]}) 
             localStorage.setItem("problemSet", JSON.stringify(pastProblems.current));
             localStorage.setItem("score", String(score));
 
-            router.push('results');
+            router.push('/results');
         }
     }, [time, finished]);
 

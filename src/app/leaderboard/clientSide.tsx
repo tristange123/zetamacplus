@@ -5,6 +5,8 @@ import {useState} from 'react';
 import {type ProblemDb} from '@/types/dbTypes';
 import {type MainGameModeName} from '@/types/frontendTypes';
 
+export type LeaderboardGameModeName = MainGameModeName | 'daily';
+
 export type LeaderboardRow = {
     testId: string,
     username: string,
@@ -12,14 +14,14 @@ export type LeaderboardRow = {
     time: string
 }
 
-export type LeaderboardData = Record<MainGameModeName, LeaderboardRow[]>
+export type LeaderboardData = Record<LeaderboardGameModeName, LeaderboardRow[]>
 
 type ClientSideProps = {
-    gameModes: MainGameModeName[],
+    gameModes: LeaderboardGameModeName[],
     leaderboards: LeaderboardData
 }
 
-function formatGameMode(gameMode: MainGameModeName) {
+function formatGameMode(gameMode: LeaderboardGameModeName) {
     return gameMode.charAt(0).toUpperCase() + gameMode.slice(1);
 }
 
@@ -33,7 +35,7 @@ function formatSolveTime(seconds: number | null): string {
 }
 
 export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
-    const [selectedGameMode, setSelectedGameMode] = useState<MainGameModeName>(gameModes[0] ?? 'standard');
+    const [selectedGameMode, setSelectedGameMode] = useState<LeaderboardGameModeName>(gameModes[0] ?? 'standard');
     const [selectedRow, setSelectedRow] = useState<LeaderboardRow | null>(null);
     const [problems, setProblems] = useState<ProblemDb[]>([]);
     const [loadingProblems, setLoadingProblems] = useState(false);

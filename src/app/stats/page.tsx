@@ -6,11 +6,10 @@ import {MAIN_GAME_MODES} from '@/lib/game/gameModeGlobals';
 import {type MainGameModeName} from '@/types/frontendTypes';
 import {type GameModeTopTests, type ProfileDb, type TestDb} from "@/types/dbTypes"
 
+type StatsGameModeName = MainGameModeName | 'daily';
 
-function buildTopTestsByMode(profile: ProfileDb, testById: Map<string, TestDb>): Record<MainGameModeName, GameModeTopTests> {
-    const gameModes = Object.keys(MAIN_GAME_MODES) as MainGameModeName[];
-
-    return gameModes.reduce<Record<MainGameModeName, GameModeTopTests>>((acc, mode) => {
+function buildTopTestsByMode(profile: ProfileDb, testById: Map<string, TestDb>, gameModes: StatsGameModeName[]): Record<StatsGameModeName, GameModeTopTests> {
+    return gameModes.reduce<Record<StatsGameModeName, GameModeTopTests>>((acc, mode) => {
         const firstId = profile[`${mode}_1`];
         const secondId = profile[`${mode}_2`];
         const thirdId = profile[`${mode}_3`];
@@ -22,7 +21,7 @@ function buildTopTestsByMode(profile: ProfileDb, testById: Map<string, TestDb>):
         };
 
         return acc;
-    }, {} as Record<MainGameModeName, GameModeTopTests>);
+    }, {} as Record<StatsGameModeName, GameModeTopTests>);
 }
 
 export default async function MainPage(){
@@ -62,7 +61,10 @@ export default async function MainPage(){
   }
 
   const userProfile = profile[0];
-  const gameModes = Object.keys(MAIN_GAME_MODES) as MainGameModeName[];
+  const gameModes: StatsGameModeName[] = [
+    ...(Object.keys(MAIN_GAME_MODES) as MainGameModeName[]),
+    'daily',
+  ];
   const topTestIds = gameModes.flatMap((mode) => [
     userProfile[`${mode}_1`],
     userProfile[`${mode}_2`],
@@ -81,7 +83,8 @@ export default async function MainPage(){
     : [];
 
   const testById = new Map(topTests.map((test) => [test.id, test]));
-  const topTestsByMode = buildTopTestsByMode(userProfile, testById);
+  const topTestsByMode = buildTopTestsByMode(userProfile, testById, gameModes);
+  const dailyTests = tests.filter((test) => test.gameMode === 'daily');
 
-  return <ClientSide tests={tests} profile={userProfile} topTestsByMode={topTestsByMode} />
+  return <ClientSide tests={tests} profile={userProfile} topTestsByMode={topTestsByMode} dailyTests={dailyTests} />
 }

@@ -45,7 +45,15 @@ export type ProfileDb = {
   hard_3: string | null,
   hardAverage: number,
   hardTotalTests: number,
-  hardPastTenTests: number[]
+  hardPastTenTests: number[],
+
+  daily_1: string | null,
+  daily_2: string | null,
+  daily_3: string | null,
+  dailyAverage: number,
+  dailyTotalTests: number,
+  dailyPastTenTests: number[],
+  dailyCompleted: boolean
 }
 
 export type TestDb = {

@@ -164,6 +164,9 @@ export async function PATCH(req: Request){
                             userId: session.user.id
                         },
                         data: {
+                            pastDailys: {
+                                push: body.testId
+                            },
                             dailyScore: body.score
                         }
                     });

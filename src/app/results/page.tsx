@@ -6,9 +6,7 @@ import {useGameContext} from '../gameContext'
 import {useState, useEffect } from 'react';
 import {type GameContext} from '@/types/contextTypes'
 import { type Problem } from '@/types/frontendTypes'
-import {type TestDb} from '@/types/dbTypes'
 import {authClient} from '@/lib/auth/auth-client'
-import {MAIN_GAME_MODES} from '@/lib/game/gameModeGlobals'
 
 
 
@@ -65,6 +63,7 @@ export default function ClientSide() {
     const [timeFormat, setTimeFormat] = useState(gameContext.timeFormat);
     const [problemList, setProblemList] = useState<Problem[]>(gameContext.problemSet)
     const [score, setScore] = useState(gameContext.score);
+    const [isDailyGame, setIsDailyGame] = useState(gameContext.gameMode === "daily");
     const {data: session} = authClient.useSession()
     const solveTimes: number[] = []
 
@@ -75,6 +74,7 @@ export default function ClientSide() {
       setTimeFormat(Number(localStorage.getItem("timeFormat") ?? "120"))
       setProblemList(JSON.parse(localStorage.getItem("problemSet") ?? "[]"));
       setScore(Number(localStorage.getItem("score") ?? "0"));
+      setIsDailyGame(localStorage.getItem("gameMode") === "daily");
       async function postData(){
         
           const now = new Date();
@@ -102,6 +102,9 @@ export default function ClientSide() {
                 });
                 localStorage.setItem("testLogged", "true");
 
+              }
+              else{
+                console.log("test already logged")
               }
                
               
@@ -188,7 +191,7 @@ export default function ClientSide() {
                 </div>
 
                 <div className="mt-6 flex justify-center gap-3">
-                    <button
+                    {!isDailyGame && (<button
                         onClick={() => {
                             localStorage.setItem("testLogged", "false");
                             router.replace("/game");
@@ -197,8 +200,9 @@ export default function ClientSide() {
                     >
                         Restart
                     </button>
+                    )}
                     <button
-                        onClick={() => router.back()}
+                        onClick={() => router.push('/')}
                         className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
                     >
                         Back

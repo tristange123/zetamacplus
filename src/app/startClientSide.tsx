@@ -1,25 +1,32 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useGameContext } from './gameContext';
 import { type MainGameModeName,type GameModeName, type ProblemType } from '@/types/frontendTypes'
-import {MAIN_GAME_MODES, BOUNDS} from '@/lib/game/gameModeGlobals'
+import {MAIN_GAME_MODES, BOUNDS, EXTRA_GAME_MODES} from '@/lib/game/gameModeGlobals'
 import { Calculator, Rabbit, SportShoe, Skull, NotebookText, Info, type LucideIcon, Clock } from 'lucide-react'
 type startProps = {
     userLoggedIn: boolean,
     username: string | null
 }
 
+type ProfileDailyStatus = {
+    dailyCompleted?: boolean,
+    dailyPastTenTests?: number[]
+}
 
 
-export default function StartClientSide({userLoggedIn, username}: startProps) {
+
+export default function StartClientSide({userLoggedIn}: startProps) {
     const router = useRouter();
     const gameContext = useGameContext();
 
     const [timeFormatInput, setTimeFormatInput] = useState(120);
     const [problemTypeInput, setProblemTypeInput] = useState<ProblemType>('medium');
     const [gameModeInput, setGameModeInput] = useState<GameModeName>('standard');
+    const [dailyCompleted, setDailyCompleted] = useState(false);
+    const [dailyScore, setDailyScore] = useState<number | null>(null);
 
 
     type GameModeDisplay = {
@@ -36,15 +43,44 @@ export default function StartClientSide({userLoggedIn, username}: startProps) {
             { label: 'Hard', subtitle: '180 secs', gameMode: 'hard', tooltip: "Addition and Subtraction: (20-1000) by (20-1000)\nMultiplication and Division: (20-100) by (6-20)", icon: Skull },
     ];
 
+    useEffect(() => {
+        if (!userLoggedIn) return;
+
+        async function loadDailyStatus() {
+            try{
+                const response = await fetch('/api/profile');
+                if (!response.ok) return;
+
+                const profiles: ProfileDailyStatus[] = await response.json();
+                const profile = profiles[0];
+                if (!profile?.dailyCompleted) return;
+
+                const storedDailyScore = localStorage.getItem("gameMode") === "daily"
+                    ? Number(localStorage.getItem("score") ?? "0")
+                    : null;
+
+                setDailyCompleted(true);
+                setDailyScore(profile.dailyPastTenTests?.[0] ?? storedDailyScore);
+                setGameModeInput((currentGameMode) => currentGameMode === "daily" ? "standard" : currentGameMode);
+            }
+            catch(err){
+                console.log(err);
+            }
+        }
+
+        loadDailyStatus();
+    }, [userLoggedIn]);
+
     async function handleStart () {     
         try{
             if (gameModeInput == "daily") {
                 gameContext?.setGameMode("daily");
                 localStorage.setItem("gameMode", "daily");
-                gameContext?.setProblemType('medium');
-                localStorage.setItem("problemType", "medium");
-                gameContext?.setTimeFormat(120);
-                localStorage.setItem("timeFormat", String(120));
+                gameContext?.setProblemType(EXTRA_GAME_MODES['daily']['problemType']);
+                localStorage.setItem("problemType", EXTRA_GAME_MODES['daily']['problemType']);
+                gameContext?.setTimeFormat(EXTRA_GAME_MODES['daily']['timeFormat']);
+                localStorage.setItem("timeFormat", String(EXTRA_GAME_MODES['daily']['timeFormat']));
+                localStorage.setItem("testLogged","false");
                 
                 router.push('/game/daily')
             }
@@ -122,11 +158,15 @@ export default function StartClientSide({userLoggedIn, username}: startProps) {
                     })}
                     <div className="relative h-full w-full">
                         <button
+                            disabled={!userLoggedIn || dailyCompleted}
                             onClick={() => {
+                                if (!userLoggedIn || dailyCompleted) return;
                                 setGameModeInput('daily');
                             }}
                             className={`flex h-full w-full flex-col items-center justify-center rounded-xl border px-4 py-6 text-center transition md:px-6 ${
-                                gameModeInput === "daily"
+                                !userLoggedIn || dailyCompleted
+                                    ? 'cursor-not-allowed border-gray-300 bg-gray-200 text-gray-500'
+                                    : gameModeInput === "daily"
                                     ? 'border-gray-300 bg-gray-200 text-gray-800 shadow-sm'
                                     : 'border-gray-200 bg-white text-gray-700 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow'
                             }`}
@@ -140,8 +180,17 @@ export default function StartClientSide({userLoggedIn, username}: startProps) {
                                 />
                             </div>
                             <span className={`mt-2 text-sm ${gameModeInput === "daily" ? 'text-gray-600' : 'text-gray-500'}`}>
-                                {"Play once every day!"}
+                                {!userLoggedIn
+                                    ? "Login to unlock"
+                                    : dailyCompleted
+                                    ? "Completed for today"
+                                    : "Play once every day!"}
                             </span>
+                            {dailyCompleted && (
+                                <span className="mt-4 rounded-md border border-gray-300 bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 shadow-sm">
+                                    Today&apos;s score: {dailyScore ?? 0}
+                                </span>
+                            )}
                         </button>
                         <div className="group/info absolute right-2 top-2 z-10">
                             <Info size={12} className="text-gray-400" aria-hidden="true" />

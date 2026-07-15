@@ -122,6 +122,7 @@ model Profile {
   dailyPastTenTests Int[] @default([])
 
   dailyCompleted Boolean @default(false)
+  pastDailys String[] @default([])
   dailyScore Int?
   
 }

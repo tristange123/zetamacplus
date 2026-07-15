@@ -13,7 +13,7 @@ export type GameModeName = MainGameModeName | ExtraGameModeName;
 
 export type MainGameModeName = "standard" | "rapid" | "sprint" | "hard";
 
-export type ExtraGameModeName = "custom" | "daily" 
+export type ExtraGameModeName = "custom" | "daily"
 
 export type ProblemType = "easy" | "medium" | "hard" | "daily" | "easy-medium"
 
