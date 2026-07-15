@@ -8,7 +8,39 @@ import { useRouter } from 'next/navigation'
 import {Crown, ChartNoAxesCombined as Chart, Loader2, Play} from 'lucide-react'
 import Link from 'next/link';
 import "./globals.css";
+import type { Metadata } from "next";
 
+
+export const metadata: Metadata = {
+    metadataBase: new URL("https://zetamacplus.com"),
+
+    title: {
+        default: "Zetamac+",
+        template: "%s | Zetamac+",
+    },
+
+    description:
+        "A upgraded version of the popular quant interview math speed game arimetic zetamac. Practice your mental math with adaptive challenges. Log in daily, track your progression and compete on the leaderboard.",
+        
+
+    // icons: {
+    //     icon: "/favicon.ico",
+    // },
+
+    openGraph: {
+        title: "Zetamac+",
+        description: "Practice your mental math with adaptive challenges. Log in daily, track your progression and compete on the leaderboard.",
+        
+        // images: ["/og-image.png"],
+    },
+
+    // twitter: {
+    //     card: "summary_large_image",
+    //     title: "Zetamac+",
+    //     description: "Practice mental math.",
+    //     images: ["/og-image.png"],
+    // },
+};
 
 type LayoutProps = {
   children: ReactNode
@@ -89,7 +121,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
                             <Play size={18} aria-hidden="true" />
                             Play
                         </Link>
-                        {canViewLeaderboard && (
+                        {/* {canViewLeaderboard && ( */}
                             <Link
                                 href="/leaderboard"
                                 className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
@@ -97,7 +129,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
                                 <Crown size={18} aria-hidden="true" />
                                 Leaderboard
                             </Link>
-                        )}
+                        {/* )} */}
                         {!canViewLeaderboard && (
                             <div className="group relative">
                                 <button

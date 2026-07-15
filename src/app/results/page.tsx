@@ -2,11 +2,30 @@
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { useRouter } from 'next/navigation';
-import {useGameContext} from '../gameContext'
+import {useGameContext} from '../(layout)/gameContext'
 import {useState, useEffect } from 'react';
 import {type GameContext} from '@/types/contextTypes'
-import { type Problem } from '@/types/frontendTypes'
+import { type GameModeName, type Problem } from '@/types/frontendTypes'
 import {authClient} from '@/lib/auth/auth-client'
+import { Calculator, Rabbit, SportShoe, Skull, NotebookText, Clock, type LucideIcon } from 'lucide-react'
+
+const GAME_MODE_ICONS: Record<GameModeName, LucideIcon> = {
+    standard: Calculator,
+    rapid: Rabbit,
+    sprint: SportShoe,
+    hard: Skull,
+    custom: NotebookText,
+    daily: Clock,
+};
+
+function isGameModeName(gameMode: string | null): gameMode is GameModeName {
+    return gameMode === "standard"
+        || gameMode === "rapid"
+        || gameMode === "sprint"
+        || gameMode === "hard"
+        || gameMode === "custom"
+        || gameMode === "daily";
+}
 
 
 
@@ -63,6 +82,7 @@ export default function ClientSide() {
     const [timeFormat, setTimeFormat] = useState(gameContext.timeFormat);
     const [problemList, setProblemList] = useState<Problem[]>(gameContext.problemSet)
     const [score, setScore] = useState(gameContext.score);
+    const [gameMode, setGameMode] = useState<GameModeName>(gameContext.gameMode);
     const [isDailyGame, setIsDailyGame] = useState(gameContext.gameMode === "daily");
     const {data: session} = authClient.useSession()
     const solveTimes: number[] = []
@@ -74,7 +94,11 @@ export default function ClientSide() {
       setTimeFormat(Number(localStorage.getItem("timeFormat") ?? "120"))
       setProblemList(JSON.parse(localStorage.getItem("problemSet") ?? "[]"));
       setScore(Number(localStorage.getItem("score") ?? "0"));
-      setIsDailyGame(localStorage.getItem("gameMode") === "daily");
+      const storedGameMode = localStorage.getItem("gameMode");
+      if (isGameModeName(storedGameMode)) {
+        setGameMode(storedGameMode);
+      }
+      setIsDailyGame(storedGameMode === "daily");
       async function postData(){
         
           const now = new Date();
@@ -131,6 +155,7 @@ export default function ClientSide() {
 
     const solveRates = exponentialSmoothing(PPM(solveTimes, timeFormat));
     const timeTicks = getTimeTicks(timeFormat);
+    const ScoreGameModeIcon = GAME_MODE_ICONS[gameMode];
 
     let cumulativeTime = 0;
     const problemRows = problemList.map((problem, index) => {
@@ -148,7 +173,12 @@ export default function ClientSide() {
 
     return (
         <section className="flex min-h-[calc(100vh-9rem)] flex-col gap-20 py-6 md:gap-25 md:py-8">
-            <div className="w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-5 shadow-sm md:p-8">
+            <div className="relative w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-5 shadow-sm md:p-8">
+                {/* <ScoreGameModeIcon
+                    size={32}
+                    className="absolute left-5 top-5 text-gray-500 md:left-8 md:top-8"
+                    aria-hidden="true"
+                /> */}
                 <div className="mb-6 text-center">
                     <h2 className="text-2xl font-semibold tracking-tight text-gray-800 md:text-3xl">Score: {score}</h2>
                 </div>

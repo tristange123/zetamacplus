@@ -2,6 +2,13 @@ import prisma from '@/lib/db/prisma'
 import {MAIN_GAME_MODES} from '@/lib/game/gameModeGlobals'
 import {type MainGameModeName} from '@/types/frontendTypes'
 import ClientSide, {type LeaderboardData, type LeaderboardGameModeName, type LeaderboardRow} from './clientSide'
+import type { Metadata } from "next";
+
+
+export const metadata: Metadata = {
+  title: "Zetamac+ | Leaderboard",
+  description: "Top Mental Matheletes for each game mode"
+};
 
 export const dynamic = 'force-dynamic';
 

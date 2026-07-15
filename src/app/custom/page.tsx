@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useGameContext } from '../gameContext';
+import { useGameContext } from '../(layout)/gameContext';
 import { type Operation } from '@/types/frontendTypes';
 
 type NumberBounds = {

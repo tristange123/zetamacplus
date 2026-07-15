@@ -1,32 +1,29 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { useGameContext } from './gameContext';
+import { useState } from 'react';
+import { useGameContext } from '../(layout)/gameContext';
 import { type MainGameModeName,type GameModeName, type ProblemType } from '@/types/frontendTypes'
 import {MAIN_GAME_MODES, BOUNDS, EXTRA_GAME_MODES} from '@/lib/game/gameModeGlobals'
 import { Calculator, Rabbit, SportShoe, Skull, NotebookText, Info, type LucideIcon, Clock } from 'lucide-react'
 type startProps = {
     userLoggedIn: boolean,
-    username: string | null
-}
-
-type ProfileDailyStatus = {
-    dailyCompleted?: boolean,
-    dailyScore?: number
+    username: string | null,
+    dailyCompleted: boolean,
+    dailyScore: number | null
 }
 
 
 
-export default function StartClientSide({userLoggedIn}: startProps) {
+export default function StartClientSide({userLoggedIn, dailyCompleted: initialDailyCompleted, dailyScore: initialDailyScore}: startProps) {
     const router = useRouter();
     const gameContext = useGameContext();
 
     const [timeFormatInput, setTimeFormatInput] = useState(120);
     const [problemTypeInput, setProblemTypeInput] = useState<ProblemType>('medium');
     const [gameModeInput, setGameModeInput] = useState<GameModeName>('standard');
-    const [dailyCompleted, setDailyCompleted] = useState(false);
-    const [dailyScore, setDailyScore] = useState<number | null>(null);
+    const [dailyCompleted] = useState(initialDailyCompleted);
+    const [dailyScore] = useState<number | null>(initialDailyScore);
 
 
     type GameModeDisplay = {
@@ -42,33 +39,6 @@ export default function StartClientSide({userLoggedIn}: startProps) {
             { label: 'Sprint', subtitle: '10 secs', gameMode: 'sprint', tooltip: "Addition and Subtraction: (2-10) by (2-10)\nMultiplication and Division: (2-10) by (2-10)", icon: SportShoe },
             { label: 'Hard', subtitle: '180 secs', gameMode: 'hard', tooltip: "Addition and Subtraction: (20-1000) by (20-1000)\nMultiplication and Division: (20-100) by (6-20)", icon: Skull },
     ];
-
-    useEffect(() => {
-        if (!userLoggedIn) return;
-
-        async function loadDailyStatus() {
-            try{
-                const dailyRefresh = await fetch('/api/daily');
-                const response = await fetch('/api/profile');
-                if (!response.ok) return;
-
-                const profiles: ProfileDailyStatus[] = await response.json();
-                const profile = profiles[0];
-                if (!profile?.dailyCompleted) {
-                    return
-                }
-
-                setDailyCompleted(true);
-                setDailyScore(profile.dailyScore ?? 0);
-                setGameModeInput((currentGameMode) => currentGameMode === "daily" ? "standard" : currentGameMode);
-            }
-            catch(err){
-                console.log(err);
-            }
-        }
-
-        loadDailyStatus();
-    }, [userLoggedIn]);
 
     async function handleStart () {     
         try{
@@ -185,7 +155,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                                 {!userLoggedIn
                                     ? "Login to unlock"
                                     : dailyCompleted
-                                    ? "Completed for today"
+                                    ? ""
                                     : "Play once every day!"}
                             </span>
                             {dailyCompleted && (

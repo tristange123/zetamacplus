@@ -3,7 +3,7 @@
 import { type Problem, type ProblemType, type GameModeName, type OperationBounds } from '@/types/frontendTypes'
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useGameContext} from '@/app/gameContext'
+import { useGameContext} from '@/app/(layout)/gameContext'
 
 
 
