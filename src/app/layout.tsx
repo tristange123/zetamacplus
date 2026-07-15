@@ -38,7 +38,7 @@ export const metadata: Metadata = {
 export default function Layout({children} : {children: ReactNode}){
 
     return <>
-        <LayoutClientSide children = {children}/>
+        <LayoutClientSide>{children}</LayoutClientSide>
         <SpeedInsights />
     </>
 }

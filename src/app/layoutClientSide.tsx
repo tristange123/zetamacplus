@@ -5,7 +5,7 @@ import {ReactNode} from 'react';
 import {GameProvider} from './gameContext';
 import { authClient } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation'
-import {Crown, ChartNoAxesCombined as Chart, Loader2, Play} from 'lucide-react'
+import {Crown, ChartNoAxesCombined as Chart, Play} from 'lucide-react'
 import Link from 'next/link';
 import "./globals.css";
 import type { Metadata } from "next";
@@ -52,7 +52,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
   let userLoggedIn = true;
   let userVerified = true;
   let username;
-  const { data, isPending } = authClient.useSession();
+  const { data } = authClient.useSession();
   if (data == null){
     userLoggedIn = false;
   }
@@ -61,9 +61,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
     userVerified = data.user.emailVerified;
   }
   const canViewStats = userLoggedIn && userVerified;
-  const canViewLeaderboard = userLoggedIn && userVerified;
   const statsDisabledMessage = userLoggedIn ? "Verify email to view stats" : "Log in to view stats";
-  const leaderboardDisabledMessage = userLoggedIn ? "Verify email to view leaderboard" : "Log in to view leaderboard";
 
   async function clickSignOut() {
       await authClient.signOut();
@@ -121,36 +119,13 @@ export default function LayoutClientSide({children}: LayoutProps) {
                             <Play size={18} aria-hidden="true" />
                             Play
                         </Link>
-                        {/* {canViewLeaderboard && ( */}
-                            <Link
-                                href="/leaderboard"
-                                className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
-                            >
-                                <Crown size={18} aria-hidden="true" />
-                                Leaderboard
-                            </Link>
-                        {/* )} */}
-                        {!canViewLeaderboard && (
-                            <div className="group relative">
-                                <button
-                                    type="button"
-                                    aria-label="Leaderboard"
-                                    aria-describedby="leaderboard-disabled-tooltip"
-                                    aria-disabled="true"
-                                    className="peer flex cursor-not-allowed items-center gap-2 rounded-md px-3 py-2 text-gray-300"
-                                >
-                                    <Crown size={18} aria-hidden="true" />
-                                    Leaderboard
-                                </button>
-                                <div
-                                    id="leaderboard-disabled-tooltip"
-                                    role="tooltip"
-                                    className="pointer-events-none absolute right-0 top-full z-10 mt-2 hidden whitespace-nowrap rounded-md bg-gray-800 px-3 py-2 text-xs font-medium text-gray-100 shadow-lg peer-hover:block peer-focus:block"
-                                >
-                                    {leaderboardDisabledMessage}
-                                </div>
-                            </div>
-                        )}
+                        <Link
+                            href="/leaderboard"
+                            className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
+                        >
+                            <Crown size={18} aria-hidden="true" />
+                            Leaderboard
+                        </Link>
                         {canViewStats && (
                             <Link
                                 href="/stats"
