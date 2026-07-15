@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import LayoutClientSide from "./layoutClientSide";
 import {type ReactNode} from 'react'
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 
 export const metadata: Metadata = {
@@ -38,5 +39,6 @@ export default function Layout({children} : {children: ReactNode}){
 
     return <>
         <LayoutClientSide children = {children}/>
+        <SpeedInsights />
     </>
 }
