@@ -2,7 +2,7 @@
 
 import {Calculator, ChevronRight, Clock, Rabbit, Skull, SportShoe, X, type LucideIcon} from 'lucide-react';
 import {Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis} from 'recharts';
-import {useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {type GameModeTopTests, type ProblemDb, type ProfileDb, type TestDb} from '@/types/dbTypes.js'
 import {type MainGameModeName} from '@/types/frontendTypes'
 
@@ -310,19 +310,49 @@ type DailyScoreChartProps = {
 }
 
 function DailyScoreChart({tests}: DailyScoreChartProps) {
-    const chartData = tests.map((test, index) => ({
-        id: test.id,
-        label: `#${index + 1}`,
-        score: test.score,
-        date: new Date(test.time).toLocaleDateString(),
-    }));
-    const chartWidth = Math.max(420, chartData.length * 80);
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const visibleBars = 20;
+    const dailyScoreByDate = [...tests]
+        .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
+        .reduce<Map<string, {id: string, dateLabel: string, score: number | null}>>((acc, test) => {
+            const date = new Date(test.time);
+            const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+            const existing = acc.get(dateKey);
+            if (existing && existing.score != null && existing.score >= test.score) {
+                return acc;
+            }
+
+            acc.set(dateKey, {
+                id: test.id,
+                dateLabel: `${date.getMonth() + 1}/${date.getDate()}`,
+                score: test.score,
+            });
+            return acc;
+        }, new Map());
+    const chartData = Array.from(dailyScoreByDate.values());
+    const displayData = chartData.length >= visibleBars
+        ? chartData
+        : [
+            ...chartData,
+            ...Array.from({length: visibleBars - chartData.length}, (_, index) => ({
+                id: `empty-${index}`,
+                dateLabel: '',
+                score: null,
+            })),
+        ];
+    const chartWidth = `${Math.max(100, (displayData.length / visibleBars) * 100)}%`;
+
+    useEffect(() => {
+        const scrollContainer = scrollRef.current;
+        if (!scrollContainer) return;
+
+        scrollContainer.scrollLeft = scrollContainer.scrollWidth;
+    }, [displayData.length]);
 
     return (
         <div className="h-full rounded-xl border border-gray-200 bg-white p-5">
             <div className="mb-4">
-                <h3 className="text-lg font-semibold text-gray-800">Past Daily Scores</h3>
-                <p className="mt-1 text-xs text-gray-500">Most recent daily is shown on the left.</p>
+                <h3 className="text-lg font-semibold text-gray-800">Daily Results</h3>
             </div>
 
             {chartData.length === 0 ? (
@@ -330,17 +360,17 @@ function DailyScoreChart({tests}: DailyScoreChartProps) {
                     No daily runs yet.
                 </div>
             ) : (
-                <div className="overflow-x-auto">
+                <div ref={scrollRef} className="overflow-x-auto">
                     <div style={{width: chartWidth}} className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={chartData} margin={{top: 8, right: 12, left: -20, bottom: 8}}>
+                            <BarChart data={displayData} margin={{top: 8, right: 12, left: -20, bottom: 8}}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                <XAxis dataKey="label" tick={{fill: '#4b5563', fontSize: 12}} />
+                                <XAxis dataKey="dateLabel" tick={{fill: '#4b5563', fontSize: 12}} interval={0} />
                                 <YAxis tick={{fill: '#4b5563', fontSize: 12}} allowDecimals={false} />
                                 <Tooltip
                                     labelFormatter={(_, payload) => {
-                                        const data = payload?.[0]?.payload as {date?: string, id?: string} | undefined;
-                                        return data ? `${data.date} - ${data.id}` : 'Daily run';
+                                        const data = payload?.[0]?.payload as {dateLabel?: string, id?: string} | undefined;
+                                        return data ? `${data.dateLabel}` : 'Daily run';
                                     }}
                                     formatter={(value) => [value, 'Score']}
                                     contentStyle={{
@@ -349,7 +379,7 @@ function DailyScoreChart({tests}: DailyScoreChartProps) {
                                         color: '#1f2937',
                                     }}
                                 />
-                                <Bar dataKey="score" fill="#4b5563" radius={[6, 6, 0, 0]} />
+                                <Bar dataKey="score" fill="#73757ad6" radius={[6, 6, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>

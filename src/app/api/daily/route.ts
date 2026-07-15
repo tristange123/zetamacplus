@@ -33,7 +33,8 @@ async function untoggleDailyCompleted(){
     await prisma.profile.updateMany({
         data: {
             dailyCompleted: false,
-            dailyScore: null
+            dailyScore: null,
+            dailyTest: null
         }
     });
 }

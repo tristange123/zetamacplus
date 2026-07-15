@@ -167,6 +167,7 @@ export async function PATCH(req: Request){
                             pastDailys: {
                                 push: body.testId
                             },
+                            dailyTest: body.testId,
                             dailyScore: body.score
                         }
                     });

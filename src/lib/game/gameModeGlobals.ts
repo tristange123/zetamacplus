@@ -64,7 +64,7 @@ export const EXTRA_GAME_MODES: Record<ExtraGameModeName, GameModeType> = {
         problemType: 'medium',
     },
     'daily':{
-        timeFormat: 10,
+        timeFormat: 120,
         problemType: 'daily'
     }
     // "LCM": {

@@ -123,6 +123,7 @@ model Profile {
 
   dailyCompleted Boolean @default(false)
   pastDailys String[] @default([])
+  dailyTest String?
   dailyScore Int?
   
 }

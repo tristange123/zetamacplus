@@ -13,7 +13,7 @@ type startProps = {
 
 type ProfileDailyStatus = {
     dailyCompleted?: boolean,
-    dailyPastTenTests?: number[]
+    dailyScore?: number
 }
 
 
@@ -48,19 +48,18 @@ export default function StartClientSide({userLoggedIn}: startProps) {
 
         async function loadDailyStatus() {
             try{
+                const dailyRefresh = await fetch('/api/daily');
                 const response = await fetch('/api/profile');
                 if (!response.ok) return;
 
                 const profiles: ProfileDailyStatus[] = await response.json();
                 const profile = profiles[0];
-                if (!profile?.dailyCompleted) return;
-
-                const storedDailyScore = localStorage.getItem("gameMode") === "daily"
-                    ? Number(localStorage.getItem("score") ?? "0")
-                    : null;
+                if (!profile?.dailyCompleted) {
+                    return
+                }
 
                 setDailyCompleted(true);
-                setDailyScore(profile.dailyPastTenTests?.[0] ?? storedDailyScore);
+                setDailyScore(profile.dailyScore ?? 0);
                 setGameModeInput((currentGameMode) => currentGameMode === "daily" ? "standard" : currentGameMode);
             }
             catch(err){
@@ -81,7 +80,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                 gameContext?.setTimeFormat(EXTRA_GAME_MODES['daily']['timeFormat']);
                 localStorage.setItem("timeFormat", String(EXTRA_GAME_MODES['daily']['timeFormat']));
                 localStorage.setItem("testLogged","false");
-                
+
                 router.push('/game/daily')
             }
             else{
@@ -129,7 +128,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                                     className={`flex h-full w-full flex-col items-center justify-center rounded-xl border px-4 py-6 text-center transition md:px-6 ${
                                         isSelected
                                             ? 'border-gray-300 bg-gray-200 text-gray-800 shadow-sm'
-                                            : 'border-gray-200 bg-white text-gray-700 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow'
+                                            : 'border-gray-200 bg-white text-gray-700 shadow-sm hover:-translate-y-0.5 hover:border-gray-300 hover:shadow'
                                     }`}
                                 >
                                     <div className="flex items-center gap-2">
@@ -156,6 +155,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                             </div>
                         );
                     })}
+                    {userLoggedIn && (
                     <div className="relative h-full w-full">
                         <button
                             disabled={!userLoggedIn || dailyCompleted}
@@ -164,11 +164,13 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                                 setGameModeInput('daily');
                             }}
                             className={`flex h-full w-full flex-col items-center justify-center rounded-xl border px-4 py-6 text-center transition md:px-6 ${
-                                !userLoggedIn || dailyCompleted
+                                !userLoggedIn
                                     ? 'cursor-not-allowed border-gray-300 bg-gray-200 text-gray-500'
+                                    : dailyCompleted
+                                    ? 'cursor-not-allowed border-gray-200 bg-white text-gray-500 shadow-sm'
                                     : gameModeInput === "daily"
                                     ? 'border-gray-300 bg-gray-200 text-gray-800 shadow-sm'
-                                    : 'border-gray-200 bg-white text-gray-700 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow'
+                                    : 'border-gray-200 bg-white text-gray-700 shadow-sm hover:-translate-y-0.5 hover:border-gray-300 hover:shadow'
                             }`}
                         >
                             <div className="flex items-center gap-2">
@@ -201,14 +203,14 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                                 Standard problem bounds
                             </div>
                         </div>
-                    </div>
+                    </div>)}
 
                     <div className="relative h-full w-full">
                         <button
                             onClick={() => {
                                 router.push('/custom');
                             }}
-                            className="flex h-full w-full flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-100 px-4 py-6 text-center text-gray-600 transition hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-200 md:px-6"
+                            className="flex h-full w-full flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-100 px-4 py-6 text-center text-gray-600 shadow-sm transition hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-200 md:px-6"
                         >
                             <div className="flex items-center gap-2">
                                 <span className="text-lg font-semibold md:text-xl">Custom</span>
@@ -231,7 +233,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                 <div className="mt-6 flex justify-center">
                     <button
                         onClick={() => {handleStart()}}
-                        className="rounded-lg bg-gray-800 px-8 py-3 text-base font-semibold text-gray-100 transition hover:bg-gray-900"
+                        className="rounded-lg bg-gray-800 px-8 py-3 text-base font-semibold text-gray-100 shadow-sm transition hover:bg-gray-900"
                     >
                         Start
                     </button>

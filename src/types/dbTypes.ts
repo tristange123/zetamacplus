@@ -53,7 +53,10 @@ export type ProfileDb = {
   dailyAverage: number,
   dailyTotalTests: number,
   dailyPastTenTests: number[],
-  dailyCompleted: boolean
+  dailyCompleted: boolean,
+  pastDailys: string[],
+  dailyTest: string | null,
+  dailyScore: number | null
 }
 
 export type TestDb = {

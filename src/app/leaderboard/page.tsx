@@ -5,10 +5,6 @@ import ClientSide, {type LeaderboardData, type LeaderboardGameModeName, type Lea
 
 export const dynamic = 'force-dynamic';
 
-function getUtcDayStart(date = new Date()) {
-    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-}
-
 function sortLeaderboardRows(rows: LeaderboardRow[]) {
     return rows.sort((a, b) => {
         if (b.score !== a.score){
@@ -29,68 +25,36 @@ async function getLeaderboardData() {
                 rapid_1: true,
                 hard_1: true,
                 sprint_1: true,
+                dailyTest: true,
+                dailyScore: true,
             }
         });
         const testIds = profiles.flatMap((profile) => {
             return mainGameModes.flatMap((gameMode) => profile[`${gameMode}_1`] ?? []);
         });
-        const todayStart = getUtcDayStart();
-        const tomorrowStart = new Date(todayStart);
-        tomorrowStart.setUTCDate(tomorrowStart.getUTCDate() + 1);
-
-        const [tests, dailyTests] = await Promise.all([
-            prisma.test.findMany({
-                where: {
-                    id: {
-                        in: testIds
-                    }
-                },
-                select: {
-                    id: true,
-                    score: true,
-                    time: true,
-                    gameMode: true
+        const tests = await prisma.test.findMany({
+            where: {
+                id: {
+                    in: testIds
                 }
-            }),
-            prisma.test.findMany({
-                where: {
-                    gameMode: 'daily',
-                    completed: true,
-                    time: {
-                        gte: todayStart,
-                        lt: tomorrowStart,
-                    },
-                    userId: {
-                        not: null,
-                    },
-                },
-                select: {
-                    id: true,
-                    score: true,
-                    time: true,
-                    user: {
-                        select: {
-                            profile: {
-                                select: {
-                                    username: true,
-                                },
-                            },
-                        },
-                    },
-                },
-            }),
-        ]);
+            },
+            select: {
+                id: true,
+                score: true,
+                time: true,
+                gameMode: true
+            }
+        });
 
-        const dailyLeaderboard = sortLeaderboardRows(dailyTests.flatMap((test) => {
-            const username = test.user?.profile?.username;
-            if (!username){
+        const dailyLeaderboard = sortLeaderboardRows(profiles.flatMap((profile) => {
+            if (!profile.dailyTest || typeof profile.dailyScore !== 'number'){
                 return [];
             }
             return [{
-                testId: test.id,
-                username,
-                score: test.score,
-                time: test.time.toISOString(),
+                testId: profile.dailyTest,
+                username: profile.username,
+                score: profile.dailyScore,
+                time: new Date().toISOString(),
             }];
         })).slice(0, 100);
 

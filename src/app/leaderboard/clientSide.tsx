@@ -29,6 +29,11 @@ function formatTime(time: string) {
     return new Date(time).toLocaleString();
 }
 
+function formatLeaderboardTime(time: string, gameMode: LeaderboardGameModeName) {
+    if (gameMode === 'daily') return 'Today';
+    return formatTime(time);
+}
+
 function formatSolveTime(seconds: number | null): string {
     if (seconds == null) return '—';
     return `${seconds.toFixed(1)}s`;
@@ -41,6 +46,7 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
     const [loadingProblems, setLoadingProblems] = useState(false);
     const [problemError, setProblemError] = useState('');
     const rows = leaderboards[selectedGameMode] ?? [];
+    const showTimeColumn = selectedGameMode !== 'daily';
 
     async function toggleProblemSidebar(row: LeaderboardRow) {
         if (selectedRow?.testId === row.testId){
@@ -111,7 +117,7 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
                                 <th className="w-20 px-4 py-3">Rank</th>
                                 <th className="px-4 py-3">Username</th>
                                 <th className="px-4 py-3">Score</th>
-                                <th className="px-4 py-3">Time</th>
+                                {showTimeColumn && <th className="px-4 py-3">Time</th>}
                                 <th className="w-12 px-4 py-3" aria-label="View problems"></th>
                             </tr>
                         </thead>
@@ -134,7 +140,9 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
                                         </td>
                                         <td className="px-4 py-3 font-medium text-gray-800">{row.username}</td>
                                         <td className="px-4 py-3 tabular-nums">{row.score}</td>
-                                        <td className="px-4 py-3 text-gray-600">{formatTime(row.time)}</td>
+                                        {showTimeColumn && (
+                                            <td className="px-4 py-3 text-gray-600">{formatLeaderboardTime(row.time, selectedGameMode)}</td>
+                                        )}
                                         <td className="px-4 py-3 text-gray-500">
                                             <button
                                                 type="button"
@@ -153,7 +161,7 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
                             })}
                             {rows.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-500">
+                                    <td colSpan={showTimeColumn ? 5 : 4} className="px-4 py-8 text-center text-sm text-gray-500">
                                         No leaderboard entries yet.
                                     </td>
                                 </tr>
@@ -172,7 +180,7 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
                                     {selectedRow.username} Problems
                                 </h2>
                                 <p className="mt-1 text-sm text-gray-500">
-                                    {selectedRow.score} pts - {formatGameMode(selectedGameMode)} - {formatTime(selectedRow.time)}
+                                    {selectedRow.score} pts - {formatGameMode(selectedGameMode)} - {formatLeaderboardTime(selectedRow.time, selectedGameMode)}
                                 </p>
                             </div>
                             <button

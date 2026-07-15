@@ -4,7 +4,7 @@ Next + Postgres + BetterAuth + Prisma
 
 Features:
 keyboard view
-daily level
+
 
 hot keys
 visual settings
@@ -16,16 +16,15 @@ achievmennts
 
 new best indicator
 
-fix need email verif bug
 
 advanced stats
 
 fix reload page glitch!! for submited 0 runs
 
 using error handling on the frontend
-google sign on
+
 forgot password
-mkae email verif nicer
+
 
 
 
@@ -41,8 +40,7 @@ sitemap robots.txt?
 metadata descriptoin
 
 Local database: "postgresql://postgres:$Pizza2122@localhost:5432/metamac_reborn"
-rank to leaderboard,
-ex button for chervon
+
 
 
 for stats use completed = true
