@@ -3,9 +3,9 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useGameContext } from './gameContext';
-import { type MainGameModeName, type ProblemType } from '@/types/frontendTypes'
+import { type MainGameModeName,type GameModeName, type ProblemType } from '@/types/frontendTypes'
 import {MAIN_GAME_MODES, BOUNDS} from '@/lib/game/gameModeGlobals'
-import { Calculator, Rabbit, SportShoe, Skull, NotebookText, Info, type LucideIcon } from 'lucide-react'
+import { Calculator, Rabbit, SportShoe, Skull, NotebookText, Info, type LucideIcon, Clock } from 'lucide-react'
 type startProps = {
     userLoggedIn: boolean,
     username: string | null
@@ -19,7 +19,7 @@ export default function StartClientSide({userLoggedIn, username}: startProps) {
 
     const [timeFormatInput, setTimeFormatInput] = useState(120);
     const [problemTypeInput, setProblemTypeInput] = useState<ProblemType>('medium');
-    const [gameModeInput, setGameModeInput] = useState<MainGameModeName>('standard');
+    const [gameModeInput, setGameModeInput] = useState<GameModeName>('standard');
 
 
     type GameModeDisplay = {
@@ -36,25 +36,34 @@ export default function StartClientSide({userLoggedIn, username}: startProps) {
             { label: 'Hard', subtitle: '180 secs', gameMode: 'hard', tooltip: "Addition and Subtraction: (20-1000) by (20-1000)\nMultiplication and Division: (20-100) by (6-20)", icon: Skull },
     ];
 
-    async function handleStart () {
-        
+    async function handleStart () {     
         try{
-            
+            if (gameModeInput == "daily") {
+                gameContext?.setGameMode("daily");
+                localStorage.setItem("gameMode", "daily");
+                gameContext?.setProblemType('medium');
+                localStorage.setItem("problemType", "medium");
+                gameContext?.setTimeFormat(120);
+                localStorage.setItem("timeFormat", String(120));
+                
+                router.push('/game/daily')
+            }
+            else{
+                gameContext?.setGameMode(gameModeInput);
+                localStorage.setItem("gameMode", gameModeInput);
+                gameContext?.setProblemType(problemTypeInput);
+                localStorage.setItem("problemType", problemTypeInput);
+                gameContext?.setTimeFormat(timeFormatInput);
+                localStorage.setItem("timeFormat", String(timeFormatInput));
+                gameContext?.setOperations(BOUNDS[problemTypeInput])
+                localStorage.setItem("operations", JSON.stringify(BOUNDS[problemTypeInput]));
+                gameContext?.setScore(0);
+                gameContext?.setTestsAttempted(0);
+                gameContext?.setProblemSet([]);
 
-            gameContext?.setGameMode(gameModeInput);
-            localStorage.setItem("gameMode", gameModeInput);
-            gameContext?.setProblemType(problemTypeInput);
-            localStorage.setItem("problemType", problemTypeInput);
-            gameContext?.setTimeFormat(timeFormatInput);
-            localStorage.setItem("timeFormat", String(timeFormatInput));
-            gameContext?.setOperations(BOUNDS[problemTypeInput])
-            localStorage.setItem("operations", JSON.stringify(BOUNDS[problemTypeInput]));
-            gameContext?.setScore(0);
-            gameContext?.setTestsAttempted(0);
-            gameContext?.setProblemSet([]);
-
-            localStorage.setItem("testLogged","false");
-            router.push(`/game`);
+                localStorage.setItem("testLogged","false");
+                router.push(`/game`);
+            }
         }
         catch(err){
             console.log(err);
@@ -111,6 +120,39 @@ export default function StartClientSide({userLoggedIn, username}: startProps) {
                             </div>
                         );
                     })}
+                    <div className="relative h-full w-full">
+                        <button
+                            onClick={() => {
+                                setGameModeInput('daily');
+                            }}
+                            className={`flex h-full w-full flex-col items-center justify-center rounded-xl border px-4 py-6 text-center transition md:px-6 ${
+                                gameModeInput === "daily"
+                                    ? 'border-gray-300 bg-gray-200 text-gray-800 shadow-sm'
+                                    : 'border-gray-200 bg-white text-gray-700 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow'
+                            }`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <span className="text-lg font-semibold md:text-xl"> Daily </span>
+                                <Clock
+                                    size={24}
+                                    className={gameModeInput === "daily" ? 'text-gray-600' : 'text-gray-500'}
+                                    aria-hidden="true"
+                                />
+                            </div>
+                            <span className={`mt-2 text-sm ${gameModeInput === "daily" ? 'text-gray-600' : 'text-gray-500'}`}>
+                                {"Play once every day!"}
+                            </span>
+                        </button>
+                        <div className="group/info absolute right-2 top-2 z-10">
+                            <Info size={12} className="text-gray-400" aria-hidden="true" />
+                            <div
+                                role="tooltip"
+                                className="pointer-events-none absolute left-full top-1/2 z-10 ml-2 hidden max-w-xs -translate-y-1/2 whitespace-pre-line rounded-md bg-gray-800 px-2 py-1 text-xs font-medium text-gray-100 shadow-lg group-hover/info:block"
+                            >
+                                Standard problem bounds
+                            </div>
+                        </div>
+                    </div>
 
                     <div className="relative h-full w-full">
                         <button

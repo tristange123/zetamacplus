@@ -29,6 +29,15 @@ async function replaceDailyGame(date: Date): Promise<Problem[]> {
     return problems;
 }
 
+async function untoggleDailyCompleted(){
+    await prisma.profile.updateMany({
+        data: {
+            dailyCompleted: false,
+            dailyScore: null
+        }
+    });
+}
+
 export async function GET(){
     try {
         const currDate = getUtcDayStart();
@@ -47,6 +56,7 @@ export async function GET(){
 
         if (!dbDate || existingProblems.length === 0 || getUtcDateKey(dbDate.date) !== getUtcDateKey(currDate)){
             const problems = await replaceDailyGame(currDate);
+            await untoggleDailyCompleted();
             return NextResponse.json(problems);
         }
 

@@ -91,7 +91,7 @@ export async function PATCH(req: Request){
 
         // update format specific data for completed test
         if (typeof body.gameMode === "string" && typeof body.testId === "string" && typeof body.score === "number"){
-            if (isMainGameModeName(body.gameMode)){
+            if (isMainGameModeName(body.gameMode) || body.gameMode === "daily"){
                 const gameMode: MainGameModeName = body.gameMode;
                 if (typeof body.testId !== "string"){
                     return NextResponse.json({error: "Missing test id"}, {status: 400});
@@ -157,6 +157,17 @@ export async function PATCH(req: Request){
                         testsCompleted
                     }
                 });
+
+                if (body.gameMode === "daily"){
+                    await prisma.profile.update({
+                        where: {
+                            userId: session.user.id
+                        },
+                        data: {
+                            dailyScore: body.score
+                        }
+                    });
+                }
                 revalidatePath('/leaderboard');
             }
         }

@@ -1,6 +1,6 @@
 'use client'
 
-import {Calculator, ChevronRight, Rabbit, Skull, SportShoe, type LucideIcon} from 'lucide-react';
+import {Calculator, ChevronRight, Rabbit, Skull, SportShoe, X, type LucideIcon} from 'lucide-react';
 import {useState} from 'react';
 import {type GameModeTopTests, type ProblemDb, type ProfileDb, type TestDb} from '@/types/dbTypes.js'
 import {type MainGameModeName} from '@/types/frontendTypes'
@@ -104,19 +104,30 @@ type ProblemsPanelProps = {
     selectedTest: TestDb,
     problems: ProblemDb[],
     loadingProblems: boolean,
-    problemError: string
+    problemError: string,
+    onClose: () => void
 }
 
-function ProblemsPanel({selectedTest, problems, loadingProblems, problemError}: ProblemsPanelProps) {
+function ProblemsPanel({selectedTest, problems, loadingProblems, problemError, onClose}: ProblemsPanelProps) {
     return (
         <aside className="sticky top-5 max-h-[calc(100vh-8rem)] min-w-0 overflow-y-auto rounded-2xl border border-gray-200 bg-gray-50/95 p-3 shadow-xl">
-            <div className="mb-3">
-                <h2 className="text-sm font-semibold tracking-tight text-gray-800">
-                    Past Run Problems
-                </h2>
-                <p className="mt-0.5 text-xs text-gray-500">
-                    {selectedTest.score} pts - {selectedTest.gameMode} - {new Date(selectedTest.time).toLocaleString()}
-                </p>
+            <div className="mb-3 flex items-start justify-between gap-3">
+                <div>
+                    <h2 className="text-sm font-semibold tracking-tight text-gray-800">
+                        Past Run Problems
+                    </h2>
+                    <p className="mt-0.5 text-xs text-gray-500">
+                        {selectedTest.score} pts - {selectedTest.gameMode} - {new Date(selectedTest.time).toLocaleString()}
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="rounded-full p-1 text-gray-500 transition hover:bg-gray-200 hover:text-gray-800"
+                    aria-label="Close problems"
+                >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                </button>
             </div>
 
             <div className="max-h-[calc(100vh-14rem)] overflow-y-auto rounded-xl border border-gray-200 bg-white">
@@ -393,6 +404,7 @@ export default function ClientSide({profile, tests, topTestsByMode}: ClientSideP
                     problems={problems}
                     loadingProblems={loadingProblems}
                     problemError={problemError}
+                    onClose={() => setSelectedTest(null)}
                 />
             )}
         </section>

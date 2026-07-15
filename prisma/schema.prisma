@@ -114,6 +114,15 @@ model Profile {
   hardTotalTests Int @default(0)
   hardPastTenTests Int[] @default([])
 
+  daily_1 String?
+  daily_2 String?
+  daily_3 String?
+  dailyAverage Float @default(0)
+  dailyTotalTests Int @default(0)
+  dailyPastTenTests Int[] @default([])
+
+  dailyCompleted Boolean @default(false)
+  dailyScore Int?
   
 }
 

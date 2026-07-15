@@ -1,6 +1,6 @@
 'use client'
 
-import {ChevronRight} from 'lucide-react';
+import {ChevronRight, Trophy, X} from 'lucide-react';
 import {useState} from 'react';
 import {type ProblemDb} from '@/types/dbTypes';
 import {type MainGameModeName} from '@/types/frontendTypes';
@@ -106,6 +106,7 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="border-b border-gray-200 bg-gray-100 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                <th className="w-20 px-4 py-3">Rank</th>
                                 <th className="px-4 py-3">Username</th>
                                 <th className="px-4 py-3">Score</th>
                                 <th className="px-4 py-3">Time</th>
@@ -122,6 +123,13 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
                                             isSelected ? 'bg-gray-50' : ''
                                         }`}
                                     >
+                                        <td className="px-4 py-3 font-semibold tabular-nums text-gray-700">
+                                            {index === 0 ? (
+                                                <Trophy className="mx-auto h-5 w-5 text-yellow-500" aria-label="First place" />
+                                            ) : (
+                                                index + 1
+                                            )}
+                                        </td>
                                         <td className="px-4 py-3 font-medium text-gray-800">{row.username}</td>
                                         <td className="px-4 py-3 tabular-nums">{row.score}</td>
                                         <td className="px-4 py-3 text-gray-600">{formatTime(row.time)}</td>
@@ -143,7 +151,7 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
                             })}
                             {rows.length === 0 && (
                                 <tr>
-                                    <td colSpan={4} className="px-4 py-8 text-center text-sm text-gray-500">
+                                    <td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-500">
                                         No leaderboard entries yet.
                                     </td>
                                 </tr>
@@ -156,7 +164,7 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
             {selectedRow && (
                 <aside className="w-full max-w-2xl shrink-0 rounded-2xl border border-gray-200 bg-gray-50/95 p-5 shadow-xl lg:w-[28rem]">
                     <div>
-                        <div className="mb-4">
+                        <div className="mb-4 flex items-start justify-between gap-4">
                             <div>
                                 <h2 className="text-xl font-semibold tracking-tight text-gray-800">
                                     {selectedRow.username} Problems
@@ -165,6 +173,14 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
                                     {selectedRow.score} pts - {formatGameMode(selectedGameMode)} - {formatTime(selectedRow.time)}
                                 </p>
                             </div>
+                            <button
+                                type="button"
+                                onClick={() => setSelectedRow(null)}
+                                className="rounded-full p-1 text-gray-500 transition hover:bg-gray-200 hover:text-gray-800"
+                                aria-label="Close problems"
+                            >
+                                <X className="h-5 w-5" aria-hidden="true" />
+                            </button>
                         </div>
 
                         <div className="max-h-[60vh] overflow-y-auto rounded-xl border border-gray-200 bg-white">
