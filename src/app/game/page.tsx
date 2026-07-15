@@ -4,7 +4,7 @@ import { type Problem, type ProblemType, type GameModeName, type OperationBounds
 import {generateProblem} from '@/lib/game/generateProblem'
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useGameContext} from '@/app/(layout)/gameContext'
+import { useGameContext} from '@/app/gameContext'
 
 
 

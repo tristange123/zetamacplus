@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useGameContext } from '../(layout)/gameContext';
+import { useGameContext } from './gameContext';
 import { type MainGameModeName,type GameModeName, type ProblemType } from '@/types/frontendTypes'
 import {MAIN_GAME_MODES, BOUNDS, EXTRA_GAME_MODES} from '@/lib/game/gameModeGlobals'
 import { Calculator, Rabbit, SportShoe, Skull, NotebookText, Info, type LucideIcon, Clock } from 'lucide-react'

@@ -2,7 +2,7 @@
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { useRouter } from 'next/navigation';
-import {useGameContext} from '../(layout)/gameContext'
+import {useGameContext} from '../gameContext'
 import {useState, useEffect } from 'react';
 import {type GameContext} from '@/types/contextTypes'
 import { type GameModeName, type Problem } from '@/types/frontendTypes'
