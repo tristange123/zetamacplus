@@ -9,11 +9,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      url: 'https://zetamacplus/leaderboard',
+      url: 'https://zetamacplus.com/leaderboard',
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.5,
     }
-    
   ]
 }
