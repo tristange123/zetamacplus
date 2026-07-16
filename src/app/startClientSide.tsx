@@ -78,10 +78,10 @@ export default function StartClientSide({userLoggedIn, dailyCompleted: initialDa
     return (
         <section className="flex min-h-[calc(100vh-9rem)] flex-col items-center justify-center">
             <div className="w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-5 shadow-sm md:p-8">
-                <div className="mb-6 text-center">
+                {/* <div className="mb-6 text-center">
                     <h2 className="text-2xl font-semibold tracking-tight text-gray-800 md:text-3xl">Game Modes</h2>
                     
-                </div>
+                </div> */}
 
                 <div className="grid min-h-[55vh] grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {gameModeDisplay.map((mode) => {
