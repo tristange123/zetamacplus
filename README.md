@@ -2,7 +2,7 @@
 
 A modern upgrade to the popular mental math trainer arithmetic zetamac. 
 
-🔗 https://zetmacplus.com
+🔗 https://zetamacplus.com
 
 
 ## Features
