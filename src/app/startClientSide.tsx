@@ -5,7 +5,8 @@ import { useState } from 'react';
 import { useGameContext } from './gameContext';
 import { type MainGameModeName,type GameModeName, type ProblemType } from '@/types/frontendTypes'
 import {MAIN_GAME_MODES, BOUNDS, EXTRA_GAME_MODES} from '@/lib/game/gameModeGlobals'
-import { Calculator, Rabbit, SportShoe, Skull, NotebookText, Info, type LucideIcon, Clock } from 'lucide-react'
+import { Calculator, Rabbit, SportShoe, Skull, NotebookText, Info, type LucideIcon, Clock, Mail, Wrench } from 'lucide-react'
+import Link from 'next/link';
 type startProps = {
     userLoggedIn: boolean,
     username: string | null,
@@ -76,7 +77,7 @@ export default function StartClientSide({userLoggedIn, dailyCompleted: initialDa
     }
 
     return (
-        <section className="flex min-h-[calc(100vh-9rem)] flex-col items-center justify-center">
+        <section className="flex min-h-[calc(100vh-9rem)] flex-col items-center justify-end pb-2">
             <div className="w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-5 shadow-sm md:p-8">
                 {/* <div className="mb-6 text-center">
                     <h2 className="text-2xl font-semibold tracking-tight text-gray-800 md:text-3xl">Game Modes</h2>
@@ -203,10 +204,31 @@ export default function StartClientSide({userLoggedIn, dailyCompleted: initialDa
                 <div className="mt-6 flex justify-center">
                     <button
                         onClick={() => {handleStart()}}
-                        className="rounded-lg bg-gray-800 px-8 py-3 text-base font-semibold text-gray-100 shadow-sm transition hover:bg-gray-900"
+                        className="rounded-lg bg-gray-800 px-10 py-4 text-lg font-semibold text-gray-100 shadow-sm transition hover:bg-gray-900"
                     >
                         Start
                     </button>
+                </div>
+
+            </div>
+            <div className="mt-6 w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3">
+                <div className="flex justify-center gap-24">
+                    <Link
+                        href="/help"
+                            className="flex items-center gap-2 text-xs font-medium text-gray-400 transition hover:text-gray-600"
+                    >
+                        <Mail size={14} aria-hidden="true" />
+                        Contact
+                    </Link>
+                    <a
+                        href="https://github.com/tristange123/zetamacplus"
+                        target="_blank"
+                        rel="noreferrer"
+                            className="flex items-center gap-2 text-xs font-medium text-gray-400 transition hover:text-gray-600"
+                    >
+                        <Wrench size={14} aria-hidden="true" />
+                        GitHub
+                    </a>
                 </div>
             </div>
         </section>
