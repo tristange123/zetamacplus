@@ -22,6 +22,7 @@ export default function Game() {
     const [score, setScore] = useState(0);
     const [time, setTime] = useState<number>(context.timeFormat);
     const [finished, setFinished] = useState(false);
+    const startTime = useRef(Date.now());
 
 
     // Track Stats
@@ -55,14 +56,10 @@ export default function Game() {
 
         context.setGameMode(localStorage.getItem("gameMode") as GameModeName ?? 'standard')
         setCurrProblem(generateProblem(localOperations, 1))
-        const timeId = setInterval(() => {setTime((t) => {
-                if (t > 0){
-                    return t - 0.1;
-                }
-                else{
-                    return t
-                }
-            })
+        const timeId = setInterval(() => {
+            const elapsed = (Date.now() - startTime.current) / 1000
+            const remaining = Math.max(timeFormat - elapsed, 0)
+            setTime(remaining)
         }, 100);
         return () => {clearInterval(timeId)};
     }, []);
