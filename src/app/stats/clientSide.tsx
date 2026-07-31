@@ -44,10 +44,10 @@ type PastRunsProps = {
 }
 function PastRuns({tests, selectedTestId, onSelectTest}: PastRunsProps) {
     return (
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white p-4">
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white p-3 md:p-4">
             <h3 className="mb-3 text-2xl font-semibold text-gray-700">Past Runs</h3>
             <div className="max-h-100 overflow-auto rounded-xl border border-gray-200">
-                <table className="w-full text-xs md:text-sm">
+                <table className="min-w-[28rem] w-full text-xs md:min-w-0 md:text-sm">
                     <thead className="sticky top-0 z-10">
                         <tr className="border-b border-gray-200 bg-gray-100 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
                             <th className="px-3 py-2">Score</th>
@@ -114,7 +114,7 @@ type ProblemsPanelProps = {
 
 function ProblemsPanel({selectedTest, problems, loadingProblems, problemError, onClose}: ProblemsPanelProps) {
     return (
-        <aside className="sticky top-5 max-h-[calc(100vh-8rem)] min-w-0 overflow-y-auto rounded-2xl border border-gray-200 bg-gray-50/95 p-3 shadow-xl">
+        <aside className="min-w-0 overflow-y-auto rounded-2xl border border-gray-200 bg-gray-50/95 p-3 shadow-xl md:sticky md:top-5 md:max-h-[calc(100vh-8rem)]">
             <div className="mb-3 flex items-start justify-between gap-3">
                 <div>
                     <h2 className="text-sm font-semibold tracking-tight text-gray-800">
@@ -180,7 +180,7 @@ function Profile({profile}: ProfileProps) {
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-4">
             <h3 className="mb-3 text-xl font-semibold text-gray-700">Profile</h3>
-            <div className="text-sm text-gray-700">{profile.email}</div>
+            <div className="break-all text-sm text-gray-700">{profile.email}</div>
             <div className="mt-1 text-xs text-gray-500 md:text-sm">Date Joined: {new Date(profile.timeJoined).toLocaleString()}</div>
         </div>
     );
@@ -276,7 +276,7 @@ function FormatStats({ title, profile, topTests, selectedTestId, onSelectTest }:
         : 0;
 
     return (
-        <div className="h-full rounded-xl border border-gray-200 bg-white p-5">
+        <div className="h-full rounded-xl border border-gray-200 bg-white p-4 md:p-5">
             <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold capitalize text-gray-800">
                 {title}
                 <ModeIcon size={20} className="text-gray-500" aria-hidden="true" />
@@ -350,7 +350,7 @@ function DailyScoreChart({tests}: DailyScoreChartProps) {
     }, [displayData.length]);
 
     return (
-        <div className="h-full rounded-xl border border-gray-200 bg-white p-5">
+        <div className="h-full rounded-xl border border-gray-200 bg-white p-4 md:p-5">
             <div className="mb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Daily Results</h3>
             </div>
@@ -433,7 +433,7 @@ export default function ClientSide({profile, tests, topTestsByMode, dailyTests}:
     return (
         <section className={`min-h-[calc(100vh-9rem)] gap-5 ${
             selectedTest
-                ? 'grid grid-cols-[minmax(0,1fr)_minmax(15rem,20rem)]'
+                ? 'flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_minmax(15rem,20rem)]'
                 : 'flex flex-col'
         }`}>
             <div className="flex min-w-0 flex-col gap-5">

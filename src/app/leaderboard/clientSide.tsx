@@ -77,10 +77,10 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
     }
 
     return (
-        <section className="flex min-h-[calc(100vh-9rem)] gap-5">
-            <aside className="w-44 shrink-0 rounded-2xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm md:w-56">
+        <section className="flex min-h-[calc(100vh-9rem)] flex-col gap-4 md:flex-row md:gap-5">
+            <aside className="w-full shrink-0 rounded-2xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm md:w-56">
                 <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">Game Modes</h2>
-                <nav className="space-y-2">
+                <nav className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:block md:space-y-2">
                     {gameModes.map((gameMode) => {
                         const isSelected = gameMode === selectedGameMode;
                         return (
@@ -101,8 +101,8 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
                 </nav>
             </aside>
 
-            <div className="min-w-0 flex-1 rounded-2xl border border-gray-200 bg-gray-50/70 p-5 shadow-sm">
-                <div className="mb-8 flex items-center justify-between">
+            <div className="min-w-0 flex-1 rounded-2xl border border-gray-200 bg-gray-50/70 p-3 shadow-sm md:p-5">
+                <div className="mb-5 flex items-center justify-between md:mb-8">
                     <div>
                         <h1 className="text-2xl font-semibold tracking-tight text-gray-800">
                             {formatGameMode(selectedGameMode)} Leaderboard
@@ -110,15 +110,15 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
                     </div>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-                    <table className="w-full text-sm">
+                <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+                    <table className="w-full text-xs sm:text-sm">
                         <thead>
                             <tr className="border-b border-gray-200 bg-gray-100 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                <th className="w-20 px-4 py-3">Rank</th>
-                                <th className="px-4 py-3">Username</th>
-                                <th className="px-4 py-3">Score</th>
-                                {showTimeColumn && <th className="px-4 py-3">Time</th>}
-                                <th className="w-12 px-4 py-3" aria-label="View problems"></th>
+                                <th className="w-14 px-2 py-3 sm:w-20 sm:px-4">Rank</th>
+                                <th className="px-2 py-3 sm:px-4">Username</th>
+                                <th className="px-2 py-3 sm:px-4">Score</th>
+                                {showTimeColumn && <th className="hidden px-4 py-3 sm:table-cell">Time</th>}
+                                <th className="w-10 px-2 py-3 sm:w-12 sm:px-4" aria-label="View problems"></th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
@@ -131,19 +131,19 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
                                             isSelected ? 'bg-gray-50' : ''
                                         }`}
                                     >
-                                        <td className="px-4 py-3 font-semibold tabular-nums text-gray-700">
+                                        <td className="px-2 py-3 font-semibold tabular-nums text-gray-700 sm:px-4">
                                             {index === 0 ? (
                                                 <Trophy className="mx-auto h-5 w-5 text-yellow-500" aria-label="First place" />
                                             ) : (
                                                 index + 1
                                             )}
                                         </td>
-                                        <td className="px-4 py-3 font-medium text-gray-800">{row.username}</td>
-                                        <td className="px-4 py-3 tabular-nums">{row.score}</td>
+                                        <td className="break-words px-2 py-3 font-medium text-gray-800 sm:px-4">{row.username}</td>
+                                        <td className="px-2 py-3 tabular-nums sm:px-4">{row.score}</td>
                                         {showTimeColumn && (
-                                            <td className="px-4 py-3 text-gray-600">{formatLeaderboardTime(row.time, selectedGameMode)}</td>
+                                            <td className="hidden px-4 py-3 text-gray-600 sm:table-cell">{formatLeaderboardTime(row.time, selectedGameMode)}</td>
                                         )}
-                                        <td className="px-4 py-3 text-gray-500">
+                                        <td className="px-2 py-3 text-gray-500 sm:px-4">
                                             <button
                                                 type="button"
                                                 onClick={() => toggleProblemSidebar(row)}
@@ -172,7 +172,7 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
             </div>
 
             {selectedRow && (
-                <aside className="w-full max-w-2xl shrink-0 rounded-2xl border border-gray-200 bg-gray-50/95 p-5 shadow-xl lg:w-[28rem]">
+                <aside className="w-full max-w-2xl shrink-0 rounded-2xl border border-gray-200 bg-gray-50/95 p-4 shadow-xl md:p-5 lg:w-[28rem]">
                     <div>
                         <div className="mb-4 flex items-start justify-between gap-4">
                             <div>

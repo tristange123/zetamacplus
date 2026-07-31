@@ -230,8 +230,8 @@ export default function LoginPage() {
   }
   return (
     <section className="flex min-h-[calc(100vh-9rem)] items-center justify-center">
-      <div className="w-full max-w-3xl rounded-2xl border border-gray-200 bg-gray-50/70 p-5 shadow-sm md:p-7">
-        <div className="grid grid-cols-1 gap-20 md:grid-cols-2">
+      <div className="w-full max-w-3xl rounded-2xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm md:p-7">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-20">
           <Register />
           <Login />
         </div>

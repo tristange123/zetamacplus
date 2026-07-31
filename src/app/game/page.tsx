@@ -113,6 +113,7 @@ export default function Game() {
     async function reset(){
         setScore(0)
         setTime(timeFormat);
+        startTime.current = Date.now()
         setDisplay('');
         setInputKey((k) => k + 1);
         testsAttempted.current = testsAttempted.current + 1;
@@ -129,15 +130,15 @@ export default function Game() {
 
     return (
         <section className="relative flex min-h-[calc(100vh-9rem)] flex-col justify-center">
-            <div className="absolute top-0 left-0 right-0 mx-auto flex w-full max-w-6xl items-center justify-between px-6 pb-6 text-xs font-medium text-gray-500 md:text-sm">
+            <div className="absolute top-0 left-0 right-0 mx-auto flex w-full max-w-6xl items-center justify-between pb-6 text-xs font-medium text-gray-500 md:px-6 md:text-sm">
                 <p>Score: {score}</p>
                 <p>Time: {Math.ceil(time)}</p>
             </div>
 
-            <div className="-mt-40 flex flex-col justify-center">
-                <div className="relative left-1/2 right-1/2 w-screen -translate-x-1/2 bg-gray-200 py-8">
-                    <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-4 px-6">
-                        <h2 className="text-6xl font-semibold tracking-tight text-gray-800 md:text-5xl">
+            <div className="-mt-20 flex flex-col justify-center md:-mt-40">
+                <div className="relative left-1/2 right-1/2 w-screen -translate-x-1/2 bg-gray-200 py-6 md:py-8">
+                    <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-3 px-4 md:gap-4 md:px-6">
+                        <h2 className="text-4xl font-semibold tracking-tight text-gray-800 md:text-5xl">
                             {currProblem?.statement}
                         </h2>
                         <input
@@ -147,12 +148,12 @@ export default function Game() {
                             type="number"
                             value={display}
                             onChange={(e) => checkDisplay(e, currProblem?.answer ?? 999)}
-                            className="w-48 rounded-md border border-gray-300 bg-white px-4 py-3 text-center text-[1.6875rem] text-gray-800 shadow-sm outline-none transition [appearance:textfield] focus:border-gray-500 focus:ring-2 focus:ring-gray-300 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                            className="w-36 rounded-md border border-gray-300 bg-white px-3 py-3 text-center text-2xl text-gray-800 shadow-sm outline-none transition [appearance:textfield] focus:border-gray-500 focus:ring-2 focus:ring-gray-300 md:w-48 md:px-4 md:text-[1.6875rem] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         />
                     </div>
                 </div>
 
-                <div className="mx-auto flex w-full max-w-6xl justify-center gap-3 px-6 pt-4">
+                <div className="mx-auto flex w-full max-w-6xl justify-center gap-3 px-4 pt-4 md:px-6">
                     <button
                         onClick={reset}
                         className="rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-300"

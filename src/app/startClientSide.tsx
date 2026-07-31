@@ -77,14 +77,14 @@ export default function StartClientSide({userLoggedIn, dailyCompleted: initialDa
     }
 
     return (
-        <section className="flex min-h-[calc(100vh-9rem)] flex-col items-center justify-end pb-2">
-            <div className="w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-5 shadow-sm md:p-8">
+        <section className="flex min-h-[calc(100vh-11rem)] flex-col items-center justify-start pb-2 md:min-h-[calc(100vh-9rem)] md:justify-end">
+            <div className="w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm md:p-8">
                 {/* <div className="mb-6 text-center">
                     <h2 className="text-2xl font-semibold tracking-tight text-gray-800 md:text-3xl">Game Modes</h2>
                     
                 </div> */}
 
-                <div className="grid min-h-[55vh] grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:min-h-[55vh] lg:grid-cols-3">
                     {gameModeDisplay.map((mode) => {
                         const isSelected = gameModeInput === mode.gameMode;
                         const ModeIcon = mode.icon;
@@ -96,7 +96,7 @@ export default function StartClientSide({userLoggedIn, dailyCompleted: initialDa
                                         setProblemTypeInput(MAIN_GAME_MODES[mode.gameMode].problemType);
                                         setGameModeInput(mode.gameMode);
                                     }}
-                                    className={`flex h-full w-full flex-col items-center justify-center rounded-xl border px-4 py-6 text-center transition md:px-6 ${
+                                    className={`flex min-h-28 w-full flex-col items-center justify-center rounded-xl border px-4 py-5 text-center transition md:h-full md:min-h-0 md:px-6 md:py-6 ${
                                         isSelected
                                             ? 'border-gray-300 bg-gray-200 text-gray-800 shadow-sm'
                                             : 'border-gray-200 bg-white text-gray-700 shadow-sm hover:-translate-y-0.5 hover:border-gray-300 hover:shadow'
@@ -118,7 +118,7 @@ export default function StartClientSide({userLoggedIn, dailyCompleted: initialDa
                                     <Info size={12} className="text-gray-400" aria-hidden="true" />
                                     <div
                                         role="tooltip"
-                                        className="pointer-events-none absolute left-full top-1/2 z-10 ml-2 hidden max-w-xs -translate-y-1/2 whitespace-pre-line rounded-md bg-gray-800 px-2 py-1 text-xs font-medium text-gray-100 shadow-lg group-hover/info:block"
+                                        className="pointer-events-none absolute right-0 top-full z-10 mt-2 hidden max-w-[calc(100vw-3rem)] whitespace-pre-line rounded-md bg-gray-800 px-2 py-1 text-xs font-medium text-gray-100 shadow-lg group-hover/info:block md:left-full md:right-auto md:top-1/2 md:mt-0 md:ml-2 md:max-w-xs md:-translate-y-1/2"
                                     >
                                         {mode.tooltip}
                                     </div>
@@ -134,7 +134,7 @@ export default function StartClientSide({userLoggedIn, dailyCompleted: initialDa
                                 if (!userLoggedIn || dailyCompleted) return;
                                 setGameModeInput('daily');
                             }}
-                            className={`flex h-full w-full flex-col items-center justify-center rounded-xl border px-4 py-6 text-center transition md:px-6 ${
+                            className={`flex min-h-28 w-full flex-col items-center justify-center rounded-xl border px-4 py-5 text-center transition md:h-full md:min-h-0 md:px-6 md:py-6 ${
                                 !userLoggedIn
                                     ? 'cursor-not-allowed border-gray-300 bg-gray-200 text-gray-500'
                                     : dailyCompleted
@@ -169,7 +169,7 @@ export default function StartClientSide({userLoggedIn, dailyCompleted: initialDa
                             <Info size={12} className="text-gray-400" aria-hidden="true" />
                             <div
                                 role="tooltip"
-                                className="pointer-events-none absolute left-full top-1/2 z-10 ml-2 hidden max-w-xs -translate-y-1/2 whitespace-pre-line rounded-md bg-gray-800 px-2 py-1 text-xs font-medium text-gray-100 shadow-lg group-hover/info:block"
+                                className="pointer-events-none absolute right-0 top-full z-10 mt-2 hidden max-w-[calc(100vw-3rem)] whitespace-pre-line rounded-md bg-gray-800 px-2 py-1 text-xs font-medium text-gray-100 shadow-lg group-hover/info:block md:left-full md:right-auto md:top-1/2 md:mt-0 md:ml-2 md:max-w-xs md:-translate-y-1/2"
                             >
                                 Standard problem bounds
                             </div>
@@ -181,7 +181,7 @@ export default function StartClientSide({userLoggedIn, dailyCompleted: initialDa
                             onClick={() => {
                                 router.push('/custom');
                             }}
-                            className="flex h-full w-full flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-100 px-4 py-6 text-center text-gray-600 shadow-sm transition hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-200 md:px-6"
+                            className="flex min-h-28 w-full flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-100 px-4 py-5 text-center text-gray-600 shadow-sm transition hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-200 md:h-full md:min-h-0 md:px-6 md:py-6"
                         >
                             <div className="flex items-center gap-2">
                                 <span className="text-lg font-semibold md:text-xl">Custom</span>
@@ -193,7 +193,7 @@ export default function StartClientSide({userLoggedIn, dailyCompleted: initialDa
                             <Info size={12} className="text-gray-400" aria-hidden="true" />
                             <div
                                 role="tooltip"
-                                className="pointer-events-none absolute left-full top-1/2 z-10 ml-2 hidden -translate-y-1/2 whitespace-pre-line rounded-md bg-gray-800 px-2 py-1 text-xs font-medium text-gray-100 shadow-lg group-hover/info:block"
+                                className="pointer-events-none absolute right-0 top-full z-10 mt-2 hidden whitespace-pre-line rounded-md bg-gray-800 px-2 py-1 text-xs font-medium text-gray-100 shadow-lg group-hover/info:block md:left-full md:right-auto md:top-1/2 md:mt-0 md:ml-2 md:-translate-y-1/2"
                             >
                                 Custom
                             </div>
@@ -212,7 +212,7 @@ export default function StartClientSide({userLoggedIn, dailyCompleted: initialDa
 
             </div>
             <div className="mt-6 w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3">
-                <div className="flex justify-center gap-24">
+                <div className="flex justify-center gap-12 md:gap-24">
                     <Link
                         href="/help"
                             className="flex items-center gap-2 text-xs font-medium text-gray-400 transition hover:text-gray-600"

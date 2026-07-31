@@ -90,8 +90,8 @@ export default function LayoutClientSide({children}: LayoutProps) {
         <body>
         <div className="min-h-screen bg-gray-100 text-gray-800">
             <nav className="border-b border-gray-200 bg-gray-50/95 backdrop-blur">
-                <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-                    <div className="flex items-center gap-3">
+                <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between md:gap-0 md:px-6 md:py-4">
+                    <div className="flex w-full items-center justify-between gap-3 md:w-auto md:justify-start">
                         <Link
                             href="/"
                             className="text-lg font-semibold tracking-wide text-gray-700 transition hover:text-gray-900"
@@ -99,40 +99,43 @@ export default function LayoutClientSide({children}: LayoutProps) {
                             ZETAMAC+
                         </Link>
                         {userLoggedIn && (
-                            <div className="flex items-center gap-3">
-                                <p className="text-sm text-gray-500">
+                            <div className="flex min-w-0 items-center gap-3">
+                                <p className="truncate text-xs text-gray-500 sm:text-sm">
                                     Welcome {username}
                                 </p>
                                 {!userVerified && (
-                                    <p className="text-sm text-amber-600">
+                                    <p className="hidden text-sm text-amber-600 sm:block">
                                         Email verification required
                                     </p>
                                 )}
                             </div>
                         )}
                     </div>
-                    <div className="flex items-center gap-3 text-sm font-medium">
+                    <div className="grid w-full grid-cols-4 items-center gap-1 text-xs font-medium sm:gap-2 sm:text-sm md:flex md:w-auto md:gap-3">
                         <Link
                             href="/"
-                            className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
+                            aria-label="Play"
+                            className="flex items-center justify-center gap-1 rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 sm:gap-2 sm:px-3"
                         >
                             <Play size={18} aria-hidden="true" />
-                            Play
+                            <span className="hidden sm:inline">Play</span>
                         </Link>
                         <Link
                             href="/leaderboard"
-                            className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
+                            aria-label="Leaderboard"
+                            className="flex items-center justify-center gap-1 rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 sm:gap-2 sm:px-3"
                         >
                             <Crown size={18} aria-hidden="true" />
-                            Leaderboard
+                            <span className="hidden sm:inline">Leaderboard</span>
                         </Link>
                         {canViewStats && (
                             <Link
                                 href="/stats"
-                                className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
+                                aria-label="My Stats"
+                                className="flex items-center justify-center gap-1 rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 sm:gap-2 sm:px-3"
                             >
                                 <Chart size={18} aria-hidden="true" />
-                                My Stats
+                                <span className="hidden sm:inline">My Stats</span>
                             </Link>
                         )}
                         {!canViewStats && (
@@ -142,10 +145,10 @@ export default function LayoutClientSide({children}: LayoutProps) {
                                     aria-label="My Stats"
                                     aria-describedby="stats-disabled-tooltip"
                                     aria-disabled="true"
-                                    className="peer flex cursor-not-allowed items-center gap-2 rounded-md px-3 py-2 text-gray-300"
+                                    className="peer flex w-full cursor-not-allowed items-center justify-center gap-1 rounded-md px-1.5 py-2 text-gray-300 sm:gap-2 sm:px-3"
                                 >
                                     <Chart size={18} aria-hidden="true" />
-                                    My Stats
+                                    <span className="hidden sm:inline">My Stats</span>
                                 </button>
                                 <div
                                     id="stats-disabled-tooltip"
@@ -159,7 +162,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
                         {!userLoggedIn && (
                             <Link
                                 href="/login"
-                                className="rounded-md px-3 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
+                                className="flex justify-center rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 sm:px-3"
                             >
                                 Login
                             </Link>
@@ -167,7 +170,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
                         {userLoggedIn && (
                             <button
                                 onClick={clickSignOut}
-                                className="rounded-md bg-gray-800 px-3 py-2 text-gray-100 transition hover:bg-gray-900"
+                                className="rounded-md bg-gray-800 px-1.5 py-2 text-gray-100 transition hover:bg-gray-900 sm:px-3"
                             >
                                 Sign Out
                             </button>
@@ -175,7 +178,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
                     </div>
                 </div>
             </nav>
-            <main className="mx-auto flex w-full max-w-6xl justify-center px-6 py-8">
+            <main className="mx-auto flex w-full max-w-6xl justify-center px-4 py-5 md:px-6 md:py-8">
                 <div className="w-full">
                     <GameProvider> 
                         {children}

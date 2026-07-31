@@ -136,13 +136,13 @@ export default function ClientSide({testId}: {testId: string}) {
     });
 
     return (
-        <section className="flex min-h-[calc(100vh-9rem)] flex-col gap-20 py-6 md:gap-25 md:py-8">
-            <div className="w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-5 shadow-sm md:p-8">
+        <section className="flex min-h-[calc(100vh-9rem)] flex-col gap-8 py-3 md:gap-25 md:py-8">
+            <div className="w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-3 shadow-sm md:p-8">
                 <div className="mb-6 text-center">
                     <h2 className="text-2xl font-semibold tracking-tight text-gray-800 md:text-3xl">Score: {score}</h2>
                 </div>
 
-                <div className="rounded-xl border border-gray-200 bg-white p-3 md:p-5">
+                <div className="rounded-xl border border-gray-200 bg-white p-1 md:p-5">
                     <div className="h-64 w-full md:h-72">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={solveRates}>
@@ -195,12 +195,12 @@ export default function ClientSide({testId}: {testId: string}) {
                 </div>
             </div>
 
-            <div className="w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-5 shadow-sm md:p-8">
-                <div className="rounded-xl border border-gray-200 bg-white">
+            <div className="w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-3 shadow-sm md:p-8">
+                <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
                     {problemList.length === 0 ? (
                         <p className="px-4 py-6 text-center text-base text-gray-500 md:px-5 md:text-lg">No problems solved.</p>
                     ) : (
-                        <table className="w-full text-base md:text-lg">
+                        <table className="min-w-[22rem] w-full text-sm md:min-w-0 md:text-lg">
                             <thead>
                                 <tr className="border-b border-gray-50 bg-gray-50/80">
                                     <th className="px-4 py-3 text-center font-semibold text-gray-700 md:px-5">#</th>
