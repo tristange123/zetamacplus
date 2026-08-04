@@ -21,7 +21,7 @@ A modern upgrade to the popular mental math trainer arithmetic zetamac.
 - **Frontend/ Backend:** NextJS
 - **Database:** PostgreSQL
 - **Auth:** BetterAuth
-- **Deployment:** Vercel
+- **Deployment:** AWS
 
 ### Installation
 
