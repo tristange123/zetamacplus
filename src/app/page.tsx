@@ -1,39 +1,32 @@
 import { headers } from 'next/headers'
 import { auth } from '@/lib/auth/auth'
+import prisma from '@/lib/db/prisma'
+import { refreshDailyGame } from '@/lib/game/dailyGame'
 import StartClientSide from './startClientSide';
 
 
-type ProfileDailyStatus = {
-  dailyCompleted?: boolean,
-  dailyScore?: number
-}
-
-async function loadDailyStatus(userLoggedIn: boolean, requestHeaders: Headers) {
+async function loadDailyStatus(userId: string | null) {
   const dailyStatus = {
     dailyCompleted: false,
     dailyScore: null as number | null
   };
 
-  if (!userLoggedIn) return dailyStatus;
+  if (!userId) return dailyStatus;
 
   try {
-    const protocol = requestHeaders.get('x-forwarded-proto') ?? 'http';
-    const host = requestHeaders.get('host');
-    if (!host) return dailyStatus;
+    // Must run before reading the profile: a new day resets dailyCompleted
+    await refreshDailyGame();
 
-    const baseUrl = `${protocol}://${host}`;
-
-    await fetch(`${baseUrl}/api/daily`);
-    const response = await fetch(`${baseUrl}/api/profile`, {
-      headers: {
-        cookie: requestHeaders.get('cookie') ?? '',
+    const profile = await prisma.profile.findUnique({
+      where: {
+        userId
       },
+      select: {
+        dailyCompleted: true,
+        dailyScore: true
+      }
     });
 
-    if (!response.ok) return dailyStatus;
-
-    const profiles: ProfileDailyStatus[] = await response.json();
-    const profile = profiles[0];
     if (!profile?.dailyCompleted) {
       return dailyStatus;
     }
@@ -62,7 +55,7 @@ export default async function MainPage(){
   else{
     username = session.user.name;
   }
-  const dailyStatus = await loadDailyStatus(userLoggedIn, requestHeaders);
+  const dailyStatus = await loadDailyStatus(session?.user.id ?? null);
 
   return <StartClientSide userLoggedIn = {userLoggedIn} username = {username} {...dailyStatus}></StartClientSide>
 }

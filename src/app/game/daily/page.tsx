@@ -1,31 +1,10 @@
 import Link from 'next/link';
-import {headers} from 'next/headers';
 import prisma from '@/lib/db/prisma';
 import requireSession from '@/lib/auth/requireSession';
-import {type Problem} from '@/types/frontendTypes';
+import {getDailyProblems} from '@/lib/game/dailyGame';
 import ClientSide from './clientSide';
 
 export const dynamic = 'force-dynamic';
-
-async function getDailyProblems(): Promise<Problem[]> {
-    const requestHeaders = await headers();
-    const host = requestHeaders.get('host');
-    const protocol = requestHeaders.get('x-forwarded-proto') ?? 'http';
-
-    if (!host) {
-        throw new Error('Missing request host');
-    }
-
-    const response = await fetch(`${protocol}://${host}/api/daily`, {
-        cache: 'no-store',
-    });
-
-    if (!response.ok) {
-        throw new Error('Failed to load daily problems');
-    }
-
-    return response.json();
-}
 
 function BackButton() {
     return (
@@ -92,6 +71,9 @@ export default async function DailyPage() {
     //     );
     // }
 
+    // Must run before the update: rotating to a new day resets dailyCompleted
+    const dailyProblems = await getDailyProblems();
+
     await prisma.profile.update({
         where: {
             userId: session.user.id,
@@ -100,8 +82,6 @@ export default async function DailyPage() {
             dailyCompleted: true,
         },
     });
-
-    const dailyProblems = await getDailyProblems();
 
     return <ClientSide dailyProblems={dailyProblems} />;
 }
