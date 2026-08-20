@@ -34,21 +34,41 @@ export default async function DailyPage() {
         );
     }
 
-    const profile = await prisma.profile.findUnique({
+    // Rotate first so completion state is reset before this request attempts
+    // to claim today's single play.
+    const dailyProblems = await getDailyProblems();
+
+    const claimedDaily = await prisma.profile.updateMany({
         where: {
             userId: session.user.id,
+            dailyCompleted: false,
         },
-        select: {
+        data: {
             dailyCompleted: true,
         },
     });
 
-    if (!profile) {
+    if (claimedDaily.count === 0) {
+        const profile = await prisma.profile.findUnique({
+            where: {
+                userId: session.user.id,
+            },
+            select: {
+                dailyCompleted: true,
+            },
+        });
+
         return (
             <section className="flex min-h-[calc(100vh-9rem)] items-center justify-center">
                 <div className="rounded-2xl border border-gray-200 bg-gray-50/70 p-8 text-center shadow-sm">
-                    <h1 className="text-2xl font-semibold tracking-tight text-gray-800">Daily Game</h1>
-                    <p className="mt-2 text-sm text-gray-600">No profile found for this account.</p>
+                    <h1 className="text-2xl font-semibold tracking-tight text-gray-800">
+                        {profile ? "Daily Already Played" : "Daily Game"}
+                    </h1>
+                    <p className="mt-2 text-sm text-gray-600">
+                        {profile
+                            ? "You have already played today's daily game."
+                            : "No profile found for this account."}
+                    </p>
                     <div className="mt-5">
                         <BackButton />
                     </div>
@@ -56,32 +76,6 @@ export default async function DailyPage() {
             </section>
         );
     }
-
-    // if (profile.dailyCompleted) {
-    //     return (
-    //         <section className="flex min-h-[calc(100vh-9rem)] items-center justify-center">
-    //             <div className="rounded-2xl border border-gray-200 bg-gray-50/70 p-8 text-center shadow-sm">
-    //                 <h1 className="text-2xl font-semibold tracking-tight text-gray-800">Daily Already Played</h1>
-    //                 <p className="mt-2 text-sm text-gray-600">You have already played today&apos;s daily game.</p>
-    //                 <div className="mt-5">
-    //                     <BackButton />
-    //                 </div>
-    //             </div>
-    //         </section>
-    //     );
-    // }
-
-    // Must run before the update: rotating to a new day resets dailyCompleted
-    const dailyProblems = await getDailyProblems();
-
-    await prisma.profile.update({
-        where: {
-            userId: session.user.id,
-        },
-        data: {
-            dailyCompleted: true,
-        },
-    });
 
     return <ClientSide dailyProblems={dailyProblems} />;
 }

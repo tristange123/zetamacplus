@@ -1,30 +1,68 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useGameContext } from './gameContext';
 import { type MainGameModeName,type GameModeName, type ProblemType } from '@/types/frontendTypes'
 import {MAIN_GAME_MODES, BOUNDS, EXTRA_GAME_MODES} from '@/lib/game/gameModeGlobals'
 import { Calculator, Rabbit, SportShoe, Skull, NotebookText, Info, type LucideIcon, Clock, Mail, Wrench } from 'lucide-react'
 import Link from 'next/link';
 type startProps = {
-    userLoggedIn: boolean,
-    username: string | null,
-    dailyCompleted: boolean,
-    dailyScore: number | null
+    userLoggedIn: boolean
 }
 
+type DailyStatus = 'loading' | 'available' | 'completed' | 'error';
 
 
-export default function StartClientSide({userLoggedIn, dailyCompleted: initialDailyCompleted, dailyScore: initialDailyScore}: startProps) {
+
+export default function StartClientSide({userLoggedIn}: startProps) {
     const router = useRouter();
     const gameContext = useGameContext();
 
     const [timeFormatInput, setTimeFormatInput] = useState(120);
     const [problemTypeInput, setProblemTypeInput] = useState<ProblemType>('medium');
     const [gameModeInput, setGameModeInput] = useState<GameModeName>('standard');
-    const [dailyCompleted] = useState(initialDailyCompleted);
-    const [dailyScore] = useState<number | null>(initialDailyScore);
+    const [dailyStatus, setDailyStatus] = useState<DailyStatus>('loading');
+    const [dailyScore, setDailyScore] = useState<number | null>(null);
+
+    useEffect(() => {
+        if (!userLoggedIn) return;
+
+        const controller = new AbortController();
+
+        async function loadDailyStatus() {
+            try {
+                const response = await fetch('/api/daily/status', {
+                    cache: 'no-store',
+                    signal: controller.signal,
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Daily status request failed with ${response.status}`);
+                }
+
+                const status: {
+                    dailyCompleted: boolean,
+                    dailyScore: number | null
+                } = await response.json();
+
+                setDailyScore(status.dailyScore);
+                setDailyStatus(status.dailyCompleted ? 'completed' : 'available');
+            }
+            catch (error) {
+                if (error instanceof Error && error.name === 'AbortError') return;
+                console.error('Failed to load daily status', error);
+                setDailyStatus('error');
+            }
+        }
+
+        void loadDailyStatus();
+
+        return () => controller.abort();
+    }, [userLoggedIn]);
+
+    const dailyCompleted = dailyStatus === 'completed';
+    const dailyAvailable = dailyStatus === 'available';
 
 
     type GameModeDisplay = {
@@ -44,6 +82,8 @@ export default function StartClientSide({userLoggedIn, dailyCompleted: initialDa
     async function handleStart () {     
         try{
             if (gameModeInput == "daily") {
+                if (!dailyAvailable) return;
+
                 gameContext?.setGameMode("daily");
                 localStorage.setItem("gameMode", "daily");
                 gameContext?.setProblemType(EXTRA_GAME_MODES['daily']['problemType']);
@@ -129,16 +169,16 @@ export default function StartClientSide({userLoggedIn, dailyCompleted: initialDa
                     {userLoggedIn && (
                     <div className="relative h-full w-full">
                         <button
-                            disabled={!userLoggedIn || dailyCompleted}
+                            disabled={!dailyAvailable}
                             onClick={() => {
-                                if (!userLoggedIn || dailyCompleted) return;
+                                if (!dailyAvailable) return;
                                 setGameModeInput('daily');
                             }}
                             className={`flex min-h-28 w-full flex-col items-center justify-center rounded-xl border px-4 py-5 text-center transition md:h-full md:min-h-0 md:px-6 md:py-6 ${
-                                !userLoggedIn
-                                    ? 'cursor-not-allowed border-gray-300 bg-gray-200 text-gray-500'
-                                    : dailyCompleted
+                                dailyCompleted
                                     ? 'cursor-not-allowed border-gray-200 bg-white text-gray-500 shadow-sm'
+                                    : !dailyAvailable
+                                    ? `${dailyStatus === 'loading' ? 'cursor-wait' : 'cursor-not-allowed'} border-gray-200 bg-white text-gray-500 shadow-sm`
                                     : gameModeInput === "daily"
                                     ? 'border-gray-300 bg-gray-200 text-gray-800 shadow-sm'
                                     : 'border-gray-200 bg-white text-gray-700 shadow-sm hover:-translate-y-0.5 hover:border-gray-300 hover:shadow'
@@ -157,6 +197,10 @@ export default function StartClientSide({userLoggedIn, dailyCompleted: initialDa
                                     ? "Login to unlock"
                                     : dailyCompleted
                                     ? ""
+                                    : dailyStatus === 'loading'
+                                    ? "Checking today's game..."
+                                    : dailyStatus === 'error'
+                                    ? "Daily game unavailable"
                                     : "Play once every day!"}
                             </span>
                             {dailyCompleted && (
