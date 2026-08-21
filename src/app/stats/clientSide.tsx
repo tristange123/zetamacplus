@@ -204,9 +204,7 @@ function Profile({profile}: ProfileProps) {
             setUsername(body.username);
             setNewUsername('');
             setSubmitMessage('Username changed.');
-            window.dispatchEvent(new CustomEvent('profile-username-changed', {
-                detail: body.username,
-            }));
+            window.dispatchEvent(new Event('profile-username-changed'));
         }
         catch {
             setSubmitMessage('Could not change username.');

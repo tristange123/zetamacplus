@@ -50,18 +50,13 @@ export default function LayoutClientSide({children}: LayoutProps) {
   const router = useRouter();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [profileUsername, setProfileUsername] = useState<{userId: string, username: string} | null>(null);
 
-  let userLoggedIn = true;
-  let userVerified = true;
-  let username;
   const { data } = authClient.useSession();
-  if (data == null){
-    userLoggedIn = false;
-  }
-  else{
-    username = data.user.name;
-    userVerified = data.user.emailVerified;
-  }
+  const sessionUserId = data?.user.id ?? null;
+  const username = profileUsername?.userId === sessionUserId ? profileUsername.username : null;
+  const userLoggedIn = data != null;
+  const userVerified = data?.user.emailVerified ?? false;
   const canViewStats = userLoggedIn && userVerified;
   const statsDisabledMessage = userLoggedIn ? "Verify email to view stats" : "Log in to view stats";
 
@@ -83,6 +78,50 @@ export default function LayoutClientSide({children}: LayoutProps) {
       document.addEventListener("mousedown", handleClickOutside);
       return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [userMenuOpen]);
+
+  useEffect(() => {
+      if (!sessionUserId) return;
+
+      const userId = sessionUserId;
+      const controller = new AbortController();
+      let latestRequest = 0;
+
+      async function loadUsername() {
+          const requestNumber = ++latestRequest;
+
+          try {
+              const response = await fetch("/api/profile/username", {
+                  signal: controller.signal,
+              });
+              if (!response.ok) return;
+
+              const profile = await response.json() as { username?: unknown };
+              if (requestNumber === latestRequest && typeof profile.username === "string") {
+                  setProfileUsername({
+                      userId,
+                      username: profile.username,
+                  });
+              }
+          }
+          catch (error) {
+              if (!(error instanceof DOMException && error.name === "AbortError")) {
+                  console.error("Failed to load profile username", error);
+              }
+          }
+      }
+
+      function handleUsernameChanged() {
+          void loadUsername();
+      }
+
+      void loadUsername();
+      window.addEventListener("profile-username-changed", handleUsernameChanged);
+
+      return () => {
+          controller.abort();
+          window.removeEventListener("profile-username-changed", handleUsernameChanged);
+      };
+  }, [sessionUserId]);
   
 //   LOADING SCREEN: not sure if I want to have this
 
@@ -114,7 +153,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
                         >
                             ZETAMAC+
                         </Link>
-                        {userLoggedIn && (
+                        {userLoggedIn && username !== null && (
                             <div className="flex min-w-0 items-center gap-3">
                                 <p className="truncate text-xs text-gray-500 sm:text-sm">
                                     Welcome {username}
