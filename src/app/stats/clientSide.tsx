@@ -2,7 +2,7 @@
 
 import {Calculator, ChevronRight, Clock, Rabbit, Skull, SportShoe, X, type LucideIcon} from 'lucide-react';
 import {Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis} from 'recharts';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState, type FormEvent} from 'react';
 import {type GameModeTopTests, type ProblemDb, type ProfileDb, type TestDb} from '@/types/dbTypes.js'
 import {type MainGameModeName} from '@/types/frontendTypes'
 
@@ -45,7 +45,7 @@ type PastRunsProps = {
 function PastRuns({tests, selectedTestId, onSelectTest}: PastRunsProps) {
     return (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white p-3 md:p-4">
-            <h3 className="mb-3 text-2xl font-semibold text-gray-700">Past Runs</h3>
+            <h3 className="mb-3 border-b border-gray-200 pb-2 text-2xl font-semibold text-gray-700">Past Runs</h3>
             <div className="max-h-100 overflow-auto rounded-xl border border-gray-200">
                 <table className="min-w-[28rem] w-full text-xs md:min-w-0 md:text-sm">
                     <thead className="sticky top-0 z-10">
@@ -115,7 +115,7 @@ type ProblemsPanelProps = {
 function ProblemsPanel({selectedTest, problems, loadingProblems, problemError, onClose}: ProblemsPanelProps) {
     return (
         <aside className="min-w-0 overflow-y-auto rounded-2xl border border-gray-200 bg-gray-50/95 p-3 shadow-xl md:sticky md:top-5 md:max-h-[calc(100vh-8rem)]">
-            <div className="mb-3 flex items-start justify-between gap-3">
+            <div className="mb-3 flex items-start justify-between gap-3 border-b border-gray-200 pb-3">
                 <div>
                     <h2 className="text-sm font-semibold tracking-tight text-gray-800">
                         Past Run Problems
@@ -176,12 +176,81 @@ type ProfileProps = {
 }
 
 function Profile({profile}: ProfileProps) {
+    const [username, setUsername] = useState(profile.username);
+    const [newUsername, setNewUsername] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitMessage, setSubmitMessage] = useState('');
+
+    async function updateUsername(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setIsSubmitting(true);
+        setSubmitMessage('');
+
+        try {
+            const response = await fetch('/api/profile/username', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({username: newUsername}),
+            });
+            const body = await response.json() as {username?: string, error?: string};
+
+            if (!response.ok || !body.username) {
+                setSubmitMessage(body.error ?? 'Could not change username.');
+                return;
+            }
+
+            setUsername(body.username);
+            setNewUsername('');
+            setSubmitMessage('Username changed.');
+            window.dispatchEvent(new CustomEvent('profile-username-changed', {
+                detail: body.username,
+            }));
+        }
+        catch {
+            setSubmitMessage('Could not change username.');
+        }
+        finally {
+            setIsSubmitting(false);
+        }
+    }
 
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-4">
-            <h3 className="mb-3 text-xl font-semibold text-gray-700">Profile</h3>
-            <div className="break-all text-sm text-gray-700">{profile.email}</div>
-            <div className="mt-1 text-xs text-gray-500 md:text-sm">Date Joined: {new Date(profile.timeJoined).toLocaleString()}</div>
+            <h3 className="mb-3 border-b border-gray-200 pb-2 text-xl font-semibold text-gray-700">Profile</h3>
+            <div className="break-all text-sm text-gray-700">
+                <span className="font-semibold">Email:</span> {profile.email}
+            </div>
+            <div className="mt-1 text-xs text-gray-500 md:text-sm">
+                <span className="font-semibold">Date Joined:</span> {new Date(profile.timeJoined).toLocaleString()}
+            </div>
+            <div className="mt-1 break-all text-sm text-gray-700">
+                <span className="font-semibold">Username:</span> {username}
+            </div>
+            <form className="mt-3 flex items-center gap-2" onSubmit={updateUsername}>
+                <label htmlFor="new-username" className="sr-only">New username</label>
+                <input
+                    id="new-username"
+                    type="text"
+                    value={newUsername}
+                    onChange={(event) => setNewUsername(event.target.value)}
+                    placeholder="New username"
+                    maxLength={50}
+                    required
+                    className="min-w-0 max-w-56 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-800 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200"
+                />
+                <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="shrink-0 rounded-lg bg-gray-700 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                    {isSubmitting ? 'Submitting...' : 'Submit'}
+                </button>
+            </form>
+            {submitMessage && (
+                <p className="mt-2 text-xs text-gray-600" role="status">{submitMessage}</p>
+            )}
         </div>
     );
 }
@@ -192,9 +261,13 @@ type UserStatsProps = {
 function UserStats({ testsAttempted, testsCompleted }: UserStatsProps) {
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-4">
-            <h3 className="mb-3 text-xl font-semibold text-gray-700">User Stats</h3>
-            <div className="text-sm text-gray-700">Tests Attempted: {testsAttempted ?? 0}</div>
-            <div className="mt-1 text-sm text-gray-700">Tests Completed: {testsCompleted ?? 0}</div>
+            <h3 className="mb-3 border-b border-gray-200 pb-2 text-xl font-semibold text-gray-700">User Stats</h3>
+            <div className="text-sm text-gray-700">
+                <span className="font-semibold">Tests Attempted:</span> {testsAttempted ?? 0}
+            </div>
+            <div className="mt-1 text-sm text-gray-700">
+                <span className="font-semibold">Tests Completed:</span> {testsCompleted ?? 0}
+            </div>
         </div>
     );
 }
@@ -277,7 +350,7 @@ function FormatStats({ title, profile, topTests, selectedTestId, onSelectTest }:
 
     return (
         <div className="h-full rounded-xl border border-gray-200 bg-white p-4 md:p-5">
-            <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold capitalize text-gray-800">
+            <h3 className="mb-4 flex items-center gap-2 border-b border-gray-200 pb-2 text-lg font-semibold capitalize text-gray-800">
                 {title}
                 <ModeIcon size={20} className="text-gray-500" aria-hidden="true" />
             </h3>
@@ -297,9 +370,15 @@ function FormatStats({ title, profile, topTests, selectedTestId, onSelectTest }:
             </div>
 
             <div className="mt-4 space-y-2 border-t border-gray-100 pt-4 text-sm text-gray-700">
-                <div>Average Score: {profile?.[`${title}Average`].toFixed(1)}</div>
-                <div>Past 10 Average: {lastTenAverage.toFixed(1)}</div>
-                <div>Tests Completed: {profile?.[`${title}TotalTests`]}</div>
+                <div>
+                    <span className="font-semibold">Average Score:</span> {profile?.[`${title}Average`].toFixed(1)}
+                </div>
+                <div>
+                    <span className="font-semibold">Past 10 Average:</span> {lastTenAverage.toFixed(1)}
+                </div>
+                <div>
+                    <span className="font-semibold">Tests Completed:</span> {profile?.[`${title}TotalTests`]}
+                </div>
             </div>
         </div>
     );
@@ -351,7 +430,7 @@ function DailyScoreChart({tests}: DailyScoreChartProps) {
 
     return (
         <div className="h-full rounded-xl border border-gray-200 bg-white p-4 md:p-5">
-            <div className="mb-4">
+            <div className="mb-4 border-b border-gray-200 pb-2">
                 <h3 className="text-lg font-semibold text-gray-800">Daily Results</h3>
             </div>
 
@@ -438,7 +517,7 @@ export default function ClientSide({profile, tests, topTestsByMode, dailyTests}:
         }`}>
             <div className="flex min-w-0 flex-col gap-5">
                 <div className="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 shadow-sm">
-                    <h2 className="mb-4 text-xl font-semibold tracking-tight text-gray-800 md:text-2xl">
+                    <h2 className="mb-4 border-b border-gray-200 pb-2 text-xl font-semibold tracking-tight text-gray-800 md:text-2xl">
                         User Stats
                     </h2>
                     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
