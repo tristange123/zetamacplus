@@ -145,8 +145,8 @@ export default function LayoutClientSide({children}: LayoutProps) {
         <body>
         <div className="min-h-screen bg-gray-100 text-gray-800">
             <nav className="relative z-50 border-b border-gray-200 bg-gray-50/95 backdrop-blur">
-                <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between md:gap-0 md:px-6 md:py-4">
-                    <div className="flex w-full items-center justify-between gap-3 md:w-auto md:justify-start">
+                <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 px-4 py-3 md:gap-y-0 md:px-6 md:py-4">
+                    <div className="col-start-1 row-start-1 flex min-w-0 items-center gap-3">
                         <Link
                             href="/"
                             className="text-lg font-semibold tracking-wide text-gray-700 transition hover:text-gray-900"
@@ -166,7 +166,8 @@ export default function LayoutClientSide({children}: LayoutProps) {
                             </div>
                         )}
                     </div>
-                    <div className="grid w-full grid-cols-3 items-center gap-3 text-xs font-medium sm:gap-4 sm:text-sm md:flex md:w-auto md:gap-5">
+                    <div className="contents md:col-start-2 md:row-start-1 md:flex md:items-center md:justify-end md:gap-2">
+                    <div className="col-span-2 row-start-2 grid w-full grid-cols-2 items-center gap-3 text-xs font-medium sm:gap-4 sm:text-sm md:flex md:w-auto md:gap-2">
                         <Link
                             href="/"
                             aria-label="Play"
@@ -174,6 +175,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
                             className="flex items-center justify-center gap-1 rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 sm:gap-2 sm:px-3"
                         >
                             <Play size={18} aria-hidden="true" />
+                            <span>Play</span>
                         </Link>
                         <Link
                             href="/leaderboard"
@@ -182,7 +184,10 @@ export default function LayoutClientSide({children}: LayoutProps) {
                             className="flex items-center justify-center gap-1 rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 sm:gap-2 sm:px-3"
                         >
                             <Crown size={18} aria-hidden="true" />
+                            <span>Leaderboard</span>
                         </Link>
+                    </div>
+                    <div className="col-start-2 row-start-1 flex items-center justify-end text-xs font-medium sm:text-sm md:ml-1 md:border-l md:border-gray-300 md:pl-3">
                         {!userLoggedIn && (
                             <Link
                                 href="/login"
@@ -255,6 +260,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
                                 </div>
                             </div>
                         )}
+                    </div>
                     </div>
                 </div>
             </nav>
