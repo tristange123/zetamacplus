@@ -3,7 +3,6 @@ import { HelpRequestEmail } from "@/components/helpRequestEmail";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const HELP_REQUEST_TO = "tqg9928@nyu.edu";
 
 export async function POST(req: Request) {
@@ -30,6 +29,7 @@ export async function POST(req: Request) {
       timeZone: "America/New_York",
     });
 
+    const resend = new Resend(process.env.RESEND_API_KEY);
     const { error } = await resend.emails.send({
       from: process.env.RESEND_FROM ?? "METAMAC <onboarding@resend.dev>",
       to: [HELP_REQUEST_TO],

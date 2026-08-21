@@ -2,8 +2,6 @@ import { jsx } from "react/jsx-runtime";
 import { EmailTemplate } from "@/components/verificationEmail";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 type SendEmailProps = {
   to: string;
   subject: string;
@@ -17,6 +15,8 @@ export async function sendEmail({
   name,
   verificationUrl,
 }: SendEmailProps) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
   const { error } = await resend.emails.send({
     from: process.env.RESEND_FROM ?? "METAMAC <onboarding@resend.dev>",
     to: [to],
