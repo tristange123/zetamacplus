@@ -185,7 +185,14 @@ export default function ClientSide() {
     }
    
 
-    const solveRates = exponentialSmoothing(PPM(solveTimes, timeFormat));
+    const rawSolveRates = PPM(solveTimes, timeFormat);
+    const solveRatesAlpha02 = exponentialSmoothing(rawSolveRates, 0.2);
+    const solveRatesAlpha07 = exponentialSmoothing(rawSolveRates, 1);
+    const solveRates = solveRatesAlpha02.map((point, index) => ({
+        time: point.time,
+        alpha02: point.score,
+        alpha07: solveRatesAlpha07[index].score,
+    }));
     const timeTicks = getTimeTicks(timeFormat);
     const GameModeIcon = GAME_MODE_ICONS[gameMode];
 
@@ -199,7 +206,7 @@ export default function ClientSide() {
     });
 
     return (
-        <section className="flex min-h-[calc(100vh-9rem)] flex-col gap-8 py-3 md:gap-25 md:py-8">
+        <section className="flex min-h-[calc(100vh-9rem)] flex-col gap-3 py-3 md:gap-5 md:py-8">
             <div className="relative w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-3 shadow-sm md:p-8">
                 <div className="mb-6 flex w-full gap-3 md:gap-4">
                     <div className="flex aspect-square h-20 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white shadow-sm md:h-24">
@@ -252,7 +259,8 @@ export default function ClientSide() {
                                         color: '#1f2937',
                                     }}
                                 />
-                                <Line type="monotone" dataKey="score" stroke="#374151" strokeWidth={3} dot={false} />
+                                <Line type="monotone" dataKey="alpha07" stroke="#d1d5db" strokeWidth={3} dot={false} />
+                                <Line type="monotone" dataKey="alpha02" stroke="#374151" strokeWidth={3} dot={false} />
                             </LineChart>
                         </ResponsiveContainer>
                     </div>
