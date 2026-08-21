@@ -3,11 +3,20 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { useRouter } from 'next/navigation';
 import {useGameContext} from '../gameContext'
-import {useState, useEffect } from 'react';
-import {type GameContext} from '@/types/contextTypes'
+import {useState, useEffect, useRef } from 'react';
+import {type GameContext, type RankedGameModeName, type ScoreRank} from '@/types/contextTypes'
 import { type GameModeName, type Problem } from '@/types/frontendTypes'
 import {authClient} from '@/lib/auth/auth-client'
-import { Calculator, Rabbit, SportShoe, Skull, NotebookText, Clock, type LucideIcon } from 'lucide-react'
+import {
+    Calculator,
+    Clock,
+    Crown,
+    NotebookText,
+    Rabbit,
+    Skull,
+    SportShoe,
+    type LucideIcon,
+} from 'lucide-react'
 
 const GAME_MODE_ICONS: Record<GameModeName, LucideIcon> = {
     standard: Calculator,
@@ -26,6 +35,16 @@ function isGameModeName(gameMode: string | null): gameMode is GameModeName {
         || gameMode === "custom"
         || gameMode === "daily";
 }
+
+function isRankedGameModeName(gameMode: GameModeName): gameMode is RankedGameModeName {
+    return gameMode !== "custom";
+}
+
+const RANK_CROWN_CLASSES: Record<Exclude<ScoreRank, null>, string> = {
+    1: "fill-amber-200 text-amber-500",
+    2: "fill-gray-200 text-gray-400",
+    3: "fill-orange-200 text-orange-600",
+};
 
 
 
@@ -84,6 +103,8 @@ export default function ClientSide() {
     const [score, setScore] = useState(gameContext.score);
     const [gameMode, setGameMode] = useState<GameModeName>(gameContext.gameMode);
     const [isDailyGame, setIsDailyGame] = useState(gameContext.gameMode === "daily");
+    const [scoreRank, setScoreRank] = useState<ScoreRank>(null);
+    const topScoresUpdated = useRef(false);
     const {data: session} = authClient.useSession()
     const solveTimes: number[] = []
 
@@ -91,14 +112,25 @@ export default function ClientSide() {
     
     
     useEffect (() => {
-      setTimeFormat(Number(localStorage.getItem("timeFormat") ?? "120"))
-      setProblemList(JSON.parse(localStorage.getItem("problemSet") ?? "[]"));
-      setScore(Number(localStorage.getItem("score") ?? "0"));
+      const storedScore = Number(localStorage.getItem("score") ?? "0");
       const storedGameMode = localStorage.getItem("gameMode");
-      if (isGameModeName(storedGameMode)) {
-        setGameMode(storedGameMode);
-      }
-      setIsDailyGame(storedGameMode === "daily");
+      queueMicrotask(() => {
+        setTimeFormat(Number(localStorage.getItem("timeFormat") ?? "120"))
+        setProblemList(JSON.parse(localStorage.getItem("problemSet") ?? "[]"));
+        setScore(storedScore);
+        if (isGameModeName(storedGameMode)) {
+          setGameMode(storedGameMode);
+          if (
+            !topScoresUpdated.current
+            && gameContext.topScoresLoaded
+            && isRankedGameModeName(storedGameMode)
+          ) {
+            topScoresUpdated.current = true;
+            setScoreRank(gameContext.updateTopScores(storedGameMode, storedScore));
+          }
+        }
+        setIsDailyGame(storedGameMode === "daily");
+      });
       async function postData(){
         
           const now = new Date();
@@ -108,7 +140,7 @@ export default function ClientSide() {
                 const testResultRes = await fetch('/api/test', {
                     method: 'POST',
                     headers: { "Content-Type": 'application/json'},
-                    body: JSON.stringify({time: now, gameMode: gameContext.gameMode, score: gameContext.score})
+                    body: JSON.stringify({time: now, gameMode: storedGameMode, score: storedScore})
                 });
 
                 const testResult = await testResultRes.json();
@@ -116,12 +148,12 @@ export default function ClientSide() {
                 await fetch('/api/profile', {
                     method: 'PATCH',
                     headers: { "Content-Type": 'application/json'},
-                    body: JSON.stringify({testId: testResult.id, score, gameMode: gameContext.gameMode, testsAttempted: gameContext.testsAttempted})
+                    body: JSON.stringify({testId: testResult.id, score: storedScore, gameMode: storedGameMode, testsAttempted: gameContext.testsAttempted})
                 });
                 await fetch('/api/problem', {
                     method: 'POST',
                     headers: { "Content-Type": 'application/json'},
-                    body: JSON.stringify({testId: testResult.id, gameMode: gameContext.gameMode, problemSet: gameContext.problemSet})
+                    body: JSON.stringify({testId: testResult.id, gameMode: storedGameMode, problemSet: gameContext.problemSet})
                      
                 });
                 localStorage.setItem("testLogged", "true");
@@ -155,18 +187,13 @@ export default function ClientSide() {
 
     const solveRates = exponentialSmoothing(PPM(solveTimes, timeFormat));
     const timeTicks = getTimeTicks(timeFormat);
-    const ScoreGameModeIcon = GAME_MODE_ICONS[gameMode];
+    const GameModeIcon = GAME_MODE_ICONS[gameMode];
 
-    let cumulativeTime = 0;
     const problemRows = problemList.map((problem, index) => {
-        if (problem.solveTime != null) {
-            cumulativeTime += problem.solveTime;
-        }
         return {
             key: problem.orderNumber ?? index,
             number: (problem.orderNumber ?? index) + 1,
             statement: `${problem.statement}${problem.answer}`,
-            cumulativeTime,
             solveTime: problem.solveTime,
         };
     });
@@ -174,13 +201,24 @@ export default function ClientSide() {
     return (
         <section className="flex min-h-[calc(100vh-9rem)] flex-col gap-8 py-3 md:gap-25 md:py-8">
             <div className="relative w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-3 shadow-sm md:p-8">
-                {/* <ScoreGameModeIcon
-                    size={32}
-                    className="absolute left-5 top-5 text-gray-500 md:left-8 md:top-8"
-                    aria-hidden="true"
-                /> */}
-                <div className="mb-6 text-center">
-                    <h2 className="text-2xl font-semibold tracking-tight text-gray-800 md:text-3xl">Score: {score}</h2>
+                <div className="mb-6 flex w-full gap-3 md:gap-4">
+                    <div className="flex aspect-square h-20 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white shadow-sm md:h-24">
+                        <GameModeIcon
+                            className="h-9 w-9 text-gray-600 md:h-11 md:w-11"
+                            aria-label={`${gameMode} game mode`}
+                        />
+                    </div>
+                    <div className="flex min-w-0 flex-1 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 shadow-sm">
+                        <h2 className="flex items-center justify-center gap-2 text-2xl font-semibold tracking-tight text-gray-800 md:text-3xl">
+                            Score: {score}
+                            {scoreRank != null && (
+                                <Crown
+                                    className={`h-7 w-7 ${RANK_CROWN_CLASSES[scoreRank]}`}
+                                    aria-label={`${scoreRank === 1 ? "First" : scoreRank === 2 ? "Second" : "Third"} best score`}
+                                />
+                            )}
+                        </h2>
+                    </div>
                 </div>
 
                 <div className="rounded-xl border border-gray-200 bg-white p-1 md:p-5">

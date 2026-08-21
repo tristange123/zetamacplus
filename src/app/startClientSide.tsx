@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useGameContext } from './gameContext';
 import { type MainGameModeName,type GameModeName, type ProblemType } from '@/types/frontendTypes'
+import {type ScoresByGameMode} from '@/types/contextTypes'
 import {MAIN_GAME_MODES, BOUNDS, EXTRA_GAME_MODES} from '@/lib/game/gameModeGlobals'
 import { Calculator, Rabbit, SportShoe, Skull, NotebookText, Info, type LucideIcon, Clock, Mail, Wrench } from 'lucide-react'
 import Link from 'next/link';
@@ -18,6 +19,15 @@ type DailyStatus = 'loading' | 'available' | 'completed' | 'error';
 export default function StartClientSide({userLoggedIn}: startProps) {
     const router = useRouter();
     const gameContext = useGameContext();
+    const {
+        setBestScores,
+        setSecondBestScores,
+        setThirdBestScores,
+        setTopScoresLoaded,
+        setShowScore,
+        setShowTimer,
+        setShowKeyboard,
+    } = gameContext;
 
     const [timeFormatInput, setTimeFormatInput] = useState(120);
     const [problemTypeInput, setProblemTypeInput] = useState<ProblemType>('medium');
@@ -43,11 +53,24 @@ export default function StartClientSide({userLoggedIn}: startProps) {
 
                 const status: {
                     dailyCompleted: boolean,
-                    dailyScore: number | null
+                    dailyScore: number | null,
+                    showScore: boolean,
+                    showTimer: boolean,
+                    showKeyboard: boolean,
+                    bestScores: ScoresByGameMode,
+                    secondBestScores: ScoresByGameMode,
+                    thirdBestScores: ScoresByGameMode
                 } = await response.json();
 
                 setDailyScore(status.dailyScore);
                 setDailyStatus(status.dailyCompleted ? 'completed' : 'available');
+                setShowScore(status.showScore);
+                setShowTimer(status.showTimer);
+                setShowKeyboard(status.showKeyboard);
+                setBestScores(status.bestScores);
+                setSecondBestScores(status.secondBestScores);
+                setThirdBestScores(status.thirdBestScores);
+                setTopScoresLoaded(true);
             }
             catch (error) {
                 if (error instanceof Error && error.name === 'AbortError') return;
@@ -59,7 +82,16 @@ export default function StartClientSide({userLoggedIn}: startProps) {
         void loadDailyStatus();
 
         return () => controller.abort();
-    }, [userLoggedIn]);
+    }, [
+        userLoggedIn,
+        setBestScores,
+        setSecondBestScores,
+        setThirdBestScores,
+        setTopScoresLoaded,
+        setShowScore,
+        setShowTimer,
+        setShowKeyboard,
+    ]);
 
     const dailyCompleted = dailyStatus === 'completed';
     const dailyAvailable = dailyStatus === 'available';

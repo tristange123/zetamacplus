@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "Profile"
+ADD COLUMN "showScore" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN "showTimer" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN "showKeyboard" BOOLEAN NOT NULL DEFAULT true;
