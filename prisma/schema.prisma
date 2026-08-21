@@ -85,7 +85,7 @@ model Profile {
 
   showScore    Boolean @default(true)
   showTimer    Boolean @default(true)
-  showKeyboard Boolean @default(true)
+  showKeyboard Boolean @default(false)
 
   standard_1           String?
   standard_2           String?

@@ -1,11 +1,11 @@
 
 'use client'
 
-import {ReactNode} from 'react';
+import {ReactNode, useEffect, useRef, useState} from 'react';
 import {GameProvider} from './gameContext';
 import { authClient } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation'
-import {Crown, ChartNoAxesCombined as Chart, Play} from 'lucide-react'
+import {Crown, ChartNoAxesCombined as Chart, LogOut, Play, Settings as SettingsIcon, UserRound} from 'lucide-react'
 import Link from 'next/link';
 import "./globals.css";
 import type { Metadata } from "next";
@@ -48,6 +48,8 @@ type LayoutProps = {
 export default function LayoutClientSide({children}: LayoutProps) {
 
   const router = useRouter();
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   let userLoggedIn = true;
   let userVerified = true;
@@ -64,9 +66,23 @@ export default function LayoutClientSide({children}: LayoutProps) {
   const statsDisabledMessage = userLoggedIn ? "Verify email to view stats" : "Log in to view stats";
 
   async function clickSignOut() {
+      setUserMenuOpen(false);
       await authClient.signOut();
       router.push("/");
   }
+
+  useEffect(() => {
+      if (!userMenuOpen) return;
+
+      function handleClickOutside(event: MouseEvent) {
+          if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+              setUserMenuOpen(false);
+          }
+      }
+
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [userMenuOpen]);
   
 //   LOADING SCREEN: not sure if I want to have this
 
@@ -89,7 +105,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
     <html>
         <body>
         <div className="min-h-screen bg-gray-100 text-gray-800">
-            <nav className="border-b border-gray-200 bg-gray-50/95 backdrop-blur">
+            <nav className="relative z-50 border-b border-gray-200 bg-gray-50/95 backdrop-blur">
                 <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between md:gap-0 md:px-6 md:py-4">
                     <div className="flex w-full items-center justify-between gap-3 md:w-auto md:justify-start">
                         <Link
@@ -111,69 +127,94 @@ export default function LayoutClientSide({children}: LayoutProps) {
                             </div>
                         )}
                     </div>
-                    <div className="grid w-full grid-cols-4 items-center gap-1 text-xs font-medium sm:gap-2 sm:text-sm md:flex md:w-auto md:gap-3">
+                    <div className="grid w-full grid-cols-3 items-center gap-3 text-xs font-medium sm:gap-4 sm:text-sm md:flex md:w-auto md:gap-5">
                         <Link
                             href="/"
                             aria-label="Play"
+                            title="Play"
                             className="flex items-center justify-center gap-1 rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 sm:gap-2 sm:px-3"
                         >
                             <Play size={18} aria-hidden="true" />
-                            <span className="hidden sm:inline">Play</span>
                         </Link>
                         <Link
                             href="/leaderboard"
                             aria-label="Leaderboard"
+                            title="Leaderboard"
                             className="flex items-center justify-center gap-1 rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 sm:gap-2 sm:px-3"
                         >
                             <Crown size={18} aria-hidden="true" />
-                            <span className="hidden sm:inline">Leaderboard</span>
                         </Link>
-                        {canViewStats && (
-                            <Link
-                                href="/stats"
-                                aria-label="My Stats"
-                                className="flex items-center justify-center gap-1 rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 sm:gap-2 sm:px-3"
-                            >
-                                <Chart size={18} aria-hidden="true" />
-                                <span className="hidden sm:inline">My Stats</span>
-                            </Link>
-                        )}
-                        {!canViewStats && (
-                            <div className="group relative">
-                                <button
-                                    type="button"
-                                    aria-label="My Stats"
-                                    aria-describedby="stats-disabled-tooltip"
-                                    aria-disabled="true"
-                                    className="peer flex w-full cursor-not-allowed items-center justify-center gap-1 rounded-md px-1.5 py-2 text-gray-300 sm:gap-2 sm:px-3"
-                                >
-                                    <Chart size={18} aria-hidden="true" />
-                                    <span className="hidden sm:inline">My Stats</span>
-                                </button>
-                                <div
-                                    id="stats-disabled-tooltip"
-                                    role="tooltip"
-                                    className="pointer-events-none absolute right-0 top-full z-10 mt-2 hidden whitespace-nowrap rounded-md bg-gray-800 px-3 py-2 text-xs font-medium text-gray-100 shadow-lg peer-hover:block peer-focus:block"
-                                >
-                                    {statsDisabledMessage}
-                                </div>
-                            </div>
-                        )}
                         {!userLoggedIn && (
                             <Link
                                 href="/login"
-                                className="flex justify-center rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 sm:px-3"
+                                aria-label="Login"
+                                title="Login"
+                                className="flex items-center justify-center gap-1 rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 sm:gap-2 sm:px-3"
                             >
-                                Login
+                                <UserRound size={18} aria-hidden="true" />
                             </Link>
                         )}
                         {userLoggedIn && (
-                            <button
-                                onClick={clickSignOut}
-                                className="rounded-md bg-gray-800 px-1.5 py-2 text-gray-100 transition hover:bg-gray-900 sm:px-3"
-                            >
-                                Sign Out
-                            </button>
+                            <div ref={userMenuRef} className="relative z-50 flex justify-center">
+                                <button
+                                    type="button"
+                                    aria-label="User menu"
+                                    aria-haspopup="menu"
+                                    aria-expanded={userMenuOpen}
+                                    title="User menu"
+                                    onClick={() => setUserMenuOpen((open) => !open)}
+                                    className="flex items-center justify-center rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 focus:bg-gray-200 focus:text-gray-900 sm:px-3"
+                                >
+                                    <UserRound size={18} aria-hidden="true" />
+                                </button>
+                                <div
+                                    role="menu"
+                                    className={`absolute right-0 top-full z-[100] w-44 pt-2 ${userMenuOpen ? "block" : "hidden"}`}
+                                >
+                                    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white p-1 shadow-lg">
+                                        {canViewStats ? (
+                                            <Link
+                                                href="/stats"
+                                                role="menuitem"
+                                                onClick={() => setUserMenuOpen(false)}
+                                                className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
+                                            >
+                                                <Chart size={16} aria-hidden="true" />
+                                                Stats
+                                            </Link>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                role="menuitem"
+                                                disabled
+                                                title={statsDisabledMessage}
+                                                className="flex w-full cursor-not-allowed items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-400"
+                                            >
+                                                <Chart size={16} aria-hidden="true" />
+                                                Stats
+                                            </button>
+                                        )}
+                                        <Link
+                                            href="/settings"
+                                            role="menuitem"
+                                            onClick={() => setUserMenuOpen(false)}
+                                            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
+                                        >
+                                            <SettingsIcon size={16} aria-hidden="true" />
+                                            Settings
+                                        </Link>
+                                        <button
+                                            type="button"
+                                            role="menuitem"
+                                            onClick={clickSignOut}
+                                            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-red-600 transition hover:bg-red-50 hover:text-red-700"
+                                        >
+                                            <LogOut size={16} aria-hidden="true" />
+                                            Sign out
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>

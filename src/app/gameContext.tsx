@@ -41,7 +41,7 @@ export function GameProvider({ children } : GameProviderProps) {
     const [dailyProblems, setDailyProblems] = useState<Problem[]>([]);
     const [showScore, setShowScore] = useState(true);
     const [showTimer, setShowTimer] = useState(true);
-    const [showKeyboard, setShowKeyboard] = useState(true);
+    const [showKeyboard, setShowKeyboard] = useState(false);
     const [bestScores, setBestScores] = useState<ScoresByGameMode>({...EMPTY_SCORES});
     const [secondBestScores, setSecondBestScores] = useState<ScoresByGameMode>({...EMPTY_SCORES});
     const [thirdBestScores, setThirdBestScores] = useState<ScoresByGameMode>({...EMPTY_SCORES});

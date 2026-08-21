@@ -5,6 +5,7 @@ import {generateProblem} from '@/lib/game/generateProblem'
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGameContext} from '@/app/gameContext'
+import OnScreenKeyboard from './onScreenKeyboard'
 
 
 
@@ -12,6 +13,7 @@ export default function Game() {
     // Load gameContext
     const router = useRouter();
     const context = useGameContext();
+    const {showScore, showTimer, showKeyboard} = context;
     const [timeFormat, setTimeFormat] = useState<number>(context.timeFormat);
     const [operations, setOperations] = useState<OperationBounds>({'+': {first: [2,100], second: [2,100]},  '-': {first: [2,100], second: [2,100]},  '*': {first: [2,100], second: [2,12]}, '/': {first: [2,100], second: [2,12]}});
     // Gameplay States
@@ -82,7 +84,10 @@ export default function Game() {
 
 
     function checkDisplay(e: React.ChangeEvent<HTMLInputElement>, answer: number){
-        const val = e.target.value;
+        checkValue(e.target.value, answer);
+    }
+
+    function checkValue(val: string, answer: number){
         setDisplay(val);
         if (Number(val) === answer){
 
@@ -110,6 +115,16 @@ export default function Game() {
         }
     }
 
+    function pressKeyboardDigit(digit: string){
+        checkValue(display + digit, currProblem?.answer ?? 999);
+        inputRef.current?.focus();
+    }
+
+    function pressKeyboardBackspace(){
+        checkValue(display.slice(0, -1), currProblem?.answer ?? 999);
+        inputRef.current?.focus();
+    }
+
     async function reset(){
         setScore(0)
         setTime(timeFormat);
@@ -131,12 +146,12 @@ export default function Game() {
     return (
         <section className="relative flex min-h-[calc(100vh-9rem)] flex-col justify-center">
             <div className="absolute top-0 left-0 right-0 mx-auto flex w-full max-w-6xl items-center justify-between pb-6 text-xs font-medium text-gray-500 md:px-6 md:text-sm">
-                <p>Score: {score}</p>
-                <p>Time: {Math.ceil(time)}</p>
+                {showScore ? <p>Score: {score}</p> : <span />}
+                {showTimer ? <p>Time: {Math.ceil(time)}</p> : <span />}
             </div>
 
-            <div className="-mt-20 flex flex-col justify-center md:-mt-40">
-                <div className="relative left-1/2 right-1/2 w-screen -translate-x-1/2 bg-gray-200 py-6 md:py-8">
+            <div className="contents">
+                <div className="absolute left-1/2 top-[40%] w-screen -translate-x-1/2 -translate-y-1/2 bg-gray-200 py-6 md:py-8">
                     <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-3 px-4 md:gap-4 md:px-6">
                         <h2 className="text-4xl font-semibold tracking-tight text-gray-800 md:text-5xl">
                             {currProblem?.statement}
@@ -153,6 +168,7 @@ export default function Game() {
                     </div>
                 </div>
 
+                <div className="absolute left-0 right-0 top-[calc(40%+4rem)]">
                 <div className="mx-auto flex w-full max-w-6xl justify-center gap-3 px-4 pt-4 md:px-6">
                     <button
                         onClick={reset}
@@ -169,6 +185,14 @@ export default function Game() {
                     >
                         Back
                     </button>
+                </div>
+
+                {showKeyboard && (
+                    <OnScreenKeyboard
+                        onDigit={pressKeyboardDigit}
+                        onBackspace={pressKeyboardBackspace}
+                    />
+                )}
                 </div>
             </div>
             
