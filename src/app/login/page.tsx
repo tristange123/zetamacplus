@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { authClient } from '@/lib/auth/auth-client'
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 async function createProfile(){
     return await fetch('/api/profile', {
@@ -15,6 +15,8 @@ function Login() {
     const [loginEmail, setLoginEmail] = useState<string>('');
     const [loginPassword, setLoginPassword] = useState<string>('');
     const [loginError, setLoginError] = useState<string>('');
+    const [isGoogleSigningIn, setIsGoogleSigningIn] = useState(false);
+    const googleSignInStarted = useRef(false);
 
     const router = useRouter();
 
@@ -35,16 +37,23 @@ function Login() {
     }
 
     async function googleSignIn(){
+        if (googleSignInStarted.current) {
+            return;
+        }
+
+        googleSignInStarted.current = true;
+        setIsGoogleSigningIn(true);
+        setLoginError('');
+
         await authClient.signIn.social({
             provider: "google",
             callbackURL: "/",
         },
         {
-            onSuccess: async () => {
-                router.push("/");
-            },
             onError: (ctx) => {
                 setLoginError(ctx.error.message);
+                googleSignInStarted.current = false;
+                setIsGoogleSigningIn(false);
                 console.log(ctx.error.message)
             }
         });
@@ -88,7 +97,8 @@ function Login() {
                 <button
                     type="button"
                     onClick={() => googleSignIn()}
-                    className="flex w-full items-center justify-center gap-3 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                    disabled={isGoogleSigningIn}
+                    className="flex w-full items-center justify-center gap-3 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                     <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
                         <path
@@ -108,7 +118,7 @@ function Login() {
                             d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06L5.84 9.9C6.71 7.3 9.14 5.38 12 5.38z"
                         />
                     </svg>
-                    Continue with Google
+                    {isGoogleSigningIn ? "Redirecting…" : "Continue with Google"}
                 </button>
                 
             </div>
