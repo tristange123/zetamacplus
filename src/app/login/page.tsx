@@ -179,7 +179,7 @@ function Register() {
             <h2 className="mb-3 text-lg font-semibold text-gray-800">Register</h2>
             <div className="space-y-3">
                 <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-600">Username</label>
+                    <label className="mb-1 block text-xs font-medium text-gray-600">Register Username</label>
                     <input
                         type="username"
                         value={registerUsername}
@@ -188,7 +188,7 @@ function Register() {
                     />
                 </div>
                 <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-600">Email</label>
+                    <label className="mb-1 block text-xs font-medium text-gray-600">Register Email</label>
                     <input
                         type="email"
                         value={registerEmail}
@@ -197,7 +197,7 @@ function Register() {
                     />
                 </div>
                 <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-600">Password</label>
+                    <label className="mb-1 block text-xs font-medium text-gray-600">Register Password</label>
                     <input
                         type="password"
                         value={registerPassword}

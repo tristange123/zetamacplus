@@ -5,7 +5,7 @@ import {ReactNode, useEffect, useRef, useState} from 'react';
 import {GameProvider} from './gameContext';
 import { authClient } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation'
-import {Crown, ChartNoAxesCombined as Chart, LogOut, Play, Settings as SettingsIcon, UserRound} from 'lucide-react'
+import {BadgeCheck, Crown, ChartNoAxesCombined as Chart, LogOut, Play, Settings as SettingsIcon, UserRound} from 'lucide-react'
 import Link from 'next/link';
 import "./globals.css";
 import type { Metadata } from "next";
@@ -58,7 +58,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
   const userLoggedIn = data != null;
   const userVerified = data?.user.emailVerified ?? false;
   const canViewStats = userLoggedIn && userVerified;
-  const statsDisabledMessage = userLoggedIn ? "Verify email to view stats" : "Log in to view stats";
+  const verificationRequiredMessage = "Email verification required";
 
   async function clickSignOut() {
       setUserMenuOpen(false);
@@ -153,13 +153,15 @@ export default function LayoutClientSide({children}: LayoutProps) {
                         >
                             ZETAMAC+
                         </Link>
-                        {userLoggedIn && username !== null && (
+                        {userLoggedIn && (
                             <div className="flex min-w-0 items-center gap-3">
-                                <p className="truncate text-xs text-gray-500 sm:text-sm">
-                                    Welcome {username}
-                                </p>
+                                {username !== null && (
+                                    <p className="truncate text-xs text-gray-500 sm:text-sm">
+                                        Welcome {username}
+                                    </p>
+                                )}
                                 {!userVerified && (
-                                    <p className="hidden text-sm text-amber-600 sm:block">
+                                    <p className="text-sm text-amber-600">
                                         Email verification required
                                     </p>
                                 )}
@@ -205,11 +207,18 @@ export default function LayoutClientSide({children}: LayoutProps) {
                                     aria-label="User menu"
                                     aria-haspopup="menu"
                                     aria-expanded={userMenuOpen}
-                                    title="User menu"
+                                    title={userVerified ? "Verified account" : "User menu"}
                                     onClick={() => setUserMenuOpen((open) => !open)}
-                                    className="flex items-center justify-center rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 focus:bg-gray-200 focus:text-gray-900 sm:px-3"
+                                    className="relative flex items-center justify-center rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 focus:bg-gray-200 focus:text-gray-900 sm:px-3"
                                 >
                                     <UserRound size={18} aria-hidden="true" />
+                                    {userVerified && (
+                                        <BadgeCheck
+                                            size={13}
+                                            className="absolute bottom-0.5 right-0 text-green-600 sm:right-1.5"
+                                            aria-label="Email verified"
+                                        />
+                                    )}
                                 </button>
                                 <div
                                     role="menu"
@@ -227,26 +236,41 @@ export default function LayoutClientSide({children}: LayoutProps) {
                                                 Stats
                                             </Link>
                                         ) : (
-                                            <button
-                                                type="button"
-                                                role="menuitem"
-                                                disabled
-                                                title={statsDisabledMessage}
-                                                className="flex w-full cursor-not-allowed items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-400"
-                                            >
-                                                <Chart size={16} aria-hidden="true" />
-                                                Stats
-                                            </button>
+                                            <div title={verificationRequiredMessage}>
+                                                <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    disabled
+                                                    className="flex w-full cursor-not-allowed items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-300"
+                                                >
+                                                    <Chart size={16} aria-hidden="true" />
+                                                    Stats
+                                                </button>
+                                            </div>
                                         )}
-                                        <Link
-                                            href="/settings"
-                                            role="menuitem"
-                                            onClick={() => setUserMenuOpen(false)}
-                                            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
-                                        >
-                                            <SettingsIcon size={16} aria-hidden="true" />
-                                            Settings
-                                        </Link>
+                                        {userVerified ? (
+                                            <Link
+                                                href="/settings"
+                                                role="menuitem"
+                                                onClick={() => setUserMenuOpen(false)}
+                                                className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
+                                            >
+                                                <SettingsIcon size={16} aria-hidden="true" />
+                                                Settings
+                                            </Link>
+                                        ) : (
+                                            <div title={verificationRequiredMessage}>
+                                                <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    disabled
+                                                    className="flex w-full cursor-not-allowed items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-300"
+                                                >
+                                                    <SettingsIcon size={16} aria-hidden="true" />
+                                                    Settings
+                                                </button>
+                                            </div>
+                                        )}
                                         <button
                                             type="button"
                                             role="menuitem"
