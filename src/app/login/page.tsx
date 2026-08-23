@@ -27,7 +27,7 @@ function Login() {
                 callbackURL: "/"
         },{
             onSuccess: () => {
-                router.back();
+                router.replace("/");
             },
             onError: (ctx) => {
                 // display the error message
@@ -65,8 +65,9 @@ function Login() {
             <h2 className="mb-3 text-lg font-semibold text-gray-800">Login</h2>
             <div className="space-y-3">
                 <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-600">Email</label>
+                    <label htmlFor="login-email" className="mb-1 block text-xs font-medium text-gray-600">Email</label>
                     <input
+                        id="login-email"
                         type="email"
                         value={loginEmail}
                         onChange={(e) => setLoginEmail(e.target.value)}
@@ -74,8 +75,9 @@ function Login() {
                     />
                 </div>
                 <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-600">Password</label>
+                    <label htmlFor="login-password" className="mb-1 block text-xs font-medium text-gray-600">Password</label>
                     <input
+                        id="login-password"
                         type="password"
                         value={loginPassword}
                         onChange={(e) => setLoginPassword(e.target.value)}
@@ -155,7 +157,7 @@ function Register() {
                             console.log(errText);
                         }
                         else{
-                            router.back();
+                            router.replace("/");
                         }
                     } catch (err) {
                         console.error(err);
@@ -179,8 +181,9 @@ function Register() {
             <h2 className="mb-3 text-lg font-semibold text-gray-800">Register</h2>
             <div className="space-y-3">
                 <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-600">Register Username</label>
+                    <label htmlFor="register-username" className="mb-1 block text-xs font-medium text-gray-600">Register Username</label>
                     <input
+                        id="register-username"
                         type="username"
                         value={registerUsername}
                         onChange={(e) => setRegisterUsername(e.target.value)}
@@ -188,8 +191,9 @@ function Register() {
                     />
                 </div>
                 <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-600">Register Email</label>
+                    <label htmlFor="register-email" className="mb-1 block text-xs font-medium text-gray-600">Register Email</label>
                     <input
+                        id="register-email"
                         type="email"
                         value={registerEmail}
                         onChange={(e) => setRegisterEmail(e.target.value)}
@@ -197,8 +201,9 @@ function Register() {
                     />
                 </div>
                 <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-600">Register Password</label>
+                    <label htmlFor="register-password" className="mb-1 block text-xs font-medium text-gray-600">Register Password</label>
                     <input
+                        id="register-password"
                         type="password"
                         value={registerPassword}
                         onChange={(e) => setRegisterPassword(e.target.value)}
@@ -206,8 +211,9 @@ function Register() {
                     />
                 </div>
                 <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-600">Confirm Password</label>
+                    <label htmlFor="register-password-confirm" className="mb-1 block text-xs font-medium text-gray-600">Confirm Password</label>
                     <input
+                        id="register-password-confirm"
                         type="password"
                         value={registerPasswordConfirm}
                         onChange={(e) => setRegisterPasswordConfirm(e.target.value)}

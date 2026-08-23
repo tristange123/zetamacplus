@@ -104,7 +104,11 @@ export default function ClientSide({dailyProblems}: {dailyProblems: Problem[]}) 
                         <h2 className="text-4xl font-semibold tracking-tight text-gray-800 md:text-5xl">
                             {currProblem?.statement}
                         </h2>
+                        <label htmlFor="daily-game-answer" className="sr-only">
+                            Daily game answer
+                        </label>
                         <input
+                            id="daily-game-answer"
                             key={inputKey}
                             ref={inputRef}
                             autoFocus

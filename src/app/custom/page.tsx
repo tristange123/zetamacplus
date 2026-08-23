@@ -321,6 +321,7 @@ export default function Custom() {
                                         <p className="text-xs text-gray-500">Range: 2 – {maxAllowed}</p>
                                     </div>
                                     <label className="flex cursor-pointer items-center pt-0.5">
+                                        <span className="sr-only">Enable {label}</span>
                                         <input
                                             type="checkbox"
                                             checked={isEnabled}
@@ -338,10 +339,15 @@ export default function Custom() {
                                         </p>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="mb-1 block text-xs font-medium text-gray-600">
-                                                    Min
+                                                <label
+                                                    htmlFor={`custom-${label.toLowerCase()}-first-min`}
+                                                    className="mb-1 block text-xs font-medium text-gray-600"
+                                                >
+                                                    <span className="sr-only">{label} first number </span>
+                                                    Minimum
                                                 </label>
                                                 <input
+                                                    id={`custom-${label.toLowerCase()}-first-min`}
                                                     type="number"
                                                     min={2}
                                                     max={maxAllowed}
@@ -356,10 +362,15 @@ export default function Custom() {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="mb-1 block text-xs font-medium text-gray-600">
-                                                    Max
+                                                <label
+                                                    htmlFor={`custom-${label.toLowerCase()}-first-max`}
+                                                    className="mb-1 block text-xs font-medium text-gray-600"
+                                                >
+                                                    <span className="sr-only">{label} first number </span>
+                                                    Maximum
                                                 </label>
                                                 <input
+                                                    id={`custom-${label.toLowerCase()}-first-max`}
                                                     type="number"
                                                     min={2}
                                                     max={maxAllowed}
@@ -382,10 +393,15 @@ export default function Custom() {
                                         </p>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="mb-1 block text-xs font-medium text-gray-600">
-                                                    Min
+                                                <label
+                                                    htmlFor={`custom-${label.toLowerCase()}-second-min`}
+                                                    className="mb-1 block text-xs font-medium text-gray-600"
+                                                >
+                                                    <span className="sr-only">{label} second number </span>
+                                                    Minimum
                                                 </label>
                                                 <input
+                                                    id={`custom-${label.toLowerCase()}-second-min`}
                                                     type="number"
                                                     min={2}
                                                     max={maxAllowed}
@@ -400,10 +416,15 @@ export default function Custom() {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="mb-1 block text-xs font-medium text-gray-600">
-                                                    Max
+                                                <label
+                                                    htmlFor={`custom-${label.toLowerCase()}-second-max`}
+                                                    className="mb-1 block text-xs font-medium text-gray-600"
+                                                >
+                                                    <span className="sr-only">{label} second number </span>
+                                                    Maximum
                                                 </label>
                                                 <input
+                                                    id={`custom-${label.toLowerCase()}-second-max`}
                                                     type="number"
                                                     min={2}
                                                     max={maxAllowed}
@@ -428,13 +449,16 @@ export default function Custom() {
                 <div className="mt-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
                     <div className="mb-4 flex items-center justify-between">
                         <div>
-                            <p className="text-base font-semibold text-gray-800">Time Limit</p>
+                            <label htmlFor="custom-time-limit" className="text-base font-semibold text-gray-800">
+                                Time Limit
+                            </label>
                         </div>
                         <span className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-semibold text-gray-700">
                             {timeFormat}s
                         </span>
                     </div>
                     <input
+                        id="custom-time-limit"
                         type="range"
                         min={10}
                         max={300}

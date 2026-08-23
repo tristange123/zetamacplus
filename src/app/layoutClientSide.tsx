@@ -58,7 +58,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
   const userLoggedIn = data != null;
   const userVerified = data?.user.emailVerified ?? false;
   const canViewStats = userLoggedIn && userVerified;
-  const verificationRequiredMessage = "Email verification required";
+  const verificationRequiredMessage = "Email Verification Required";
 
   async function clickSignOut() {
       setUserMenuOpen(false);
@@ -162,7 +162,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
                                 )}
                                 {!userVerified && (
                                     <p className="text-sm text-amber-600">
-                                        Email verification required
+                                        Email Verification Required
                                     </p>
                                 )}
                             </div>

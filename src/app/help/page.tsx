@@ -50,8 +50,11 @@ export default function HelpPage() {
 
           <div className="space-y-3">
             <div>
-              
+              <label htmlFor="help-message" className="mb-1 block text-xs font-medium text-gray-600">
+                Message
+              </label>
               <textarea
+                id="help-message"
                 value={message}
                 onChange={(e) => {
                   setMessage(e.target.value);

@@ -156,7 +156,11 @@ export default function Game() {
                         <h2 className="text-4xl font-semibold tracking-tight text-gray-800 md:text-5xl">
                             {currProblem?.statement}
                         </h2>
+                        <label htmlFor="game-answer" className="sr-only">
+                            Game answer
+                        </label>
                         <input
+                            id="game-answer"
                             key={inputKey}
                             ref={inputRef}
                             autoFocus
