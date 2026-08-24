@@ -14,6 +14,33 @@ jobs:
   test:
     name: Run Playwright tests
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: playwright_database
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      APP_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/playwright_database
+      BETTER_AUTH_SECRET: playwright-ci-secret-not-for-production-use
+      BETTER_AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+      NEXT_PUBLIC_BETTER_AUTH_URL: http://localhost:3000
+      GOOGLE_CLIENT_ID: ci-google-client-id
+      GOOGLE_CLIENT_SECRET: ci-google-client-secret
+      RESEND_API_KEY: re_ci_dummy_key
+      RESEND_FROM: "METAMAC <onboarding@resend.dev>"
+      PROFILE_REBUILD_SECRET: ci-profile-rebuild-secret
     steps:
       - uses: actions/checkout@v4
 
@@ -23,6 +50,24 @@ jobs:
           cache: 'npm'
 
       - run: npm ci
+
+      - name: Write .env.test
+        run: |
+          cat > .env.test << EOF
+          DATABASE_URL=$DATABASE_URL
+          BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET
+          BETTER_AUTH_URL=$BETTER_AUTH_URL
+          NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+          NEXT_PUBLIC_BETTER_AUTH_URL=$NEXT_PUBLIC_BETTER_AUTH_URL
+          GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+          GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+          RESEND_API_KEY=$RESEND_API_KEY
+          RESEND_FROM=$RESEND_FROM
+          PROFILE_REBUILD_SECRET=$PROFILE_REBUILD_SECRET
+          EOF
+
+      - name: Apply database schema
+        run: npx prisma migrate deploy
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
