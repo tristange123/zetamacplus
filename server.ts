@@ -27,8 +27,21 @@ function isSocketIoPath(url: string | undefined) {
     return url != null && (url === "/socket.io" || url.startsWith("/socket.io?") || url.startsWith("/socket.io/"));
 }
 
+function isHealthPath(url: string | undefined) {
+    if (url == null) {
+        return false;
+    }
+    const path = url.split("?")[0];
+    return path === "/health";
+}
+
 httpServer.on("request", async (req, res) => {
     try {
+        if (isHealthPath(req.url)) {
+            res.statusCode = 200;
+            res.end("OK");
+            return;
+        }
         await prepared;
         if (isSocketIoPath(req.url)) {
             return;
