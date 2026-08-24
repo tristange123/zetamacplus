@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 import { config as loadEnv } from 'dotenv';
 import { resolve } from 'node:path';
 
+process.env.APP_ENV = 'test';
 loadEnv({
   path: resolve(process.cwd(), '.env.test'),
   override: true,
@@ -73,7 +74,7 @@ export default defineConfig({
 
   /* Run the app with the test environment loaded above. */
   webServer: {
-    command: 'npm run build && npm run start',
+    command: 'APP_ENV=test npm run build && APP_ENV=test npm run start',
     url: 'http://localhost:3000',
     reuseExistingServer: false,
     timeout: 120 * 1000,
