@@ -27,7 +27,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV HOSTNAME=0.0.0.0
+ENV LISTEN_HOST=0.0.0.0
 
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/src ./src

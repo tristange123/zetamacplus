@@ -6,9 +6,9 @@ import { attachVersusSockets } from "@/lib/versus/versusSockets";
 import { handleVersusHttp } from "@/lib/versus/versusHttp";
 
 const port = parseInt(process.env.PORT || "3000", 10);
-const listenHost = process.env.HOSTNAME || "0.0.0.0";
+const listenHost = process.env.LISTEN_HOST || "0.0.0.0";
 const dev = process.env.NODE_ENV !== "production";
-const hostname = listenHost === "0.0.0.0" ? "localhost" : listenHost;
+const hostname = "localhost";
 
 const httpServer = createServer();
 httpServer.keepAliveTimeout = 65_000;
@@ -21,8 +21,7 @@ const app = next({
     httpServer,
 });
 const handle = app.getRequestHandler();
-
-await app.prepare();
+const prepared = app.prepare();
 
 function isSocketIoPath(url: string | undefined) {
     return url != null && (url === "/socket.io" || url.startsWith("/socket.io?") || url.startsWith("/socket.io/"));
@@ -30,6 +29,7 @@ function isSocketIoPath(url: string | undefined) {
 
 httpServer.on("request", async (req, res) => {
     try {
+        await prepared;
         if (isSocketIoPath(req.url)) {
             return;
         }
@@ -61,8 +61,11 @@ const io = new SocketIOServer(httpServer, {
 attachVersusSockets(io);
 
 httpServer.listen(port, listenHost, () => {
-    console.log(`> Ready on http://${listenHost}:${port}`);
+    console.log(`> Listening on http://${listenHost}:${port}`);
 });
+
+await prepared;
+console.log(`> Next.js ready on http://${listenHost}:${port}`);
 
 let shuttingDown = false;
 async function shutdown(signal: string) {
