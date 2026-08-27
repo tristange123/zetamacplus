@@ -60,7 +60,7 @@ export default function Game() {
         setCurrProblem(generateProblem(localOperations, 1))
         const timeId = setInterval(() => {
             const elapsed = (Date.now() - startTime.current) / 1000
-            const remaining = Math.max(timeFormat - elapsed, 0)
+            const remaining = Math.max(localTimeFormat - elapsed, 0)
             setTime(remaining)
         }, 100);
         return () => {clearInterval(timeId)};
