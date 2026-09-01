@@ -12,6 +12,7 @@ export type VersusPlayerResult = {
 
 export type VersusPlayerState = VersusPlayerResult & {
     socketId: string | null,
+    wantsRematch: boolean,
 };
 
 export type VersusGame = {

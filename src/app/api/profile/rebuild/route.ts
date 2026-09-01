@@ -1,12 +1,16 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
-import prisma from "@/lib/db/prisma";
+import { PrismaClient } from "@/generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { MAIN_GAME_MODES } from "@/lib/game/gameModeGlobals";
 import { type MainGameModeName } from "@/types/frontendTypes";
 import { type Prisma } from "@/generated/prisma/client";
 
 
 // call using curl -X POST http://localhost:3000/api/profile/rebuild -H "Authorization: Bearer PROFILE_REBUILD_SECRET"
+
+const adapter = new PrismaPg({ connectionString: process.env.PROD_DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 type TrackedGameMode = MainGameModeName | "daily";
 

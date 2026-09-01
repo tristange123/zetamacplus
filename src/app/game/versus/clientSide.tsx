@@ -5,9 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 import { useGameContext } from "@/app/gameContext";
+import { authClient } from "@/lib/auth/auth-client";
 import OnScreenKeyboard from "../onScreenKeyboard";
 
-type VersusPhase = "connecting" | "waiting" | "playing" | "waitingForOpponent" | "error";
+type VersusPhase = "connecting" | "waiting" | "playing" | "waitingForOpponent" | "finished" | "error";
 
 type PublicPlayer = {
     userId: string,
@@ -18,7 +19,9 @@ export default function VersusGameClient() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const context = useGameContext();
+    const { data: session } = authClient.useSession();
     const { showScore, showTimer, showKeyboard } = context;
+    const myUserId = session?.user.id ?? "";
 
     const [phase, setPhase] = useState<VersusPhase>("connecting");
     const [error, setError] = useState("");
@@ -27,6 +30,8 @@ export default function VersusGameClient() {
     const [problems, setProblems] = useState<Problem[]>([]);
     const [players, setPlayers] = useState<PublicPlayer[]>([]);
     const [copied, setCopied] = useState(false);
+    const [replayReadyIds, setReplayReadyIds] = useState<string[]>([]);
+    const [opponentLeft, setOpponentLeft] = useState(false);
 
     const [currProblem, setCurrProblem] = useState<Problem>();
     const [display, setDisplay] = useState("");
@@ -96,6 +101,8 @@ export default function VersusGameClient() {
             pastProblems.current = [];
             solveTimes.current = [];
             finishedRef.current = false;
+            setReplayReadyIds([]);
+            setOpponentLeft(false);
             startTime.current = Date.now();
             setPhase("playing");
         });
@@ -104,8 +111,31 @@ export default function VersusGameClient() {
             // Opponent finished first; local game continues until the timer ends.
         });
 
-        socket.on("game:bothFinished", (payload: { gameId: string }) => {
-            router.replace(`/results/${payload.gameId}`);
+        socket.on("game:waitingForOpponent", (payload: { score?: number }) => {
+            if (typeof payload.score === "number") {
+                setScore(payload.score);
+                scoreRef.current = payload.score;
+            }
+            finishedRef.current = true;
+            setPhase("waitingForOpponent");
+        });
+
+        socket.on("game:bothFinished", (payload: { gameId: string, score?: number }) => {
+            if (typeof payload.score === "number") {
+                setScore(payload.score);
+                scoreRef.current = payload.score;
+            }
+            finishedRef.current = true;
+            setPhase("finished");
+        });
+
+        socket.on("game:replayUpdate", (payload: { readyUserIds?: string[] }) => {
+            setReplayReadyIds(payload.readyUserIds ?? []);
+        });
+
+        socket.on("game:opponentLeft", () => {
+            setOpponentLeft(true);
+            setReplayReadyIds([]);
         });
 
         socket.on("connect", () => {
@@ -117,7 +147,7 @@ export default function VersusGameClient() {
             socket.disconnect();
             socketRef.current = null;
         };
-    }, [router, searchParams]);
+    }, [searchParams]);
 
     useEffect(() => {
         if (phase !== "playing") return;
@@ -199,6 +229,23 @@ export default function VersusGameClient() {
         router.push("/versusMenu");
     }
 
+    function requestReplay() {
+        if (opponentLeft) return;
+        if (myUserId) {
+            setReplayReadyIds((ids) => (ids.includes(myUserId) ? ids : [...ids, myUserId]));
+        }
+        socketRef.current?.emit("game:replay", { gameId });
+    }
+
+    function viewResults() {
+        socketRef.current?.emit("leaveGame");
+        router.push(`/results/${gameId}`);
+    }
+
+    const iWantReplay = Boolean(myUserId) && replayReadyIds.includes(myUserId);
+    const opponentWantsReplay = Boolean(myUserId) && replayReadyIds.some((id) => id !== myUserId);
+    const opponentName = players.find((player) => player.userId !== myUserId)?.username ?? "your opponent";
+
     if (phase === "error") {
         return (
             <section className="flex min-h-[calc(100vh-9rem)] items-center justify-center">
@@ -258,7 +305,55 @@ export default function VersusGameClient() {
             <section className="flex min-h-[calc(100vh-9rem)] items-center justify-center">
                 <div className="rounded-2xl border border-gray-200 bg-gray-50/70 p-8 text-center shadow-sm">
                     <h1 className="text-2xl font-semibold tracking-tight text-gray-800">Score: {score}</h1>
-                    <p className="mt-2 text-sm text-gray-600">Waiting for your opponent to finish...</p>
+                    <p className="mt-2 text-sm text-gray-600">
+                        {opponentLeft ? `${opponentName} left.` : "Waiting for your opponent to finish..."}
+                    </p>
+                </div>
+            </section>
+        );
+    }
+
+    if (phase === "finished") {
+        let replayStatus = `Both players must click Replay to start another game with ${opponentName}.`;
+        if (opponentLeft) {
+            replayStatus = `${opponentName} left.`;
+        }
+        else if (iWantReplay) {
+            replayStatus = `Waiting for ${opponentName} to replay...`;
+        }
+        else if (opponentWantsReplay) {
+            replayStatus = `${opponentName} wants a rematch.`;
+        }
+
+        return (
+            <section className="flex min-h-[calc(100vh-9rem)] items-center justify-center">
+                <div className="w-full max-w-lg rounded-2xl border border-gray-200 bg-gray-50/70 p-8 text-center shadow-sm">
+                    <h1 className="text-2xl font-semibold tracking-tight text-gray-800">Score: {score}</h1>
+                    <p className="mt-2 text-sm text-gray-600">{replayStatus}</p>
+                    <div className="mt-6 flex flex-wrap justify-center gap-3">
+                        <button
+                            type="button"
+                            onClick={requestReplay}
+                            disabled={opponentLeft || iWantReplay}
+                            className="rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                        >
+                            {iWantReplay ? "Replay requested" : "Replay"}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={viewResults}
+                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                        >
+                            View results
+                        </button>
+                        <button
+                            type="button"
+                            onClick={leave}
+                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                        >
+                            Back
+                        </button>
+                    </div>
                 </div>
             </section>
         );

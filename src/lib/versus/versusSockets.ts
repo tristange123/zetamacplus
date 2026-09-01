@@ -7,6 +7,7 @@ import {
 } from "@/lib/game/generateVersusGame";
 import {
     attachSocket,
+    clearRematchVote,
     createGame,
     deleteGame,
     findPlayer,
@@ -14,6 +15,8 @@ import {
     joinGame,
     markPlayerFinished,
     markPlayerForfeit,
+    rematchReadyUserIds,
+    requestRematch,
     toResultsPayload,
 } from "@/lib/versus/gameStore";
 import { getVersusUserFromCookie } from "@/lib/versus/nodeSession";
@@ -60,6 +63,33 @@ function emitStart(io: Server, game: NonNullable<ReturnType<typeof getGame>>) {
         problems: game.problems,
         players: publicPlayers(game),
     });
+}
+
+function emitReplayUpdate(io: Server, game: NonNullable<ReturnType<typeof getGame>>) {
+    io.to(game.gameId).emit("game:replayUpdate", {
+        gameId: game.gameId,
+        readyUserIds: rematchReadyUserIds(game),
+    });
+}
+
+function notifyOpponentLeft(socket: Socket, gameId: string, userId: string, username: string) {
+    socket.to(gameId).emit("game:opponentLeft", { userId, username });
+}
+
+function scheduleFinishedLeave(io: Server, gameId: string, userId: string, username: string) {
+    cancelForfeit(gameId, userId);
+    const timer = setTimeout(() => {
+        disconnectTimers.delete(timerKey(gameId, userId));
+        const game = getGame(gameId);
+        if (!game || game.status !== "finished") return;
+        const player = findPlayer(game, userId);
+        if (!player || player.socketId) return;
+
+        player.wantsRematch = false;
+        io.to(game.gameId).emit("game:opponentLeft", { userId, username });
+        emitReplayUpdate(io, game);
+    }, RECONNECT_GRACE_MS);
+    disconnectTimers.set(timerKey(gameId, userId), timer);
 }
 
 function schedulePlayingForfeit(io: Server, gameId: string, userId: string, username: string) {
@@ -153,8 +183,23 @@ export function attachVersusSockets(io: Server) {
                     return;
                 }
 
-                if (game.status === "finished" || existing.finished) {
-                    socket.emit("game:bothFinished", { gameId: game.gameId });
+                if (game.status === "finished") {
+                    socket.emit("game:bothFinished", {
+                        gameId: game.gameId,
+                        score: existing.score,
+                    });
+                    socket.emit("game:replayUpdate", {
+                        gameId: game.gameId,
+                        readyUserIds: rematchReadyUserIds(game),
+                    });
+                    return;
+                }
+
+                if (existing.finished) {
+                    socket.emit("game:waitingForOpponent", {
+                        gameId: game.gameId,
+                        score: existing.score,
+                    });
                     return;
                 }
 
@@ -219,6 +264,32 @@ export function attachVersusSockets(io: Server) {
             }
         });
 
+        socket.on("game:replay", (payload: { gameId?: string } | undefined) => {
+            const user = socketUser(socket);
+            const gameId = normalizeVersusGameId(payload?.gameId ?? user.gameId ?? "");
+            if (!gameId) {
+                socket.emit("versus:error", { message: "Game not found." });
+                return;
+            }
+
+            try {
+                const { game, started } = requestRematch(gameId, user.userId);
+                if (started) {
+                    cancelForfeit(game.gameId, game.host.userId);
+                    if (game.guest) {
+                        cancelForfeit(game.gameId, game.guest.userId);
+                    }
+                    emitStart(io, game);
+                    return;
+                }
+                emitReplayUpdate(io, game);
+            }
+            catch (error) {
+                const message = error instanceof Error ? error.message : "Could not request rematch.";
+                socket.emit("versus:error", { message });
+            }
+        });
+
         socket.on("results:get", (payload: { gameId?: string } | undefined) => {
             const user = socketUser(socket);
             const gameId = normalizeVersusGameId(payload?.gameId ?? "");
@@ -234,16 +305,27 @@ export function attachVersusSockets(io: Server) {
             const user = socketUser(socket);
             if (!user.gameId) return;
 
-            const game = getGame(user.gameId);
-            cancelForfeit(user.gameId, user.userId);
+            const gameId = user.gameId;
+            const game = getGame(gameId);
+            cancelForfeit(gameId, user.userId);
 
             if (game?.status === "waiting" && game.host.userId === user.userId) {
                 deleteGame(game.gameId);
                 user.gameId = undefined;
+                void socket.leave(gameId);
                 return;
             }
 
-            const updated = markPlayerForfeit(user.gameId, user.userId);
+            const player = game ? findPlayer(game, user.userId) : null;
+            if (game && player?.finished) {
+                clearRematchVote(game.gameId, user.userId);
+                notifyOpponentLeft(socket, game.gameId, user.userId, user.username);
+                user.gameId = undefined;
+                void socket.leave(gameId);
+                return;
+            }
+
+            const updated = markPlayerForfeit(gameId, user.userId);
             if (updated?.status === "finished") {
                 io.to(updated.gameId).emit("game:bothFinished", { gameId: updated.gameId });
             }
@@ -254,6 +336,7 @@ export function attachVersusSockets(io: Server) {
                 });
             }
             user.gameId = undefined;
+            void socket.leave(gameId);
         });
 
         socket.on("disconnect", () => {
@@ -269,6 +352,11 @@ export function attachVersusSockets(io: Server) {
             }
 
             if (game.status === "waiting") {
+                return;
+            }
+
+            if (game.status === "finished") {
+                scheduleFinishedLeave(io, game.gameId, user.userId, user.username);
                 return;
             }
 

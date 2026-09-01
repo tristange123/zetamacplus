@@ -5,7 +5,7 @@ import {
     type VersusPlayerState,
     type VersusResultsPayload,
 } from "@/types/versusTypes";
-import { generateVersusGame, generateVersusGameId } from "@/lib/game/generateVersusGame";
+import { generateVersusGame, generateVersusGameId, generateVersusProblems } from "@/lib/game/generateVersusGame";
 
 const GAME_TTL_MS = 2 * 60 * 60 * 1000;
 const CLEANUP_INTERVAL_MS = 10 * 60 * 1000;
@@ -32,7 +32,15 @@ function emptyPlayer(userId: string, username: string, socketId: string | null):
         score: 0,
         problemSet: [],
         finished: false,
+        wantsRematch: false,
     };
+}
+
+function resetPlayerForRematch(player: VersusPlayerState): void {
+    player.score = 0;
+    player.problemSet = [];
+    player.finished = false;
+    player.wantsRematch = false;
 }
 
 export function createGame(
@@ -134,6 +142,55 @@ export function markPlayerFinished(
     }
 
     return game;
+}
+
+export function rematchReadyUserIds(game: VersusGame): string[] {
+    const ids: string[] = [];
+    if (game.host.wantsRematch) ids.push(game.host.userId);
+    if (game.guest?.wantsRematch) ids.push(game.guest.userId);
+    return ids;
+}
+
+export function clearRematchVote(gameId: string, userId: string): VersusGame | null {
+    const game = games.get(gameId);
+    if (!game) return null;
+    const player = findPlayer(game, userId);
+    if (player) {
+        player.wantsRematch = false;
+    }
+    return game;
+}
+
+export function requestRematch(gameId: string, userId: string): { game: VersusGame, started: boolean } {
+    const game = games.get(gameId);
+    if (!game) {
+        throw new Error("Game not found");
+    }
+    if (game.status === "waiting" || !game.guest) {
+        throw new Error("Opponent not found");
+    }
+
+    const player = findPlayer(game, userId);
+    if (!player) {
+        throw new Error("You are not in this game");
+    }
+    if (!player.finished) {
+        throw new Error("Finish the game before requesting a rematch");
+    }
+
+    player.wantsRematch = true;
+
+    const bothReady = game.host.wantsRematch && game.guest.wantsRematch;
+    if (game.status === "finished" && bothReady) {
+        game.problems = generateVersusProblems(game.gameMode);
+        game.status = "playing";
+        game.createdAt = Date.now();
+        resetPlayerForRematch(game.host);
+        resetPlayerForRematch(game.guest);
+        return { game, started: true };
+    }
+
+    return { game, started: false };
 }
 
 export function markPlayerForfeit(gameId: string, userId: string): VersusGame | null {
