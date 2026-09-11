@@ -5,7 +5,7 @@ import {ReactNode, useEffect, useRef, useState} from 'react';
 import {GameProvider} from './gameContext';
 import { authClient } from '@/lib/auth/auth-client';
 import { useRouter } from 'next/navigation'
-import {BadgeCheck, Crown, ChartNoAxesCombined as Chart, LogOut, Play, Settings as SettingsIcon, Swords, UserRound} from 'lucide-react'
+import {BadgeCheck, BadgeX, Crown, ChartNoAxesCombined as Chart, LogOut, Play, Settings as SettingsIcon, Swords, UserRound} from 'lucide-react'
 import Link from 'next/link';
 import "./globals.css";
 import type { Metadata } from "next";
@@ -169,7 +169,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
                         )}
                     </div>
                     <div className="contents md:col-start-2 md:row-start-1 md:flex md:items-center md:justify-end md:gap-2">
-                    <div className={`col-span-2 row-start-2 grid w-full items-center gap-3 text-xs font-medium sm:gap-4 sm:text-sm md:flex md:w-auto md:gap-2 ${userLoggedIn ? "grid-cols-3" : "grid-cols-2"}`}>
+                    <div className="col-span-2 row-start-2 grid w-full grid-cols-3 items-center gap-3 text-xs font-medium sm:gap-4 sm:text-sm md:flex md:w-auto md:gap-2">
                         <Link
                             href="/"
                             aria-label="Play"
@@ -179,17 +179,15 @@ export default function LayoutClientSide({children}: LayoutProps) {
                             <Play size={18} aria-hidden="true" />
                             <span>Play</span>
                         </Link>
-                        {userLoggedIn && (
-                            <Link
-                                href="/versusMenu"
-                                aria-label="Versus"
-                                title="Versus"
-                                className="flex items-center justify-center gap-1 rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 sm:gap-2 sm:px-3"
-                            >
-                                <Swords size={18} aria-hidden="true" />
-                                <span>Versus</span>
-                            </Link>
-                        )}
+                        <Link
+                            href={userLoggedIn ? "/versusMenu" : "/login"}
+                            aria-label="Versus"
+                            title={userLoggedIn ? "Versus" : "Log in to play Versus"}
+                            className="flex items-center justify-center gap-1 rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 sm:gap-2 sm:px-3"
+                        >
+                            <Swords size={18} aria-hidden="true" />
+                            <span>Versus</span>
+                        </Link>
                         <Link
                             href="/leaderboard"
                             aria-label="Leaderboard"
@@ -208,7 +206,14 @@ export default function LayoutClientSide({children}: LayoutProps) {
                                 title="Login"
                                 className="flex items-center justify-center gap-1 rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 sm:gap-2 sm:px-3"
                             >
-                                <UserRound size={18} aria-hidden="true" />
+                                <span className="relative">
+                                    <UserRound size={18} aria-hidden="true" />
+                                    <BadgeX
+                                        size={13}
+                                        className="absolute -bottom-1.5 -right-1.5 text-red-600"
+                                        aria-label="Not logged in"
+                                    />
+                                </span>
                             </Link>
                         )}
                         {userLoggedIn && (

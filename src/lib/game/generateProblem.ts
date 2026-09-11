@@ -44,10 +44,18 @@ export function generateProblem(operations: OperationBounds, orderNumber: number
         const sec = randomInt(operationBounds['second'][0], operationBounds['second'][1]);
         const first = sec * randomInt(operationBounds['first'][0], operationBounds['first'][1]);
         return {'operation': '/', 'firstNum': first, 'secondNum': sec, 'answer': Math.floor(first / sec), 'statement': String(first) + ' ÷ ' + String(sec) + ' = ', 'solveTime': null, orderNumber};
-    }
-   
+    }  
 }
 
+export function generateGame(operations: OperationBounds): Problem[]{
+    const problemList: Problem[] = [];
+    for (let i = 0; i < 10000; i++){
+        let problem: Problem = generateProblem(operations, i+1);
+        problem.orderNumber = i;
+        problemList.push(problem);
+    }
+    return problemList;
+}
 
 
 

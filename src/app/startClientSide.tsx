@@ -198,16 +198,17 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                             </div>
                         );
                     })}
-                    {userLoggedIn && (
                     <div className="relative h-full w-full">
                         <button
-                            disabled={!dailyAvailable}
+                            disabled={!userLoggedIn || !dailyAvailable}
                             onClick={() => {
-                                if (!dailyAvailable) return;
+                                if (!userLoggedIn || !dailyAvailable) return;
                                 setGameModeInput('daily');
                             }}
                             className={`flex min-h-28 w-full flex-col items-center justify-center rounded-xl border px-4 py-5 text-center transition md:h-full md:min-h-0 md:px-6 md:py-6 ${
-                                dailyCompleted
+                                !userLoggedIn
+                                    ? 'cursor-not-allowed border-gray-200 bg-white text-gray-500 shadow-sm'
+                                    : dailyCompleted
                                     ? 'cursor-not-allowed border-gray-200 bg-white text-gray-500 shadow-sm'
                                     : !dailyAvailable
                                     ? `${dailyStatus === 'loading' ? 'cursor-wait' : 'cursor-not-allowed'} border-gray-200 bg-white text-gray-500 shadow-sm`
@@ -226,7 +227,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                             </div>
                             <span className={`mt-2 text-sm ${gameModeInput === "daily" ? 'text-gray-600' : 'text-gray-500'}`}>
                                 {!userLoggedIn
-                                    ? "Login to unlock"
+                                    ? "Log in to unlock"
                                     : dailyCompleted
                                     ? ""
                                     : dailyStatus === 'loading'
@@ -250,7 +251,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                                 Standard problem bounds
                             </div>
                         </div>
-                    </div>)}
+                    </div>
 
                     <div className="relative h-full w-full">
                         <button
