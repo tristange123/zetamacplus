@@ -52,7 +52,7 @@ export async function playPianoPitch(audioContext: AudioContext, pitch: Pitch): 
     const masterGain = audioContext.createGain();
     masterGain.gain.setValueAtTime(0.0001, now);
     masterGain.gain.exponentialRampToValueAtTime(0.5, now + 0.01);
-    masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.35);
+    masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.025);
     masterGain.connect(audioContext.destination);
 
     [1, 2, 3, 4].forEach((harmonic, index) => {
@@ -66,6 +66,6 @@ export async function playPianoPitch(audioContext: AudioContext, pitch: Pitch): 
         oscillator.connect(harmonicGain);
         harmonicGain.connect(masterGain);
         oscillator.start(now);
-        oscillator.stop(now + 1.4);
+        oscillator.stop(now + 2.1);
     });
 }

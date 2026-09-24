@@ -144,7 +144,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
     <html>
         <body>
         <div className="min-h-screen bg-gray-100 text-gray-800">
-            <nav className="relative z-50 border-b border-gray-200 bg-gray-50/95 backdrop-blur">
+            <nav className="sticky top-0 z-50 border-b border-gray-200 bg-gray-50/95 backdrop-blur">
                 <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 px-4 py-3 md:gap-y-0 md:px-6 md:py-4">
                     <div className="col-start-1 row-start-1 flex min-w-0 items-center gap-3">
                         <Link
