@@ -4,7 +4,7 @@
 import {ReactNode, useEffect, useRef, useState} from 'react';
 import {GameProvider} from './gameContext';
 import { authClient } from '@/lib/auth/auth-client';
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {BadgeCheck, BadgeX, Crown, ChartNoAxesCombined as Chart, LogOut, Play, Settings as SettingsIcon, Swords, UserRound} from 'lucide-react'
 import Link from 'next/link';
 import "./globals.css";
@@ -48,6 +48,7 @@ type LayoutProps = {
 export default function LayoutClientSide({children}: LayoutProps) {
 
   const router = useRouter();
+  const pathname = usePathname();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [profileUsername, setProfileUsername] = useState<{userId: string, username: string} | null>(null);
@@ -59,6 +60,16 @@ export default function LayoutClientSide({children}: LayoutProps) {
   const userVerified = data?.user.emailVerified ?? false;
   const canViewStats = userLoggedIn && userVerified;
   const verificationRequiredMessage = "Email Verification Required";
+  const isVersusRoute = pathname === "/versusMenu" || pathname.startsWith("/game/versus");
+  const isPlayRoute = pathname === "/"
+      || pathname === "/custom"
+      || (pathname.startsWith("/game") && !isVersusRoute);
+  const navLinkClass = (active: boolean) =>
+      `flex items-center justify-center gap-1 border-b-2 rounded-md px-1.5 py-2 transition sm:gap-2 sm:px-3 ${
+          active
+              ? "border-gray-900 text-gray-900"
+              : "border-transparent text-gray-600 hover:border-gray-300 hover:bg-gray-200 hover:text-gray-900"
+      }`;
 
   async function clickSignOut() {
       setUserMenuOpen(false);
@@ -149,19 +160,19 @@ export default function LayoutClientSide({children}: LayoutProps) {
                     <div className="col-start-1 row-start-1 flex min-w-0 items-center gap-3">
                         <Link
                             href="/"
-                            className="text-lg font-semibold tracking-wide text-gray-700 transition hover:text-gray-900"
+                            className="text-sm font-semibold tracking-wide text-gray-700 transition hover:text-gray-900"
                         >
                             ZETAMAC+
                         </Link>
                         {userLoggedIn && (
                             <div className="flex min-w-0 items-center gap-3">
                                 {username !== null && (
-                                    <p className="truncate text-xs text-gray-500 sm:text-sm">
-                                        Welcome {username}
+                                    <p className="truncate text-xs text-gray-500">
+                                        {username}
                                     </p>
                                 )}
                                 {!userVerified && (
-                                    <p className="text-sm text-amber-600">
+                                    <p className="text-xs text-amber-600">
                                         Email Verification Required
                                     </p>
                                 )}
@@ -169,36 +180,36 @@ export default function LayoutClientSide({children}: LayoutProps) {
                         )}
                     </div>
                     <div className="contents md:col-start-2 md:row-start-1 md:flex md:items-center md:justify-end md:gap-2">
-                    <div className="col-span-2 row-start-2 grid w-full grid-cols-3 items-center gap-3 text-xs font-medium sm:gap-4 sm:text-sm md:flex md:w-auto md:gap-2">
+                    <div className="col-span-2 row-start-2 grid w-full grid-cols-3 items-center gap-3 text-xs font-medium sm:gap-4 md:flex md:w-auto md:gap-2">
                         <Link
                             href="/"
                             aria-label="Play"
                             title="Play"
-                            className="flex items-center justify-center gap-1 rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 sm:gap-2 sm:px-3"
+                            className={navLinkClass(isPlayRoute)}
                         >
-                            <Play size={18} aria-hidden="true" />
+                            <Play size={16} aria-hidden="true" />
                             <span>Play</span>
                         </Link>
                         <Link
                             href={userLoggedIn ? "/versusMenu" : "/login"}
                             aria-label="Versus"
                             title={userLoggedIn ? "Versus" : "Log in to play Versus"}
-                            className="flex items-center justify-center gap-1 rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 sm:gap-2 sm:px-3"
+                            className={navLinkClass(isVersusRoute)}
                         >
-                            <Swords size={18} aria-hidden="true" />
+                            <Swords size={16} aria-hidden="true" />
                             <span>Versus</span>
                         </Link>
                         <Link
                             href="/leaderboard"
                             aria-label="Leaderboard"
                             title="Leaderboard"
-                            className="flex items-center justify-center gap-1 rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 sm:gap-2 sm:px-3"
+                            className={navLinkClass(pathname === "/leaderboard")}
                         >
-                            <Crown size={18} aria-hidden="true" />
+                            <Crown size={16} aria-hidden="true" />
                             <span>Leaderboard</span>
                         </Link>
                     </div>
-                    <div className="col-start-2 row-start-1 flex items-center justify-end text-xs font-medium sm:text-sm md:ml-1 md:border-l md:border-gray-300 md:pl-3">
+                    <div className="col-start-2 row-start-1 flex items-center justify-end text-xs font-medium md:ml-1 md:border-l md:border-gray-300 md:pl-3">
                         {!userLoggedIn && (
                             <Link
                                 href="/login"
