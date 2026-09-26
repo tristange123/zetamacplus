@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import LayoutClientSide from "./layoutClientSide";
 import {type ReactNode} from 'react'
-import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Roboto } from "next/font/google";
 
 const roboto = Roboto({
@@ -45,6 +44,5 @@ export default function Layout({children} : {children: ReactNode}){
 
     return <>
         <LayoutClientSide fontClassName={roboto.className}>{children}</LayoutClientSide>
-        <SpeedInsights />
     </>
 }
