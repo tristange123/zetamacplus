@@ -1,5 +1,24 @@
 @import "tailwindcss";
 
+html {
+    scrollbar-gutter: stable;
+}
+
+@keyframes game-screen-enter {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.game-screen-enter {
+    animation: game-screen-enter 180ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .game-screen-enter {
+        animation: none;
+    }
+}
+
 @keyframes pitch-key-shake {
     0%, 100% { transform: translateX(0); }
     20% { transform: translateX(-0.35rem); }

@@ -32,6 +32,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
     const [timeFormatInput, setTimeFormatInput] = useState(120);
     const [problemTypeInput, setProblemTypeInput] = useState<ProblemType>('medium');
     const [gameModeInput, setGameModeInput] = useState<MainGameModeName>('standard');
+    const [isStarting, setIsStarting] = useState(false);
     const [dailyStatus, setDailyStatus] = useState<DailyStatus>('loading');
     const [dailyScore, setDailyScore] = useState<number | null>(null);
 
@@ -97,11 +98,11 @@ export default function StartClientSide({userLoggedIn}: startProps) {
     const dailyAvailable = dailyStatus === 'available';
 
 
-    const gameModeDisplay: Record<MainGameModeName, { label: string, duration: string, icon: LucideIcon }> = {
-        standard: { label: 'Standard', duration: '2 min', icon: Calculator },
-        rapid: { label: 'Rapid', duration: '1 min', icon: Rabbit },
-        sprint: { label: 'Sprint', duration: '10 sec', icon: SportShoe },
-        hard: { label: 'Hard', duration: '3 min', icon: Skull },
+    const gameModeDisplay: Record<MainGameModeName, { label: string, duration: string, example: string, icon: LucideIcon }> = {
+        standard: { label: 'Standard', duration: '2 min', example: '48 ÷ 6', icon: Calculator },
+        rapid: { label: 'Rapid', duration: '1 min', example: '17 + 26', icon: Rabbit },
+        sprint: { label: 'Sprint', duration: '10 sec', example: '8 × 7', icon: SportShoe },
+        hard: { label: 'Hard', duration: '3 min', example: '684 − 297', icon: Skull },
     };
 
     function selectMainMode(mode: MainGameModeName) {
@@ -147,6 +148,14 @@ export default function StartClientSide({userLoggedIn}: startProps) {
         }
     }
 
+    async function handleMainStart() {
+        if (isStarting) return;
+
+        setIsStarting(true);
+        await new Promise((resolve) => window.setTimeout(resolve, 140));
+        await handleStart();
+    }
+
     const dailyDescription = !userLoggedIn
         ? 'Log in to unlock'
         : dailyCompleted
@@ -159,41 +168,67 @@ export default function StartClientSide({userLoggedIn}: startProps) {
     const dailyDisabled = !userLoggedIn || !dailyAvailable;
 
     return (
-        <section className="relative min-h-[900px] pb-14 md:min-h-[calc(100vh-8rem)] md:pb-12">
-                <div className="absolute left-1/2 top-[40%] w-screen -translate-x-1/2 -translate-y-1/2 border-y border-gray-300 bg-gray-200 py-5 md:py-6">
-                    <div className="mx-auto grid max-w-3xl grid-cols-4 gap-1 px-3 sm:gap-2 md:px-6">
-                        {(Object.keys(gameModeDisplay) as MainGameModeName[]).map((mode) => {
-                            const isSelected = mode === gameModeInput;
-                            const ModeIcon = gameModeDisplay[mode].icon;
+        <section
+            aria-busy={isStarting}
+            className={`relative min-h-[900px] pb-14 transition-opacity duration-150 ease-out motion-reduce:transition-none md:min-h-[calc(100vh-9rem)] md:pb-12 ${
+                isStarting ? 'pointer-events-none opacity-0' : 'opacity-100'
+            }`}
+        >
+                <div className="absolute left-0 right-0 top-[13%]">
+                    <div className="mx-auto w-full max-w-3xl px-3 md:px-6">
+                        <div className="grid grid-cols-4 border-b border-gray-200">
+                            {(Object.keys(gameModeDisplay) as MainGameModeName[]).map((mode) => {
+                                const modeDetails = gameModeDisplay[mode];
+                                const ModeIcon = modeDetails.icon;
+                                const isSelected = mode === gameModeInput;
 
-                            return (
-                                <button
-                                    key={mode}
-                                    type="button"
-                                    aria-pressed={isSelected}
-                                    onClick={() => selectMainMode(mode)}
-                                    className={`rounded-md px-1 py-3 text-center transition sm:px-3 ${
-                                        isSelected
-                                            ? 'bg-gray-800 text-white shadow-sm'
-                                            : 'text-gray-600 hover:bg-gray-300 hover:text-gray-900'
-                                    }`}
-                                >
-                                    <span className="flex items-center justify-center gap-1.5 text-xs font-semibold sm:gap-2 sm:text-sm">
-                                        <ModeIcon size={16} aria-hidden="true" />
-                                        <span>{gameModeDisplay[mode].label}</span>
-                                    </span>
-                                    <span className={`mt-1 block text-[0.65rem] sm:text-xs ${
-                                        isSelected ? 'text-gray-300' : 'text-gray-500'
-                                    }`}>
-                                        {gameModeDisplay[mode].duration}
-                                    </span>
-                                </button>
-                            );
-                        })}
+                                return (
+                                    <button
+                                        key={mode}
+                                        type="button"
+                                        aria-pressed={isSelected}
+                                        onClick={() => selectMainMode(mode)}
+                                        className={`relative px-1 pb-4 pt-2 text-center transition-colors ${
+                                            isSelected
+                                                ? 'text-gray-900'
+                                                : 'text-gray-400 hover:text-gray-600'
+                                        }`}
+                                    >
+                                        <span className="flex items-center justify-center gap-1.5 text-sm font-semibold sm:gap-2 sm:text-base">
+                                            <ModeIcon size={16} aria-hidden="true" />
+                                            <span>{modeDetails.label}</span>
+                                        </span>
+                                        <span className={`mt-1 block text-[0.65rem] sm:text-xs ${
+                                            isSelected ? 'text-gray-500' : 'text-gray-300'
+                                        }`}>
+                                            {modeDetails.duration}
+                                        </span>
+                                        {isSelected && (
+                                            <span className="absolute -bottom-px left-1/2 h-0.5 w-10 -translate-x-1/2 rounded-full bg-gray-800" />
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
 
-                <div className="absolute left-0 right-0 top-[calc(40%+4.5rem)]">
+                <div className="absolute left-1/2 top-[40%] w-screen -translate-x-1/2 -translate-y-1/2 bg-gray-200 py-6 md:py-8">
+                    <div className="mx-auto grid max-w-6xl grid-cols-2 items-center gap-3 px-4 md:gap-4 md:px-6">
+                        <span className="justify-self-end whitespace-nowrap text-3xl font-semibold tracking-tight text-gray-800 sm:text-4xl md:text-5xl">
+                            {gameModeDisplay[gameModeInput].example} =
+                        </span>
+                        <input
+                            type="number"
+                            readOnly
+                            tabIndex={-1}
+                            aria-label="Answer preview"
+                            className="w-28 justify-self-start rounded-md border border-gray-300 bg-white px-3 py-3 text-center text-2xl text-gray-800 shadow-sm outline-none [appearance:textfield] sm:w-36 md:w-48 md:px-4 md:text-[1.6875rem] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        />
+                    </div>
+                </div>
+
+                <div className="absolute left-0 right-0 top-[calc(40%+5rem)]">
                 <div className="mx-auto grid w-full max-w-3xl gap-3 sm:grid-cols-3">
                     <button
                         type="button"
@@ -234,7 +269,8 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                     <div className="mt-5 flex justify-center">
                         <button
                             type="button"
-                            onClick={() => void handleStart()}
+                            disabled={isStarting}
+                            onClick={() => void handleMainStart()}
                             className="group flex items-center justify-center gap-3 rounded-md bg-gray-900 px-10 py-3.5 text-sm font-semibold text-white transition hover:bg-black"
                         >
                             Start

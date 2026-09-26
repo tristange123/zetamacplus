@@ -144,7 +144,7 @@ export default function Game() {
     
 
     return (
-        <section className="relative flex min-h-[calc(100vh-9rem)] flex-col justify-center">
+        <section className="game-screen-enter relative flex min-h-[calc(100vh-9rem)] flex-col justify-center">
             <div className="absolute top-0 left-0 right-0 mx-auto flex w-full max-w-6xl items-center justify-between pb-6 text-xs font-medium text-gray-500 md:px-6 md:text-sm">
                 {showScore ? <p>Score: {score}</p> : <span />}
                 {showTimer ? <p>Time: {Math.ceil(time)}</p> : <span />}
@@ -152,8 +152,8 @@ export default function Game() {
 
             <div className="contents">
                 <div className="absolute left-1/2 top-[40%] w-screen -translate-x-1/2 -translate-y-1/2 bg-gray-200 py-6 md:py-8">
-                    <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-3 px-4 md:gap-4 md:px-6">
-                        <h2 className="text-4xl font-semibold tracking-tight text-gray-800 md:text-5xl">
+                    <div className="mx-auto grid max-w-6xl grid-cols-2 items-center gap-3 px-4 md:gap-4 md:px-6">
+                        <h2 className="justify-self-end whitespace-nowrap text-3xl font-semibold tracking-tight text-gray-800 sm:text-4xl md:text-5xl">
                             {currProblem?.statement}
                         </h2>
                         <label htmlFor="game-answer" className="sr-only">
@@ -167,7 +167,7 @@ export default function Game() {
                             type="number"
                             value={display}
                             onChange={(e) => checkDisplay(e, currProblem?.answer ?? 999)}
-                            className="w-36 rounded-md border border-gray-300 bg-white px-3 py-3 text-center text-2xl text-gray-800 shadow-sm outline-none transition [appearance:textfield] focus:border-gray-500 focus:ring-2 focus:ring-gray-300 md:w-48 md:px-4 md:text-[1.6875rem] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                            className="w-28 justify-self-start rounded-md border border-gray-300 bg-white px-3 py-3 text-center text-2xl text-gray-800 shadow-sm outline-none transition [appearance:textfield] focus:border-gray-500 focus:ring-2 focus:ring-gray-300 sm:w-36 md:w-48 md:px-4 md:text-[1.6875rem] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         />
                     </div>
                 </div>
