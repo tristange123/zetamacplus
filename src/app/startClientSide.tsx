@@ -6,7 +6,7 @@ import { useGameContext } from './gameContext';
 import { type MainGameModeName, type GameModeName, type ProblemType } from '@/types/frontendTypes'
 import {type ScoresByGameMode} from '@/types/contextTypes'
 import {MAIN_GAME_MODES, BOUNDS, EXTRA_GAME_MODES} from '@/lib/game/gameModeGlobals'
-import { ArrowRight, Calculator, CalendarDays, Mail, Rabbit, Shapes, Skull, SlidersHorizontal, SportShoe, Wrench, type LucideIcon } from 'lucide-react'
+import { ArrowRight, Calculator, CalendarDays, Info, Mail, Rabbit, Shapes, Skull, SlidersHorizontal, SportShoe, Wrench, type LucideIcon } from 'lucide-react'
 import Link from 'next/link';
 type startProps = {
     userLoggedIn: boolean
@@ -98,11 +98,35 @@ export default function StartClientSide({userLoggedIn}: startProps) {
     const dailyAvailable = dailyStatus === 'available';
 
 
-    const gameModeDisplay: Record<MainGameModeName, { label: string, duration: string, example: string, icon: LucideIcon }> = {
-        standard: { label: 'Standard', duration: '2 min', example: '__ _ __', icon: Calculator },
-        rapid: { label: 'Rapid', duration: '1 min', example: '__ _ _', icon: Rabbit },
-        sprint: { label: 'Sprint', duration: '10 sec', example: '_ _ _', icon: SportShoe },
-        hard: { label: 'Hard', duration: '3 min', example: '___ _ ___', icon: Skull },
+    const gameModeDisplay: Record<MainGameModeName, { label: string, duration: string, example: string, tooltip: string, icon: LucideIcon }> = {
+        standard: {
+            label: 'Standard',
+            duration: '2 min',
+            example: '__ _ __',
+            tooltip: 'Add/subtract: 2–100 by 2–100\nMultiply/divide: 2–100 by 2–12',
+            icon: Calculator,
+        },
+        rapid: {
+            label: 'Rapid',
+            duration: '1 min',
+            example: '__ _ _',
+            tooltip: 'Add/subtract: 2–50 by 2–50\nMultiply/divide: 2–50 by 2–5',
+            icon: Rabbit,
+        },
+        sprint: {
+            label: 'Sprint',
+            duration: '10 sec',
+            example: '_ _ _',
+            tooltip: 'All operations use numbers from 2–10',
+            icon: SportShoe,
+        },
+        hard: {
+            label: 'Hard',
+            duration: '3 min',
+            example: '___ _ ___',
+            tooltip: 'Add/subtract: 200–1,000 by 200–1,000\nMultiply/divide: 20–100 by 6–20',
+            icon: Skull,
+        },
     };
 
     function selectMainMode(mode: MainGameModeName) {
@@ -197,7 +221,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                                         type="button"
                                         aria-pressed={isSelected}
                                         onClick={() => selectMainMode(mode)}
-                                        className={`relative px-1 pb-4 pt-2 text-center transition-colors ${
+                                        className={`group/mode relative px-1 pb-4 pt-2 text-center transition-colors ${
                                             isSelected
                                                 ? 'text-gray-900'
                                                 : 'text-gray-400 hover:text-gray-600'
@@ -206,6 +230,25 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                                         <span className="flex items-center justify-center gap-1.5 text-sm font-semibold sm:gap-2 sm:text-base">
                                             <ModeIcon size={16} aria-hidden="true" />
                                             <span>{modeDetails.label}</span>
+                                            <span className="group/info relative inline-flex">
+                                                <Info
+                                                    size={11}
+                                                    className="text-gray-300 transition-colors group-hover/info:text-gray-500"
+                                                    aria-hidden="true"
+                                                />
+                                                <span
+                                                    role="tooltip"
+                                                    className={`invisible pointer-events-none absolute top-full z-30 mt-2 w-56 whitespace-pre-line rounded-md bg-gray-800 px-3 py-2 text-left text-[0.65rem] font-normal leading-4 text-gray-100 opacity-0 shadow-lg transition-opacity group-hover/info:visible group-hover/info:opacity-100 group-focus/mode:visible group-focus/mode:opacity-100 ${
+                                                        mode === 'standard'
+                                                            ? 'left-0'
+                                                            : mode === 'hard'
+                                                                ? 'right-0'
+                                                                : 'left-1/2 -translate-x-1/2'
+                                                    }`}
+                                                >
+                                                    {modeDetails.tooltip}
+                                                </span>
+                                            </span>
                                         </span>
                                         <span className={`mt-1 block text-[0.65rem] sm:text-xs ${
                                             isSelected ? 'text-gray-500' : 'text-gray-300'

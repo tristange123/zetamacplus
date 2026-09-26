@@ -1,8 +1,8 @@
 'use client'
 
 import {Calculator, ChevronRight, Clock, Rabbit, Skull, SportShoe, X, type LucideIcon} from 'lucide-react';
-import {Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis} from 'recharts';
-import {useEffect, useRef, useState, type FormEvent} from 'react';
+import {CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from 'recharts';
+import {useState, type FormEvent} from 'react';
 import {type GameModeTopTests, type ProblemDb, type ProfileDb, type TestDb} from '@/types/dbTypes.js'
 import {type MainGameModeName} from '@/types/frontendTypes'
 
@@ -387,44 +387,19 @@ type DailyScoreChartProps = {
 }
 
 function DailyScoreChart({tests}: DailyScoreChartProps) {
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const visibleBars = 20;
-    const dailyScoreByDate = [...tests]
+    const chartData = [...tests]
         .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
-        .reduce<Map<string, {id: string, dateLabel: string, score: number | null}>>((acc, test) => {
-            const date = new Date(test.time);
-            const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-            const existing = acc.get(dateKey);
-            if (existing && existing.score != null && existing.score >= test.score) {
-                return acc;
-            }
-
-            acc.set(dateKey, {
-                id: test.id,
-                dateLabel: `${date.getMonth() + 1}/${date.getDate()}`,
-                score: test.score,
-            });
-            return acc;
-        }, new Map());
-    const chartData = Array.from(dailyScoreByDate.values());
-    const displayData = chartData.length >= visibleBars
-        ? chartData
-        : [
-            ...chartData,
-            ...Array.from({length: visibleBars - chartData.length}, (_, index) => ({
-                id: `empty-${index}`,
-                dateLabel: '',
-                score: null,
-            })),
-        ];
-    const chartWidth = `${Math.max(100, (displayData.length / visibleBars) * 100)}%`;
-
-    useEffect(() => {
-        const scrollContainer = scrollRef.current;
-        if (!scrollContainer) return;
-
-        scrollContainer.scrollLeft = scrollContainer.scrollWidth;
-    }, [displayData.length]);
+        .map((test) => ({
+            id: test.id,
+            timestamp: new Date(test.time).getTime(),
+            score: test.score,
+        }));
+    const firstTimestamp = chartData[0]?.timestamp;
+    const lastTimestamp = chartData.at(-1)?.timestamp;
+    const oneDay = 24 * 60 * 60 * 1000;
+    const timeDomain = firstTimestamp === lastTimestamp && firstTimestamp != null
+        ? [firstTimestamp - oneDay / 2, firstTimestamp + oneDay / 2]
+        : ['dataMin', 'dataMax'];
 
     return (
         <div className="h-full rounded-xl border border-gray-200 bg-white p-4 md:p-5">
@@ -437,29 +412,42 @@ function DailyScoreChart({tests}: DailyScoreChartProps) {
                     No daily runs yet.
                 </div>
             ) : (
-                <div ref={scrollRef} className="overflow-x-auto">
-                    <div style={{width: chartWidth}} className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={displayData} margin={{top: 8, right: 12, left: -20, bottom: 8}}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                <XAxis dataKey="dateLabel" tick={{fill: '#4b5563', fontSize: 12}} interval={0} />
-                                <YAxis tick={{fill: '#4b5563', fontSize: 12}} allowDecimals={false} />
-                                <Tooltip
-                                    labelFormatter={(_, payload) => {
-                                        const data = payload?.[0]?.payload as {dateLabel?: string, id?: string} | undefined;
-                                        return data ? `${data.dateLabel}` : 'Daily run';
-                                    }}
-                                    formatter={(value) => [value, 'Score']}
-                                    contentStyle={{
-                                        borderRadius: '0.5rem',
-                                        border: '1px solid #d1d5db',
-                                        color: '#1f2937',
-                                    }}
-                                />
-                                <Bar dataKey="score" fill="#73757ad6" radius={[6, 6, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
+                <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={chartData} margin={{top: 8, right: 12, left: -20, bottom: 8}}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                            <XAxis
+                                dataKey="timestamp"
+                                type="number"
+                                scale="time"
+                                domain={timeDomain}
+                                tick={{fill: '#4b5563', fontSize: 12}}
+                                tickFormatter={(timestamp) => new Date(timestamp).toLocaleDateString(undefined, {
+                                    month: 'short',
+                                    day: 'numeric',
+                                })}
+                                minTickGap={28}
+                            />
+                            <YAxis tick={{fill: '#4b5563', fontSize: 12}} allowDecimals={false} />
+                            <Tooltip
+                                labelFormatter={(timestamp) => new Date(Number(timestamp)).toLocaleString()}
+                                formatter={(value) => [value, 'Score']}
+                                contentStyle={{
+                                    borderRadius: '0.5rem',
+                                    border: '1px solid #d1d5db',
+                                    color: '#1f2937',
+                                }}
+                            />
+                            <Line
+                                type="monotone"
+                                dataKey="score"
+                                stroke="#4b5563"
+                                strokeWidth={2.5}
+                                dot={{fill: '#4b5563', r: 3}}
+                                activeDot={{r: 5}}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
                 </div>
             )}
         </div>
