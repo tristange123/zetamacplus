@@ -31,7 +31,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
 
     const [timeFormatInput, setTimeFormatInput] = useState(120);
     const [problemTypeInput, setProblemTypeInput] = useState<ProblemType>('medium');
-    const [gameModeInput, setGameModeInput] = useState<MainGameModeName>('standard');
+    const [gameModeInput, setGameModeInput] = useState<MainGameModeName | 'daily'>('standard');
     const [isStarting, setIsStarting] = useState(false);
     const [dailyStatus, setDailyStatus] = useState<DailyStatus>('loading');
     const [dailyScore, setDailyScore] = useState<number | null>(null);
@@ -99,16 +99,22 @@ export default function StartClientSide({userLoggedIn}: startProps) {
 
 
     const gameModeDisplay: Record<MainGameModeName, { label: string, duration: string, example: string, icon: LucideIcon }> = {
-        standard: { label: 'Standard', duration: '2 min', example: '48 ÷ 6', icon: Calculator },
-        rapid: { label: 'Rapid', duration: '1 min', example: '17 + 26', icon: Rabbit },
-        sprint: { label: 'Sprint', duration: '10 sec', example: '8 × 7', icon: SportShoe },
-        hard: { label: 'Hard', duration: '3 min', example: '684 − 297', icon: Skull },
+        standard: { label: 'Standard', duration: '2 min', example: '__ _ __', icon: Calculator },
+        rapid: { label: 'Rapid', duration: '1 min', example: '__ _ _', icon: Rabbit },
+        sprint: { label: 'Sprint', duration: '10 sec', example: '_ _ _', icon: SportShoe },
+        hard: { label: 'Hard', duration: '3 min', example: '___ _ ___', icon: Skull },
     };
 
     function selectMainMode(mode: MainGameModeName) {
         setGameModeInput(mode);
         setTimeFormatInput(MAIN_GAME_MODES[mode].timeFormat);
         setProblemTypeInput(MAIN_GAME_MODES[mode].problemType);
+    }
+
+    function selectDailyMode() {
+        setGameModeInput('daily');
+        setTimeFormatInput(EXTRA_GAME_MODES.daily.timeFormat);
+        setProblemTypeInput(EXTRA_GAME_MODES.daily.problemType);
     }
 
     async function handleStart (mode: GameModeName = gameModeInput) {
@@ -166,6 +172,9 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                     ? 'Unavailable right now'
                     : 'One shared challenge';
     const dailyDisabled = !userLoggedIn || !dailyAvailable;
+    const selectedExample = gameModeInput === 'daily'
+        ? gameModeDisplay.standard.example
+        : gameModeDisplay[gameModeInput].example;
 
     return (
         <section
@@ -215,8 +224,11 @@ export default function StartClientSide({userLoggedIn}: startProps) {
 
                 <div className="absolute left-1/2 top-[40%] w-screen -translate-x-1/2 -translate-y-1/2 bg-gray-200 py-6 md:py-8">
                     <div className="mx-auto grid max-w-6xl grid-cols-2 items-center gap-3 px-4 md:gap-4 md:px-6">
-                        <span className="justify-self-end whitespace-nowrap text-3xl font-semibold tracking-tight text-gray-800 sm:text-4xl md:text-5xl">
-                            {gameModeDisplay[gameModeInput].example} =
+                        <span className="flex justify-self-end whitespace-nowrap text-3xl font-semibold tracking-tight text-gray-300 sm:text-4xl md:text-5xl">
+                            <span className="inline-block w-36 text-center sm:w-44 md:w-56">
+                                {selectedExample}
+                            </span>
+                            <span className="text-gray-900" aria-hidden="true">=</span>
                         </span>
                         <input
                             type="number"
@@ -233,13 +245,26 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                     <button
                         type="button"
                         disabled={dailyDisabled}
-                        onClick={() => void handleStart('daily')}
-                        className="group flex min-h-24 items-center gap-4 rounded-lg border border-gray-300 bg-white px-5 py-4 text-left transition hover:border-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:border-gray-300 disabled:hover:bg-white"
+                        aria-pressed={gameModeInput === 'daily'}
+                        onClick={selectDailyMode}
+                        className={`group flex min-h-24 items-center gap-4 rounded-lg border px-5 py-4 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                            gameModeInput === 'daily'
+                                ? 'border-gray-400 bg-gray-200 text-gray-900'
+                                : 'border-gray-300 bg-white text-gray-900 hover:border-gray-500 hover:bg-gray-50 disabled:hover:border-gray-300 disabled:hover:bg-white'
+                        }`}
                     >
-                        <CalendarDays size={20} className="shrink-0 text-gray-500" aria-hidden="true" />
+                        <CalendarDays
+                            size={20}
+                            className={`shrink-0 ${gameModeInput === 'daily' ? 'text-gray-700' : 'text-gray-500'}`}
+                            aria-hidden="true"
+                        />
                         <span>
-                            <span className="block text-sm font-semibold text-gray-900">Daily</span>
-                            <span className="mt-1 block text-xs leading-4 text-gray-500">{dailyDescription}</span>
+                            <span className="block text-sm font-semibold">Daily</span>
+                            <span className={`mt-1 block text-xs leading-4 ${
+                                gameModeInput === 'daily' ? 'text-gray-600' : 'text-gray-500'
+                            }`}>
+                                {dailyDescription}
+                            </span>
                         </span>
                     </button>
                     <button
@@ -260,7 +285,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                     >
                         <Shapes size={20} className="shrink-0 text-gray-400" aria-hidden="true" />
                         <span>
-                            <span className="block text-sm font-semibold text-gray-600">Other game mode</span>
+                            <span className="block text-sm font-semibold text-gray-600">Other game modes</span>
                             <span className="mt-1 block text-xs leading-4 text-gray-400">More ways to play soon</span>
                         </span>
                     </button>
