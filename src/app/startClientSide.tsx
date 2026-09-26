@@ -6,7 +6,7 @@ import { useGameContext } from './gameContext';
 import { type MainGameModeName, type GameModeName, type ProblemType } from '@/types/frontendTypes'
 import {type ScoresByGameMode} from '@/types/contextTypes'
 import {MAIN_GAME_MODES, BOUNDS, EXTRA_GAME_MODES} from '@/lib/game/gameModeGlobals'
-import { ArrowRight, CalendarDays, ChevronDown, Mail, Shapes, SlidersHorizontal, Wrench } from 'lucide-react'
+import { ArrowRight, Calculator, CalendarDays, Mail, Rabbit, Shapes, Skull, SlidersHorizontal, SportShoe, Wrench, type LucideIcon } from 'lucide-react'
 import Link from 'next/link';
 type startProps = {
     userLoggedIn: boolean
@@ -97,11 +97,11 @@ export default function StartClientSide({userLoggedIn}: startProps) {
     const dailyAvailable = dailyStatus === 'available';
 
 
-    const gameModeDisplay: Record<MainGameModeName, { label: string, duration: string, example: string }> = {
-        standard: { label: 'Standard', duration: '2 minutes', example: '48 ÷ 6 =' },
-        rapid: { label: 'Rapid', duration: '1 minute', example: '17 + 26 =' },
-        sprint: { label: 'Sprint', duration: '10 seconds', example: '8 × 7 =' },
-        hard: { label: 'Hard', duration: '3 minutes', example: '684 − 297 =' },
+    const gameModeDisplay: Record<MainGameModeName, { label: string, duration: string, icon: LucideIcon }> = {
+        standard: { label: 'Standard', duration: '2 min', icon: Calculator },
+        rapid: { label: 'Rapid', duration: '1 min', icon: Rabbit },
+        sprint: { label: 'Sprint', duration: '10 sec', icon: SportShoe },
+        hard: { label: 'Hard', duration: '3 min', icon: Skull },
     };
 
     function selectMainMode(mode: MainGameModeName) {
@@ -147,7 +147,6 @@ export default function StartClientSide({userLoggedIn}: startProps) {
         }
     }
 
-    const selectedMode = gameModeDisplay[gameModeInput];
     const dailyDescription = !userLoggedIn
         ? 'Log in to unlock'
         : dailyCompleted
@@ -160,64 +159,42 @@ export default function StartClientSide({userLoggedIn}: startProps) {
     const dailyDisabled = !userLoggedIn || !dailyAvailable;
 
     return (
-        <section className="flex min-h-[calc(100vh-8rem)] flex-col justify-between pb-2">
-            <div className="flex flex-1 flex-col justify-center py-10 md:py-16">
-                <div className="mx-auto mb-10 max-w-2xl text-center md:mb-14">
-                    <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
-                        Mental math training
-                    </p>
-                    <h1 className="text-balance text-4xl font-semibold tracking-[-0.04em] text-gray-900 md:text-6xl">
-                        Think fast. Get faster.
-                    </h1>
-                    <p className="mx-auto mt-4 max-w-lg text-sm leading-6 text-gray-600 md:text-base">
-                        Pick a pace, solve as many problems as you can, and make every second count.
-                    </p>
-                </div>
+        <section className="relative min-h-[900px] pb-14 md:min-h-[calc(100vh-8rem)] md:pb-12">
+                <div className="absolute left-1/2 top-[40%] w-screen -translate-x-1/2 -translate-y-1/2 border-y border-gray-300 bg-gray-200 py-5 md:py-6">
+                    <div className="mx-auto grid max-w-3xl grid-cols-4 gap-1 px-3 sm:gap-2 md:px-6">
+                        {(Object.keys(gameModeDisplay) as MainGameModeName[]).map((mode) => {
+                            const isSelected = mode === gameModeInput;
+                            const ModeIcon = gameModeDisplay[mode].icon;
 
-                <div className="relative left-1/2 w-screen -translate-x-1/2 border-y border-gray-300 bg-gray-200">
-                    <div className="mx-auto grid max-w-6xl gap-6 px-4 py-7 md:grid-cols-[13rem_1fr_auto] md:items-center md:px-6 md:py-9">
-                        <div>
-                            <label htmlFor="home-game-mode" className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
-                                Game mode
-                            </label>
-                            <div className="relative">
-                                <select
-                                    id="home-game-mode"
-                                    value={gameModeInput}
-                                    onChange={(event) => selectMainMode(event.target.value as MainGameModeName)}
-                                    className="w-full appearance-none rounded-md border border-gray-400 bg-gray-100 py-2.5 pl-3 pr-9 text-sm font-semibold text-gray-900 outline-none transition focus:border-gray-700 focus:ring-2 focus:ring-gray-400/40"
+                            return (
+                                <button
+                                    key={mode}
+                                    type="button"
+                                    aria-pressed={isSelected}
+                                    onClick={() => selectMainMode(mode)}
+                                    className={`rounded-md px-1 py-3 text-center transition sm:px-3 ${
+                                        isSelected
+                                            ? 'bg-gray-800 text-white shadow-sm'
+                                            : 'text-gray-600 hover:bg-gray-300 hover:text-gray-900'
+                                    }`}
                                 >
-                                    {(Object.keys(gameModeDisplay) as MainGameModeName[]).map((mode) => (
-                                        <option key={mode} value={mode}>
-                                            {gameModeDisplay[mode].label} · {gameModeDisplay[mode].duration}
-                                        </option>
-                                    ))}
-                                </select>
-                                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} aria-hidden="true" />
-                            </div>
-                        </div>
-
-                        <div className="flex items-center justify-center gap-3 md:gap-5">
-                            <span className="whitespace-nowrap text-4xl font-semibold tracking-[-0.04em] text-gray-900 md:text-5xl">
-                                {selectedMode.example}
-                            </span>
-                            <span className="flex h-14 w-28 items-center justify-center rounded-md border border-gray-400 bg-white text-2xl text-gray-400 shadow-sm md:w-36">
-                                ?
-                            </span>
-                        </div>
-
-                        <button
-                            type="button"
-                            onClick={() => void handleStart()}
-                            className="group flex w-full items-center justify-center gap-3 rounded-md bg-gray-900 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-black md:w-auto"
-                        >
-                            Start {selectedMode.label}
-                            <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-                        </button>
+                                    <span className="flex items-center justify-center gap-1.5 text-xs font-semibold sm:gap-2 sm:text-sm">
+                                        <ModeIcon size={16} aria-hidden="true" />
+                                        <span>{gameModeDisplay[mode].label}</span>
+                                    </span>
+                                    <span className={`mt-1 block text-[0.65rem] sm:text-xs ${
+                                        isSelected ? 'text-gray-300' : 'text-gray-500'
+                                    }`}>
+                                        {gameModeDisplay[mode].duration}
+                                    </span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
-                <div className="mx-auto mt-6 grid w-full max-w-3xl gap-3 sm:grid-cols-3">
+                <div className="absolute left-0 right-0 top-[calc(40%+4.5rem)]">
+                <div className="mx-auto grid w-full max-w-3xl gap-3 sm:grid-cols-3">
                     <button
                         type="button"
                         disabled={dailyDisabled}
@@ -233,12 +210,12 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                     <button
                         type="button"
                         onClick={() => router.push('/custom')}
-                        className="flex min-h-24 items-center gap-4 rounded-lg border border-gray-300 bg-white px-5 py-4 text-left transition hover:border-gray-500 hover:bg-gray-50"
+                        className="flex min-h-24 items-center gap-4 rounded-lg border border-gray-200 bg-gray-100/70 px-5 py-4 text-left transition hover:border-gray-400 hover:bg-gray-200"
                     >
-                        <SlidersHorizontal size={20} className="shrink-0 text-gray-500" aria-hidden="true" />
+                        <SlidersHorizontal size={20} className="shrink-0 text-gray-400" aria-hidden="true" />
                         <span>
-                            <span className="block text-sm font-semibold text-gray-900">Custom</span>
-                            <span className="mt-1 block text-xs leading-4 text-gray-500">Set your own rules</span>
+                            <span className="block text-sm font-semibold text-gray-600">Custom</span>
+                            <span className="mt-1 block text-xs leading-4 text-gray-400">Set your own rules</span>
                         </span>
                     </button>
                     <button
@@ -253,9 +230,20 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                         </span>
                     </button>
                 </div>
-            </div>
 
-            <footer className="flex justify-center gap-10 border-t border-gray-200 pt-5">
+                    <div className="mt-5 flex justify-center">
+                        <button
+                            type="button"
+                            onClick={() => void handleStart()}
+                            className="group flex items-center justify-center gap-3 rounded-md bg-gray-900 px-10 py-3.5 text-sm font-semibold text-white transition hover:bg-black"
+                        >
+                            Start
+                            <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                        </button>
+                    </div>
+                </div>
+
+            <footer className="absolute bottom-0 left-0 right-0 flex justify-center gap-10 border-t border-gray-200 pt-5">
                     <Link
                         href="/help"
                         className="flex items-center gap-2 text-xs font-medium text-gray-400 transition hover:text-gray-700"

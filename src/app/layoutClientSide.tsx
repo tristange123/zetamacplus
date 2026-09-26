@@ -43,9 +43,10 @@ export const metadata: Metadata = {
 };
 
 type LayoutProps = {
-  children: ReactNode
+  children: ReactNode;
+  fontClassName: string;
 }
-export default function LayoutClientSide({children}: LayoutProps) {
+export default function LayoutClientSide({children, fontClassName}: LayoutProps) {
 
   const router = useRouter();
   const pathname = usePathname();
@@ -152,7 +153,7 @@ export default function LayoutClientSide({children}: LayoutProps) {
 
 
   return (
-    <html>
+    <html lang="en" className={fontClassName}>
         <body>
         <div className="min-h-screen bg-gray-100 text-gray-800">
             <nav className="sticky top-0 z-50 border-b border-gray-200 bg-gray-50/95 backdrop-blur">

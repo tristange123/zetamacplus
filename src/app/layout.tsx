@@ -2,7 +2,13 @@ import type { Metadata } from "next";
 import LayoutClientSide from "./layoutClientSide";
 import {type ReactNode} from 'react'
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Roboto } from "next/font/google";
 
+const roboto = Roboto({
+    weight: ["400", "500", "700", "900"],
+    subsets: ["latin"],
+    display: "swap",
+});
 
 export const metadata: Metadata = {
     metadataBase: new URL("https://zetamacplus.com"),
@@ -38,7 +44,7 @@ export const metadata: Metadata = {
 export default function Layout({children} : {children: ReactNode}){
 
     return <>
-        <LayoutClientSide>{children}</LayoutClientSide>
+        <LayoutClientSide fontClassName={roboto.className}>{children}</LayoutClientSide>
         <SpeedInsights />
     </>
 }
