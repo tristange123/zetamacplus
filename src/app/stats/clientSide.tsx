@@ -20,20 +20,20 @@ const RANK_CONFIG = [
     {
         key: 'first' as const,
         label: '1.',
-        barClassName: 'border-amber-200 bg-gradient-to-r from-amber-200/65 to-stone-100/75',
-        textClassName: 'text-stone-800',
+        barClassName: 'border-gray-300 bg-gray-100',
+        textClassName: 'text-gray-900',
     },
     {
         key: 'second' as const,
         label: '2.',
-        barClassName: 'border-gray-200 bg-gradient-to-r from-gray-200/70 to-gray-100/75',
+        barClassName: 'border-gray-200 bg-gray-50',
         textClassName: 'text-gray-700',
     },
     {
         key: 'third' as const,
         label: '3.',
-        barClassName: 'border-orange-200 bg-gradient-to-r from-orange-200/60 to-stone-200/65',
-        textClassName: 'text-stone-800',
+        barClassName: 'border-gray-200 bg-gray-50',
+        textClassName: 'text-gray-600',
     },
 ];
 
@@ -44,12 +44,14 @@ type PastRunsProps = {
 }
 function PastRuns({tests, selectedTestId, onSelectTest}: PastRunsProps) {
     return (
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white p-3 md:p-4">
-            <h3 className="mb-3 border-b border-gray-200 pb-2 text-2xl font-semibold text-gray-700">Past Runs</h3>
-            <div className="max-h-100 overflow-auto rounded-xl border border-gray-200">
+        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white p-4 md:p-5">
+            <div className="mb-4 border-b border-gray-200 pb-3">
+                <h2 className="text-lg font-semibold tracking-tight text-gray-900">Past Runs</h2>
+            </div>
+            <div className="max-h-100 overflow-auto rounded-md border border-gray-200">
                 <table className="min-w-[28rem] w-full text-xs md:min-w-0 md:text-sm">
                     <thead className="sticky top-0 z-10">
-                        <tr className="border-b border-gray-200 bg-gray-100 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        <tr className="border-b border-gray-200 bg-gray-100 text-center text-[0.6875rem] font-semibold uppercase tracking-wider text-gray-500">
                             <th className="px-3 py-2">Score</th>
                             <th className="px-3 py-2">Mode</th>
                             <th className="px-3 py-2">Time</th>
@@ -63,7 +65,7 @@ function PastRuns({tests, selectedTestId, onSelectTest}: PastRunsProps) {
                                 <tr
                                     key={test.id}
                                     className={`text-center text-gray-700 transition ${
-                                        isSelected ? 'bg-gray-100' : 'hover:bg-gray-50'
+                                        isSelected ? 'bg-gray-100' : 'bg-white hover:bg-gray-50'
                                     }`}
                                 >
                                     <td className="px-3 py-2 font-medium text-gray-800">{test.score} pts</td>
@@ -215,18 +217,23 @@ function Profile({profile}: ProfileProps) {
     }
 
     return (
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-            <h3 className="mb-3 border-b border-gray-200 pb-2 text-xl font-semibold text-gray-700">Profile</h3>
-            <div className="break-all text-sm text-gray-700">
-                <span className="font-semibold">Email:</span> {profile.email}
-            </div>
-            <div className="mt-1 text-xs text-gray-500 md:text-sm">
-                <span className="font-semibold">Date Joined:</span> {new Date(profile.timeJoined).toLocaleString()}
-            </div>
-            <div className="mt-1 break-all text-sm text-gray-700">
-                <span className="font-semibold">Username:</span> {username}
-            </div>
-            <form className="mt-3 flex items-center gap-2" onSubmit={updateUsername}>
+        <div className="h-full rounded-lg border border-gray-200 bg-white p-4 md:p-5">
+            <h3 className="mb-4 border-b border-gray-200 pb-2 text-sm font-semibold text-gray-900">Profile</h3>
+            <dl className="space-y-2 text-sm">
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                    <dt className="text-xs font-medium text-gray-400">Email</dt>
+                    <dd className="break-all text-gray-700">{profile.email}</dd>
+                </div>
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                    <dt className="text-xs font-medium text-gray-400">Joined</dt>
+                    <dd className="text-gray-600">{new Date(profile.timeJoined).toLocaleDateString()}</dd>
+                </div>
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                    <dt className="text-xs font-medium text-gray-400">Username</dt>
+                    <dd className="break-all font-medium text-gray-800">{username}</dd>
+                </div>
+            </dl>
+            <form className="mt-4 flex items-center gap-2 border-t border-gray-100 pt-4" onSubmit={updateUsername}>
                 <label htmlFor="new-username" className="sr-only">New username</label>
                 <input
                     id="new-username"
@@ -236,12 +243,12 @@ function Profile({profile}: ProfileProps) {
                     placeholder="New username"
                     maxLength={50}
                     required
-                    className="min-w-0 max-w-56 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-800 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200"
+                    className="min-w-0 max-w-56 flex-1 rounded-md border border-gray-300 px-2.5 py-2 text-xs text-gray-800 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200"
                 />
                 <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="shrink-0 rounded-lg bg-gray-700 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="shrink-0 rounded-md bg-gray-900 px-3 py-2 text-xs font-medium text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
                 >
                     {isSubmitting ? 'Submitting...' : 'Submit'}
                 </button>
@@ -258,13 +265,17 @@ type UserStatsProps = {
 }
 function UserStats({ testsAttempted, testsCompleted }: UserStatsProps) {
     return (
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-            <h3 className="mb-3 border-b border-gray-200 pb-2 text-xl font-semibold text-gray-700">User Stats</h3>
-            <div className="text-sm text-gray-700">
-                <span className="font-semibold">Tests Attempted:</span> {testsAttempted ?? 0}
-            </div>
-            <div className="mt-1 text-sm text-gray-700">
-                <span className="font-semibold">Tests Completed:</span> {testsCompleted ?? 0}
+        <div className="h-full rounded-lg border border-gray-200 bg-white p-4 md:p-5">
+            <h3 className="mb-4 border-b border-gray-200 pb-2 text-sm font-semibold text-gray-900">Activity</h3>
+            <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-md bg-gray-100 px-4 py-5">
+                    <p className="text-2xl font-semibold tracking-tight text-gray-900">{testsAttempted ?? 0}</p>
+                    <p className="mt-1 text-xs text-gray-500">Tests attempted</p>
+                </div>
+                <div className="rounded-md bg-gray-100 px-4 py-5">
+                    <p className="text-2xl font-semibold tracking-tight text-gray-900">{testsCompleted ?? 0}</p>
+                    <p className="mt-1 text-xs text-gray-500">Tests completed</p>
+                </div>
             </div>
         </div>
     );
@@ -291,7 +302,7 @@ function TopRunBar({
 
     return (
         <div
-            className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 shadow-sm ${
+            className={`flex items-center justify-between gap-3 rounded-md border px-3 py-2.5 transition ${
                 test ? barClassName : 'border-gray-200 bg-gray-100/80'
             }`}
         >
@@ -347,10 +358,10 @@ function FormatStats({ title, profile, topTests, selectedTestId, onSelectTest }:
         : 0;
 
     return (
-        <div className="h-full rounded-xl border border-gray-200 bg-white p-4 md:p-5">
+        <div className="h-full rounded-lg border border-gray-200 bg-white p-4 md:p-5">
             <h3 className="mb-4 flex items-center gap-2 border-b border-gray-200 pb-2 text-lg font-semibold capitalize text-gray-800">
-                {title}
                 <ModeIcon size={20} className="text-gray-500" aria-hidden="true" />
+                {title}
             </h3>
 
             <div className="space-y-2">
@@ -402,7 +413,7 @@ function DailyScoreChart({tests}: DailyScoreChartProps) {
         : ['dataMin', 'dataMax'];
 
     return (
-        <div className="h-full rounded-xl border border-gray-200 bg-white p-4 md:p-5">
+        <div className="h-full rounded-lg border border-gray-200 bg-white p-4 md:p-5">
             <div className="mb-4 border-b border-gray-200 pb-2">
                 <h3 className="text-lg font-semibold text-gray-800">Daily Results</h3>
             </div>
@@ -415,7 +426,7 @@ function DailyScoreChart({tests}: DailyScoreChartProps) {
                 <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={chartData} margin={{top: 8, right: 12, left: -20, bottom: 8}}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#e5e7eb" />
                             <XAxis
                                 dataKey="timestamp"
                                 type="number"
@@ -496,23 +507,26 @@ export default function ClientSide({profile, tests, topTestsByMode, dailyTests}:
     }
     
     return (
-        <section className={`min-h-[calc(100vh-9rem)] gap-5 ${
+        <section className={`mx-auto min-h-[calc(100vh-9rem)] max-w-6xl gap-6 pb-12 ${
             selectedTest
                 ? 'flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_minmax(15rem,20rem)]'
                 : 'flex flex-col'
         }`}>
-            <div className="flex min-w-0 flex-col gap-5">
-                <div className="rounded-2xl border border-gray-200 bg-gray-50/70 p-5 shadow-sm">
-                    <h2 className="mb-4 border-b border-gray-200 pb-2 text-xl font-semibold tracking-tight text-gray-800 md:text-2xl">
-                        User Stats
-                    </h2>
+            <div className="flex min-w-0 flex-col gap-6">
+                <header className="border-b border-gray-200 pb-5 pt-2">
+                    <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Stats</h1>
+                </header>
+
+                <div className="rounded-lg bg-gray-200 p-4 md:p-5">
+                    <h2 className="mb-4 text-sm font-semibold text-gray-700">Overview</h2>
                     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                         <Profile profile={profile}/>
                         <UserStats testsAttempted={profile.testsAttempted} testsCompleted={profile.testsCompleted} />
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto rounded-2xl border border-gray-200 bg-gray-100 p-4 md:p-5">
+                <div className="flex-1 overflow-y-auto rounded-lg bg-gray-200 p-4 md:p-5">
+                    <h2 className="mb-4 text-sm font-semibold text-gray-700">Game modes</h2>
                     <div className="grid min-h-full grid-cols-1 gap-4 md:grid-cols-2">
                         <FormatStats
                             title="standard"
@@ -545,15 +559,18 @@ export default function ClientSide({profile, tests, topTestsByMode, dailyTests}:
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 rounded-2xl border border-gray-200 bg-gray-100 p-4 lg:grid-cols-2 md:p-5">
-                    <FormatStats
-                        title="daily"
-                        profile={profile}
-                        topTests={topTestsByMode.daily}
-                        selectedTestId={selectedTest?.id ?? null}
-                        onSelectTest={toggleProblemPanel}
-                    />
-                    <DailyScoreChart tests={dailyTests} />
+                <div className="rounded-lg bg-gray-200 p-4 md:p-5">
+                    <h2 className="mb-4 text-sm font-semibold text-gray-700">Daily challenge</h2>
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                        <FormatStats
+                            title="daily"
+                            profile={profile}
+                            topTests={topTestsByMode.daily}
+                            selectedTestId={selectedTest?.id ?? null}
+                            onSelectTest={toggleProblemPanel}
+                        />
+                        <DailyScoreChart tests={dailyTests} />
+                    </div>
                 </div>
 
                 <PastRuns

@@ -87,33 +87,37 @@ model Profile {
   showTimer    Boolean @default(true)
   showKeyboard Boolean @default(false)
 
-  standard_1           String?
-  standard_2           String?
-  standard_3           String?
-  standardAverage      Float   @default(0)
-  standardTotalTests   Int     @default(0)
-  standardPastTenTests Int[]   @default([])
+  standard_1             String?
+  standard_2             String?
+  standard_3             String?
+  standardAverage        Float   @default(0)
+  standardTotalTests     Int     @default(0)
+  standardProblemsSolved Int     @default(0)
+  standardPastTenTests   Int[]   @default([])
 
-  rapid_1           String?
-  rapid_2           String?
-  rapid_3           String?
-  rapidAverage      Float   @default(0)
-  rapidTotalTests   Int     @default(0)
-  rapidPastTenTests Int[]   @default([])
+  rapid_1             String?
+  rapid_2             String?
+  rapid_3             String?
+  rapidAverage        Float   @default(0)
+  rapidTotalTests     Int     @default(0)
+  rapidProblemsSolved Int     @default(0)
+  rapidPastTenTests   Int[]   @default([])
 
-  sprint_1           String?
-  sprint_2           String?
-  sprint_3           String?
-  sprintAverage      Float   @default(0)
-  sprintTotalTests   Int     @default(0)
-  sprintPastTenTests Int[]   @default([])
+  sprint_1             String?
+  sprint_2             String?
+  sprint_3             String?
+  sprintAverage        Float   @default(0)
+  sprintTotalTests     Int     @default(0)
+  sprintProblemsSolved Int     @default(0)
+  sprintPastTenTests   Int[]   @default([])
 
-  hard_1           String?
-  hard_2           String?
-  hard_3           String?
-  hardAverage      Float   @default(0)
-  hardTotalTests   Int     @default(0)
-  hardPastTenTests Int[]   @default([])
+  hard_1             String?
+  hard_2             String?
+  hard_3             String?
+  hardAverage        Float   @default(0)
+  hardTotalTests     Int     @default(0)
+  hardProblemsSolved Int     @default(0)
+  hardPastTenTests   Int[]   @default([])
 
   daily_1           String?
   daily_2           String?

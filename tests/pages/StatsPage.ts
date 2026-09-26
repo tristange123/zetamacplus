@@ -77,7 +77,7 @@ export class PastRuns {
     viewProblemButtons: Locator;
 
     constructor(page: Page) {
-        this.root = page.getByRole('heading', { name: 'Past Runs' }).locator('..');
+        this.root = page.getByRole('heading', { name: 'Past Runs' }).locator('../..');
         this.table = this.root.getByRole('table');
         this.rows = this.table.locator('tbody tr');
         this.emptyState = this.root.getByText('No runs yet.');

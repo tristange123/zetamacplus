@@ -221,7 +221,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                                         type="button"
                                         aria-pressed={isSelected}
                                         onClick={() => selectMainMode(mode)}
-                                        className={`group/mode relative px-1 pb-4 pt-2 text-center transition-colors ${
+                                        className={`relative px-1 pb-4 pt-2 text-center transition-colors ${
                                             isSelected
                                                 ? 'text-gray-900'
                                                 : 'text-gray-400 hover:text-gray-600'
@@ -238,7 +238,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                                                 />
                                                 <span
                                                     role="tooltip"
-                                                    className={`invisible pointer-events-none absolute top-full z-30 mt-2 w-56 whitespace-pre-line rounded-md bg-gray-800 px-3 py-2 text-left text-[0.65rem] font-normal leading-4 text-gray-100 opacity-0 shadow-lg transition-opacity group-hover/info:visible group-hover/info:opacity-100 group-focus/mode:visible group-focus/mode:opacity-100 ${
+                                                    className={`invisible pointer-events-none absolute top-full z-30 mt-2 w-56 whitespace-pre-line rounded-md bg-gray-800 px-3 py-2 text-left text-[0.65rem] font-normal leading-4 text-gray-100 opacity-0 shadow-lg transition-opacity group-hover/info:visible group-hover/info:opacity-100 ${
                                                         mode === 'standard'
                                                             ? 'left-0'
                                                             : mode === 'hard'

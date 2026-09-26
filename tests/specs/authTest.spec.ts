@@ -7,7 +7,10 @@ import LoginPage from '../pages/LoginPage'
 
 test('Initial Load', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByText('ZETAMAC+')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'ZETAMAC+' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Standard 2 min' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByLabel('Answer preview')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Start' })).toBeVisible();
 });
 
 async function forceVerifyEmail (email: string){
@@ -31,7 +34,9 @@ test('Auth Flow Test', async ({ page }) => {
 
   await forceVerifyEmail('obesity500@gmail.com')
   await page.goto('/')
-  await expect(page.getByText('Welcome tris123')).toBeVisible()
+  const navigation = page.getByRole('navigation')
+  await expect(navigation.getByText('tris123', { exact: true })).toBeVisible()
+  await expect(navigation.getByRole('button', { name: 'User menu' })).toBeVisible()
 });
 
 

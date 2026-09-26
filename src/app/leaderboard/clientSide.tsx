@@ -1,6 +1,17 @@
 'use client'
 
-import {ChevronRight, Trophy, X} from 'lucide-react';
+import {
+    Calculator,
+    CalendarDays,
+    ChevronDown,
+    ChevronRight,
+    Rabbit,
+    Skull,
+    SportShoe,
+    Trophy,
+    X,
+    type LucideIcon,
+} from 'lucide-react';
 import {useState} from 'react';
 import {type ProblemDb} from '@/types/dbTypes';
 import {type MainGameModeName} from '@/types/frontendTypes';
@@ -8,17 +19,28 @@ import {type MainGameModeName} from '@/types/frontendTypes';
 export type LeaderboardGameModeName = MainGameModeName | 'daily';
 
 export type LeaderboardRow = {
-    testId: string,
+    testId: string | null,
     username: string,
     score: number,
-    time: string
+    time: string | null
 }
 
 export type LeaderboardData = Record<LeaderboardGameModeName, LeaderboardRow[]>
+export type ProblemsSolvedLeaderboardData = Record<MainGameModeName, LeaderboardRow[]>
+type LeaderboardMetric = 'highScore' | 'problemsSolved';
+
+const GAME_MODE_ICONS: Record<LeaderboardGameModeName, LucideIcon> = {
+    standard: Calculator,
+    rapid: Rabbit,
+    sprint: SportShoe,
+    hard: Skull,
+    daily: CalendarDays,
+};
 
 type ClientSideProps = {
     gameModes: LeaderboardGameModeName[],
-    leaderboards: LeaderboardData
+    leaderboards: LeaderboardData,
+    problemsSolvedLeaderboards: ProblemsSolvedLeaderboardData
 }
 
 function formatGameMode(gameMode: LeaderboardGameModeName) {
@@ -29,8 +51,9 @@ function formatTime(time: string) {
     return new Date(time).toLocaleString();
 }
 
-function formatLeaderboardTime(time: string, gameMode: LeaderboardGameModeName) {
+function formatLeaderboardTime(time: string | null, gameMode: LeaderboardGameModeName) {
     if (gameMode === 'daily') return 'Today';
+    if (time === null) return '—';
     return formatTime(time);
 }
 
@@ -39,16 +62,47 @@ function formatSolveTime(seconds: number | null): string {
     return `${seconds.toFixed(1)}s`;
 }
 
-export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
+export default function ClientSide({gameModes, leaderboards, problemsSolvedLeaderboards}: ClientSideProps) {
     const [selectedGameMode, setSelectedGameMode] = useState<LeaderboardGameModeName>(gameModes[0] ?? 'standard');
+    const [selectedMetric, setSelectedMetric] = useState<LeaderboardMetric>('highScore');
+    const [expandedGameMode, setExpandedGameMode] = useState<MainGameModeName | null>(
+        gameModes.find((gameMode): gameMode is MainGameModeName => gameMode !== 'daily') ?? null
+    );
     const [selectedRow, setSelectedRow] = useState<LeaderboardRow | null>(null);
     const [problems, setProblems] = useState<ProblemDb[]>([]);
     const [loadingProblems, setLoadingProblems] = useState(false);
     const [problemError, setProblemError] = useState('');
-    const rows = leaderboards[selectedGameMode] ?? [];
-    const showTimeColumn = selectedGameMode !== 'daily';
+    const rows = selectedMetric === 'problemsSolved' && selectedGameMode !== 'daily'
+        ? problemsSolvedLeaderboards[selectedGameMode] ?? []
+        : leaderboards[selectedGameMode] ?? [];
+    const showTimeColumn = selectedMetric === 'highScore' && selectedGameMode !== 'daily';
+    const showDetailsColumn = selectedMetric === 'highScore';
+    const GameModeIcon = GAME_MODE_ICONS[selectedGameMode];
+
+    function selectMainGameMode(gameMode: MainGameModeName) {
+        setSelectedGameMode(gameMode);
+        setSelectedMetric('highScore');
+        setExpandedGameMode((expanded) => expanded === gameMode ? null : gameMode);
+        setSelectedRow(null);
+    }
+
+    function selectMetric(gameMode: MainGameModeName, metric: LeaderboardMetric) {
+        setSelectedGameMode(gameMode);
+        setSelectedMetric(metric);
+        setExpandedGameMode(gameMode);
+        setSelectedRow(null);
+    }
+
+    function selectDaily() {
+        setSelectedGameMode('daily');
+        setSelectedMetric('highScore');
+        setSelectedRow(null);
+    }
 
     async function toggleProblemSidebar(row: LeaderboardRow) {
+        if (!row.testId){
+            return;
+        }
         if (selectedRow?.testId === row.testId){
             setSelectedRow(null);
             return;
@@ -80,22 +134,72 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
         <section className="flex min-h-[calc(100vh-9rem)] flex-col gap-4 md:flex-row md:gap-5">
             <aside className="w-full shrink-0 rounded-2xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm md:w-56">
                 <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">Game Modes</h2>
-                <nav className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:block md:space-y-2">
+                <nav className="space-y-2">
                     {gameModes.map((gameMode) => {
                         const isSelected = gameMode === selectedGameMode;
+                        if (gameMode === 'daily'){
+                            return (
+                                <button
+                                    key={gameMode}
+                                    type="button"
+                                    onClick={selectDaily}
+                                    className={`w-full rounded-lg px-3 py-2 text-left text-sm font-medium transition ${
+                                        isSelected
+                                            ? 'bg-gray-200 text-gray-900 shadow-sm'
+                                            : 'bg-white text-gray-700 hover:bg-gray-100'
+                                    }`}
+                                >
+                                    {formatGameMode(gameMode)}
+                                </button>
+                            );
+                        }
+
+                        const isExpanded = expandedGameMode === gameMode;
                         return (
-                            <button
-                                key={gameMode}
-                                type="button"
-                                onClick={() => setSelectedGameMode(gameMode)}
-                                className={`w-full rounded-lg px-3 py-2 text-left text-sm font-medium transition ${
-                                    isSelected
-                                        ? 'bg-gray-200 text-gray-900 shadow-sm'
-                                        : 'bg-white text-gray-700 hover:bg-gray-100'
-                                }`}
-                            >
-                                {formatGameMode(gameMode)}
-                            </button>
+                            <div key={gameMode}>
+                                <button
+                                    type="button"
+                                    onClick={() => selectMainGameMode(gameMode)}
+                                    aria-expanded={isExpanded}
+                                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium transition ${
+                                        isSelected
+                                            ? 'bg-gray-200 text-gray-900 shadow-sm'
+                                            : 'bg-white text-gray-700 hover:bg-gray-100'
+                                    }`}
+                                >
+                                    {formatGameMode(gameMode)}
+                                    <ChevronDown
+                                        className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                                        aria-hidden="true"
+                                    />
+                                </button>
+                                {isExpanded && (
+                                    <div className="mt-1 space-y-1 pl-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => selectMetric(gameMode, 'highScore')}
+                                            className={`w-full rounded-md px-3 py-1.5 text-left text-xs font-medium transition ${
+                                                isSelected && selectedMetric === 'highScore'
+                                                    ? 'bg-gray-200 text-gray-900'
+                                                    : 'text-gray-600 hover:bg-gray-100'
+                                            }`}
+                                        >
+                                            High Score
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => selectMetric(gameMode, 'problemsSolved')}
+                                            className={`w-full rounded-md px-3 py-1.5 text-left text-xs font-medium transition ${
+                                                isSelected && selectedMetric === 'problemsSolved'
+                                                    ? 'bg-gray-200 text-gray-900'
+                                                    : 'text-gray-600 hover:bg-gray-100'
+                                            }`}
+                                        >
+                                            Problems Solved
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         );
                     })}
                 </nav>
@@ -103,9 +207,12 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
 
             <div className="min-w-0 flex-1 rounded-2xl border border-gray-200 bg-gray-50/70 p-3 shadow-sm md:p-5">
                 <div className="mb-5 flex items-center justify-between md:mb-8">
-                    <div>
+                    <div className="flex items-center gap-3">
+                        <div className="rounded-xl bg-gray-200 p-2.5 text-gray-700">
+                            <GameModeIcon className="h-6 w-6" aria-hidden="true" />
+                        </div>
                         <h1 className="text-2xl font-semibold tracking-tight text-gray-800">
-                            {formatGameMode(selectedGameMode)} Leaderboard
+                            {formatGameMode(selectedGameMode)}
                         </h1>
                     </div>
                 </div>
@@ -116,9 +223,13 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
                             <tr className="border-b border-gray-200 bg-gray-100 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
                                 <th className="w-14 px-2 py-3 sm:w-20 sm:px-4">Rank</th>
                                 <th className="px-2 py-3 sm:px-4">Username</th>
-                                <th className="px-2 py-3 sm:px-4">Score</th>
+                                <th className="px-2 py-3 sm:px-4">
+                                    {selectedMetric === 'problemsSolved' ? 'Problems Solved' : 'Score'}
+                                </th>
                                 {showTimeColumn && <th className="hidden px-4 py-3 sm:table-cell">Time</th>}
-                                <th className="w-10 px-2 py-3 sm:w-12 sm:px-4" aria-label="View problems"></th>
+                                {showDetailsColumn && (
+                                    <th className="w-10 px-2 py-3 sm:w-12 sm:px-4" aria-label="View problems"></th>
+                                )}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
@@ -143,25 +254,27 @@ export default function ClientSide({gameModes, leaderboards}: ClientSideProps) {
                                         {showTimeColumn && (
                                             <td className="hidden px-4 py-3 text-gray-600 sm:table-cell">{formatLeaderboardTime(row.time, selectedGameMode)}</td>
                                         )}
-                                        <td className="px-2 py-3 text-gray-500 sm:px-4">
-                                            <button
-                                                type="button"
-                                                onClick={() => toggleProblemSidebar(row)}
-                                                className="mx-auto flex rounded-full p-1 transition hover:bg-gray-100"
-                                                aria-label={`${isSelected ? 'Hide' : 'View'} problems for ${row.username}`}
-                                            >
-                                                <ChevronRight
-                                                    className={`h-4 w-4 transition-transform ${isSelected ? 'rotate-180' : ''}`}
-                                                    aria-hidden="true"
-                                                />
-                                            </button>
-                                        </td>
+                                        {showDetailsColumn && (
+                                            <td className="px-2 py-3 text-gray-500 sm:px-4">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => toggleProblemSidebar(row)}
+                                                    className="mx-auto flex rounded-full p-1 transition hover:bg-gray-100"
+                                                    aria-label={`${isSelected ? 'Hide' : 'View'} problems for ${row.username}`}
+                                                >
+                                                    <ChevronRight
+                                                        className={`h-4 w-4 transition-transform ${isSelected ? 'rotate-180' : ''}`}
+                                                        aria-hidden="true"
+                                                    />
+                                                </button>
+                                            </td>
+                                        )}
                                     </tr>
                                 );
                             })}
                             {rows.length === 0 && (
                                 <tr>
-                                    <td colSpan={showTimeColumn ? 5 : 4} className="px-4 py-8 text-center text-sm text-gray-500">
+                                    <td colSpan={3 + Number(showTimeColumn) + Number(showDetailsColumn)} className="px-4 py-8 text-center text-sm text-gray-500">
                                         No leaderboard entries yet.
                                     </td>
                                 </tr>

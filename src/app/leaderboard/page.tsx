@@ -1,7 +1,12 @@
 import prisma from '@/lib/db/prisma'
 import {MAIN_GAME_MODES} from '@/lib/game/gameModeGlobals'
 import {type MainGameModeName} from '@/types/frontendTypes'
-import ClientSide, {type LeaderboardData, type LeaderboardGameModeName, type LeaderboardRow} from './clientSide'
+import ClientSide, {
+    type LeaderboardData,
+    type LeaderboardGameModeName,
+    type LeaderboardRow,
+    type ProblemsSolvedLeaderboardData,
+} from './clientSide'
 import type { Metadata } from "next";
 
 
@@ -17,8 +22,15 @@ function sortLeaderboardRows(rows: LeaderboardRow[]) {
         if (b.score !== a.score){
             return b.score - a.score;
         }
-        return new Date(a.time).getTime() - new Date(b.time).getTime();
+        return new Date(a.time ?? 0).getTime() - new Date(b.time ?? 0).getTime();
     });
+}
+
+function sortProblemsSolvedRows(rows: LeaderboardRow[]) {
+    return rows.sort((a, b) =>
+        b.score - a.score
+        || a.username.localeCompare(b.username)
+    );
 }
 
 async function getLeaderboardData() {
@@ -32,6 +44,10 @@ async function getLeaderboardData() {
                 rapid_1: true,
                 hard_1: true,
                 sprint_1: true,
+                standardProblemsSolved: true,
+                rapidProblemsSolved: true,
+                hardProblemsSolved: true,
+                sprintProblemsSolved: true,
                 dailyTest: true,
                 dailyScore: true,
             }
@@ -91,7 +107,34 @@ async function getLeaderboardData() {
             daily: dailyLeaderboard,
         });
 
-        return {gameModes, leaderboards};
+        const problemsSolvedLeaderboards = mainGameModes.reduce<ProblemsSolvedLeaderboardData>(
+            (acc, gameMode) => {
+                acc[gameMode] = sortProblemsSolvedRows(
+                    profiles.flatMap((profile) => {
+                        const problemsSolved = profile[`${gameMode}ProblemsSolved`];
+                        if (problemsSolved === 0){
+                            return [];
+                        }
+
+                        return [{
+                            testId: null,
+                            username: profile.username,
+                            score: problemsSolved,
+                            time: null,
+                        }];
+                    })
+                ).slice(0, 100);
+                return acc;
+            },
+            {
+                standard: [],
+                rapid: [],
+                sprint: [],
+                hard: [],
+            }
+        );
+
+        return {gameModes, leaderboards, problemsSolvedLeaderboards};
     }
     catch{
         return null;
@@ -104,5 +147,11 @@ export default async function Leaderboard (){
         return <div>Error Loading Leaderboards</div>
     }
 
-    return <ClientSide gameModes={data.gameModes} leaderboards={data.leaderboards} />
+    return (
+        <ClientSide
+            gameModes={data.gameModes}
+            leaderboards={data.leaderboards}
+            problemsSolvedLeaderboards={data.problemsSolvedLeaderboards}
+        />
+    )
 }

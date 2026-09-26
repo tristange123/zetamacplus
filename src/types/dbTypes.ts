@@ -24,6 +24,7 @@ export type ProfileDb = {
   standard_3: string | null,
   standardAverage: number,
   standardTotalTests: number,
+  standardProblemsSolved: number,
   standardPastTenTests: number[],
 
   rapid_1: string | null,
@@ -31,6 +32,7 @@ export type ProfileDb = {
   rapid_3: string | null,
   rapidAverage: number,
   rapidTotalTests: number,
+  rapidProblemsSolved: number,
   rapidPastTenTests: number[],
 
   sprint_1: string | null,
@@ -38,6 +40,7 @@ export type ProfileDb = {
   sprint_3: string | null,
   sprintAverage: number,
   sprintTotalTests: number,
+  sprintProblemsSolved: number,
   sprintPastTenTests: number[],
 
   hard_1: string | null,
@@ -45,6 +48,7 @@ export type ProfileDb = {
   hard_3: string | null,
   hardAverage: number,
   hardTotalTests: number,
+  hardProblemsSolved: number,
   hardPastTenTests: number[],
 
   daily_1: string | null,

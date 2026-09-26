@@ -33,7 +33,9 @@ test('Sprint game flow', async ({ page }) => {
 
   await forceVerifyEmail(email);
   await page.goto('/');
-  await expect(page.getByText('Welcome sprintplayer')).toBeVisible();
+  await expect(
+    page.getByRole('navigation').getByText('sprintplayer', { exact: true }),
+  ).toBeVisible();
   await expect(page.getByLabel('Email verified')).toBeVisible();
 
   await page.getByRole('button', { name: /^Sprint/ }).click();
