@@ -388,6 +388,11 @@ function FormatStats({ title, profile, topTests, selectedTestId, onSelectTest }:
                 <div>
                     <span className="font-semibold">Tests Completed:</span> {profile?.[`${title}TotalTests`]}
                 </div>
+                {title !== 'daily' && (
+                    <div>
+                        <span className="font-semibold">Problems Solved:</span> {profile[`${title}ProblemsSolved`]}
+                    </div>
+                )}
             </div>
         </div>
     );
