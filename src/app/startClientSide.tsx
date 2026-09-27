@@ -284,7 +284,19 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                 </div>
 
                 <div className="absolute left-0 right-0 top-[calc(40%+5rem)]">
-                <div className="mx-auto grid w-full max-w-3xl gap-3 sm:grid-cols-3">
+                    <div className="flex justify-center">
+                        <button
+                            type="button"
+                            disabled={isStarting}
+                            onClick={() => void handleMainStart()}
+                            className="group flex items-center justify-center gap-3 rounded-md bg-gray-900 px-10 py-3.5 text-sm font-semibold text-white transition hover:bg-black"
+                        >
+                            Start
+                            <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                        </button>
+                    </div>
+
+                    <div className="mx-auto mt-5 grid w-full max-w-3xl gap-3 sm:grid-cols-3">
                     <button
                         type="button"
                         disabled={dailyDisabled}
@@ -321,29 +333,16 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                             <span className="mt-1 block text-xs leading-4 text-gray-400">Set your own rules</span>
                         </span>
                     </button>
-                    <button
-                        type="button"
-                        aria-disabled="true"
-                        className="flex min-h-24 cursor-default items-center gap-4 rounded-lg border border-gray-200 bg-gray-100/70 px-5 py-4 text-left"
+                    <Link
+                        href="/otherGameModes"
+                        className="flex min-h-24 items-center gap-4 rounded-lg border border-gray-200 bg-gray-100/70 px-5 py-4 text-left transition hover:border-gray-400 hover:bg-gray-200"
                     >
                         <Shapes size={20} className="shrink-0 text-gray-400" aria-hidden="true" />
                         <span>
                             <span className="block text-sm font-semibold text-gray-600">Other game modes</span>
-                            <span className="mt-1 block text-xs leading-4 text-gray-400">More ways to play soon</span>
+                            <span className="mt-1 block text-xs leading-4 text-gray-400">Explore more ways to play</span>
                         </span>
-                    </button>
-                </div>
-
-                    <div className="mt-5 flex justify-center">
-                        <button
-                            type="button"
-                            disabled={isStarting}
-                            onClick={() => void handleMainStart()}
-                            className="group flex items-center justify-center gap-3 rounded-md bg-gray-900 px-10 py-3.5 text-sm font-semibold text-white transition hover:bg-black"
-                        >
-                            Start
-                            <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-                        </button>
+                    </Link>
                     </div>
                 </div>
 

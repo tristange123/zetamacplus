@@ -107,6 +107,13 @@ export default function PitchGame() {
     }
 
     useEffect(() => {
+        const startTimeout = window.setTimeout(startGame, 0);
+        return () => window.clearTimeout(startTimeout);
+        // Start the game once when this page mounts.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
         if (!started) return;
 
         const timer = window.setInterval(() => {
@@ -141,38 +148,6 @@ export default function PitchGame() {
             void audioContext.current?.close();
         };
     }, []);
-
-    if (!started) {
-        return (
-            <section className="flex min-h-[calc(100vh-9rem)] items-center justify-center">
-                <div className="w-full max-w-xl rounded-2xl border border-gray-200 bg-gray-50/70 p-8 text-center shadow-sm">
-                    <h1 className="text-3xl font-semibold tracking-tight text-gray-800">Pitch Game</h1>
-                    <p className="mt-3 text-gray-600">
-                        Identify as many piano notes as you can in 120 seconds.
-                    </p>
-                    <p className="mt-1 text-sm text-gray-500">
-                        Starting the game enables audio in your browser.
-                    </p>
-                    <div className="mt-6 flex justify-center gap-3">
-                        <button
-                            type="button"
-                            onClick={startGame}
-                            className="rounded-md border border-gray-700 bg-gray-800 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-gray-700"
-                        >
-                            Start Game
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => router.back()}
-                            className="rounded-md border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-                        >
-                            Back
-                        </button>
-                    </div>
-                </div>
-            </section>
-        );
-    }
 
     return (
         <section className="relative flex min-h-[calc(100vh-9rem)] flex-col justify-center">

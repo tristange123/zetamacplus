@@ -64,6 +64,7 @@ export default function LayoutClientSide({children, fontClassName}: LayoutProps)
   const isVersusRoute = pathname === "/versusMenu" || pathname.startsWith("/game/versus");
   const isPlayRoute = pathname === "/"
       || pathname === "/custom"
+      || pathname === "/otherGameModes"
       || (pathname.startsWith("/game") && !isVersusRoute);
   const navLinkClass = (active: boolean) =>
       `flex items-center justify-center gap-1 border-b-2 rounded-md px-1.5 py-2 transition sm:gap-2 sm:px-3 ${
