@@ -8,7 +8,7 @@ import { useGameContext } from "@/app/gameContext";
 import { authClient } from "@/lib/auth/auth-client";
 import OnScreenKeyboard from "../onScreenKeyboard";
 
-type VersusPhase = "connecting" | "waiting" | "playing" | "waitingForOpponent" | "finished" | "error";
+type VersusPhase = "connecting" | "waiting" | "playing" | "waitingForOpponent" | "error";
 
 type PublicPlayer = {
     userId: string,
@@ -22,15 +22,15 @@ export default function VersusGameClient() {
     const { data: session } = authClient.useSession();
     const { showScore, showTimer, showKeyboard } = context;
     const myUserId = session?.user.id ?? "";
+    const initialGameId = searchParams.get("code")?.toUpperCase() ?? "";
 
-    const [phase, setPhase] = useState<VersusPhase>("connecting");
-    const [error, setError] = useState("");
-    const [gameId, setGameId] = useState(searchParams.get("code")?.toUpperCase() ?? "");
+    const [phase, setPhase] = useState<VersusPhase>(initialGameId ? "connecting" : "error");
+    const [error, setError] = useState(initialGameId ? "" : "Missing game code.");
+    const [gameId, setGameId] = useState(initialGameId);
     const [timeFormat, setTimeFormat] = useState(120);
     const [problems, setProblems] = useState<Problem[]>([]);
     const [players, setPlayers] = useState<PublicPlayer[]>([]);
     const [copied, setCopied] = useState(false);
-    const [replayReadyIds, setReplayReadyIds] = useState<string[]>([]);
     const [opponentLeft, setOpponentLeft] = useState(false);
 
     const [currProblem, setCurrProblem] = useState<Problem>();
@@ -48,8 +48,6 @@ export default function VersusGameClient() {
     useEffect(() => {
         const code = searchParams.get("code");
         if (!code) {
-            setError("Missing game code.");
-            setPhase("error");
             return;
         }
 
@@ -101,7 +99,6 @@ export default function VersusGameClient() {
             pastProblems.current = [];
             solveTimes.current = [];
             finishedRef.current = false;
-            setReplayReadyIds([]);
             setOpponentLeft(false);
             startTime.current = Date.now();
             setPhase("playing");
@@ -120,22 +117,13 @@ export default function VersusGameClient() {
             setPhase("waitingForOpponent");
         });
 
-        socket.on("game:bothFinished", (payload: { gameId: string, score?: number }) => {
-            if (typeof payload.score === "number") {
-                setScore(payload.score);
-                scoreRef.current = payload.score;
-            }
+        socket.on("game:bothFinished", (payload: { gameId: string }) => {
             finishedRef.current = true;
-            setPhase("finished");
-        });
-
-        socket.on("game:replayUpdate", (payload: { readyUserIds?: string[] }) => {
-            setReplayReadyIds(payload.readyUserIds ?? []);
+            router.replace(`/results/${payload.gameId}`);
         });
 
         socket.on("game:opponentLeft", () => {
             setOpponentLeft(true);
-            setReplayReadyIds([]);
         });
 
         socket.on("connect", () => {
@@ -147,7 +135,7 @@ export default function VersusGameClient() {
             socket.disconnect();
             socketRef.current = null;
         };
-    }, [searchParams]);
+    }, [router, searchParams]);
 
     useEffect(() => {
         if (phase !== "playing") return;
@@ -229,21 +217,6 @@ export default function VersusGameClient() {
         router.push("/versusMenu");
     }
 
-    function requestReplay() {
-        if (opponentLeft) return;
-        if (myUserId) {
-            setReplayReadyIds((ids) => (ids.includes(myUserId) ? ids : [...ids, myUserId]));
-        }
-        socketRef.current?.emit("game:replay", { gameId });
-    }
-
-    function viewResults() {
-        socketRef.current?.emit("leaveGame");
-        router.push(`/results/${gameId}`);
-    }
-
-    const iWantReplay = Boolean(myUserId) && replayReadyIds.includes(myUserId);
-    const opponentWantsReplay = Boolean(myUserId) && replayReadyIds.some((id) => id !== myUserId);
     const opponentName = players.find((player) => player.userId !== myUserId)?.username ?? "your opponent";
 
     if (phase === "error") {
@@ -308,52 +281,6 @@ export default function VersusGameClient() {
                     <p className="mt-2 text-sm text-gray-600">
                         {opponentLeft ? `${opponentName} left.` : "Waiting for your opponent to finish..."}
                     </p>
-                </div>
-            </section>
-        );
-    }
-
-    if (phase === "finished") {
-        let replayStatus = `Both players must click Replay to start another game with ${opponentName}.`;
-        if (opponentLeft) {
-            replayStatus = `${opponentName} left.`;
-        }
-        else if (iWantReplay) {
-            replayStatus = `Waiting for ${opponentName} to replay...`;
-        }
-        else if (opponentWantsReplay) {
-            replayStatus = `${opponentName} wants a rematch.`;
-        }
-
-        return (
-            <section className="flex min-h-[calc(100vh-9rem)] items-center justify-center">
-                <div className="w-full max-w-lg rounded-2xl border border-gray-200 bg-gray-50/70 p-8 text-center shadow-sm">
-                    <h1 className="text-2xl font-semibold tracking-tight text-gray-800">Score: {score}</h1>
-                    <p className="mt-2 text-sm text-gray-600">{replayStatus}</p>
-                    <div className="mt-6 flex flex-wrap justify-center gap-3">
-                        <button
-                            type="button"
-                            onClick={requestReplay}
-                            disabled={opponentLeft || iWantReplay}
-                            className="rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-400"
-                        >
-                            {iWantReplay ? "Replay requested" : "Replay"}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={viewResults}
-                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-                        >
-                            View results
-                        </button>
-                        <button
-                            type="button"
-                            onClick={leave}
-                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-                        >
-                            Back
-                        </button>
-                    </div>
                 </div>
             </section>
         );

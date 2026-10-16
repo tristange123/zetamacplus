@@ -2,7 +2,8 @@
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { io, type Socket } from "socket.io-client";
 import { type Problem } from "@/types/frontendTypes";
 import { type VersusResultsPayload } from "@/types/versusTypes";
 import { authClient } from "@/lib/auth/auth-client";
@@ -125,6 +126,9 @@ export default function VersusResultsClient({ gameId }: { gameId: string }) {
     const { data: session } = authClient.useSession();
     const [results, setResults] = useState<VersusResultsPayload | null>(null);
     const [error, setError] = useState("");
+    const [replayReadyIds, setReplayReadyIds] = useState<string[]>([]);
+    const [opponentLeft, setOpponentLeft] = useState(false);
+    const socketRef = useRef<Socket | null>(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -168,6 +172,53 @@ export default function VersusResultsClient({ gameId }: { gameId: string }) {
         };
     }, [gameId]);
 
+    useEffect(() => {
+        const socket = io({
+            path: "/socket.io",
+            withCredentials: true,
+        });
+        socketRef.current = socket;
+
+        socket.on("connect", () => {
+            socket.emit("enterGame", { gameId });
+        });
+        socket.on("game:replayUpdate", (payload: { readyUserIds?: string[] }) => {
+            setReplayReadyIds(payload.readyUserIds ?? []);
+        });
+        socket.on("game:opponentLeft", () => {
+            setOpponentLeft(true);
+            setReplayReadyIds([]);
+        });
+        socket.on("game:start", () => {
+            router.replace(`/game/versus?code=${encodeURIComponent(gameId)}`);
+        });
+        socket.on("versus:error", (payload: { message?: string }) => {
+            setError(payload.message ?? "Could not reconnect to the match.");
+        });
+
+        return () => {
+            socket.removeAllListeners();
+            socket.disconnect();
+            socketRef.current = null;
+        };
+    }, [gameId, router]);
+
+    function requestReplay() {
+        if (opponentLeft) return;
+        const currentUserId = session?.user.id;
+        if (currentUserId) {
+            setReplayReadyIds((ids) => (
+                ids.includes(currentUserId) ? ids : [...ids, currentUserId]
+            ));
+        }
+        socketRef.current?.emit("game:replay", { gameId });
+    }
+
+    function leaveResults() {
+        socketRef.current?.emit("leaveGame");
+        router.push("/versusMenu");
+    }
+
     if (error) {
         return (
             <section className="flex min-h-[calc(100vh-9rem)] items-center justify-center">
@@ -202,6 +253,20 @@ export default function VersusResultsClient({ gameId }: { gameId: string }) {
     const players = results.players;
     const winnerScore = Math.max(...players.map((player) => player.score));
     const tied = players.length > 1 && players.every((player) => player.score === players[0].score);
+    const iWantReplay = currentUserId ? replayReadyIds.includes(currentUserId) : false;
+    const opponentWantsReplay = Boolean(currentUserId)
+        && replayReadyIds.some((userId) => userId !== currentUserId);
+    const opponentName = players.find((player) => player.userId !== currentUserId)?.username ?? "your opponent";
+    let replayStatus = `Both players must click Replay to start another game with ${opponentName}.`;
+    if (opponentLeft) {
+        replayStatus = `${opponentName} left.`;
+    }
+    else if (iWantReplay) {
+        replayStatus = `Waiting for ${opponentName} to replay...`;
+    }
+    else if (opponentWantsReplay) {
+        replayStatus = `${opponentName} wants a rematch.`;
+    }
 
     const playerSolveTimes = players.map((player) => solveTimesFromProblems(player.problemSet));
     const playerRates = playerSolveTimes.map((times) => exponentialSmoothing(PPM(times, timeFormat), 0.2));
@@ -325,14 +390,25 @@ export default function VersusResultsClient({ gameId }: { gameId: string }) {
                     </div>
                 </div>
 
-                <div className="mt-6 flex justify-center gap-3">
-                    <button
-                        type="button"
-                        onClick={() => router.push("/versusMenu")}
-                        className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-                    >
-                        Back
-                    </button>
+                <div className="mt-6 text-center">
+                    <p className="text-sm text-gray-600" role="status">{replayStatus}</p>
+                    <div className="mt-3 flex flex-wrap justify-center gap-3">
+                        <button
+                            type="button"
+                            onClick={requestReplay}
+                            disabled={opponentLeft || iWantReplay || results.status !== "finished"}
+                            className="rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                        >
+                            {iWantReplay ? "Replay requested" : "Replay"}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={leaveResults}
+                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                        >
+                            Back
+                        </button>
+                    </div>
                 </div>
             </div>
 

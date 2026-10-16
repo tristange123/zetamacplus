@@ -3,10 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
+    ArrowRight,
     Calculator,
     Rabbit,
     Skull,
     SportShoe,
+    Swords,
     type LucideIcon,
 } from "lucide-react";
 import { type MainGameModeName } from "@/types/frontendTypes";
@@ -20,10 +22,10 @@ type GameModeDisplay = {
 };
 
 const GAME_MODE_DISPLAY: GameModeDisplay[] = [
-    { label: "Standard", subtitle: "120 secs", gameMode: "standard", icon: Calculator },
-    { label: "Rapid", subtitle: "60 secs", gameMode: "rapid", icon: Rabbit },
-    { label: "Sprint", subtitle: "10 secs", gameMode: "sprint", icon: SportShoe },
-    { label: "Hard", subtitle: "180 secs", gameMode: "hard", icon: Skull },
+    { label: "Standard", subtitle: "2 min", gameMode: "standard", icon: Calculator },
+    { label: "Rapid", subtitle: "1 min", gameMode: "rapid", icon: Rabbit },
+    { label: "Sprint", subtitle: "10 sec", gameMode: "sprint", icon: SportShoe },
+    { label: "Hard", subtitle: "3 min", gameMode: "hard", icon: Skull },
 ];
 
 export default function VersusMenuClient() {
@@ -65,16 +67,16 @@ export default function VersusMenuClient() {
     }
 
     return (
-        <section className="flex min-h-[calc(100vh-11rem)] flex-col items-center justify-start pb-2 md:min-h-[calc(100vh-9rem)]">
-            <div className="w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm md:p-8">
-                <div className="mb-6 text-center">
-                    <h1 className="text-2xl font-semibold tracking-tight text-gray-800 md:text-3xl">Versus</h1>
-                    <p className="mt-2 text-sm text-gray-500">Create a match or join with a friend&apos;s code.</p>
-                </div>
+        <section className="relative min-h-[900px] pb-14 md:min-h-[calc(100vh-9rem)] md:pb-12">
+            <Swords
+                className="pointer-events-none absolute left-1/2 top-[40%] h-auto w-[min(82vw,36rem)] -translate-x-1/2 -translate-y-1/2 text-gray-300/35"
+                strokeWidth={0.7}
+                aria-hidden="true"
+            />
 
-                <div className="rounded-xl border border-gray-200 bg-white p-4 md:p-6">
-                    <h2 className="text-lg font-semibold text-gray-800">Create a game</h2>
-                    <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="absolute left-0 right-0 top-[8%] z-10">
+                <div className="mx-auto w-full max-w-3xl px-3 md:px-6">
+                    <div className="grid grid-cols-2 gap-3 md:gap-4">
                         {GAME_MODE_DISPLAY.map((mode) => {
                             const isSelected = selectedMode === mode.gameMode;
                             const ModeIcon = mode.icon;
@@ -82,43 +84,56 @@ export default function VersusMenuClient() {
                                 <button
                                     key={mode.gameMode}
                                     type="button"
+                                    aria-pressed={isSelected}
                                     onClick={() => setSelectedMode(mode.gameMode)}
-                                    className={`flex min-h-24 w-full flex-col items-center justify-center rounded-xl border px-4 py-5 text-center transition ${
+                                    className={`relative flex min-h-28 items-center justify-center gap-4 rounded-lg border px-4 py-5 text-left transition ${
                                         isSelected
-                                            ? "border-gray-300 bg-gray-200 text-gray-800 shadow-sm"
-                                            : "border-gray-200 bg-white text-gray-700 shadow-sm hover:-translate-y-0.5 hover:border-gray-300 hover:shadow"
+                                            ? "border-gray-400 bg-gray-200 text-gray-900"
+                                            : "border-gray-200 bg-gray-100/60 text-gray-500 hover:border-gray-400 hover:bg-gray-200/70 hover:text-gray-700"
                                     }`}
                                 >
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-lg font-semibold">{mode.label}</span>
-                                        <ModeIcon
-                                            size={22}
-                                            className={isSelected ? "text-gray-600" : "text-gray-500"}
-                                            aria-hidden="true"
-                                        />
-                                    </div>
-                                    <span className={`mt-2 text-sm ${isSelected ? "text-gray-600" : "text-gray-500"}`}>
-                                        {mode.subtitle}
+                                    <ModeIcon
+                                        size={22}
+                                        className={isSelected ? "text-gray-700" : "text-gray-400"}
+                                        aria-hidden="true"
+                                    />
+                                    <span>
+                                        <span className="block text-base font-semibold sm:text-lg">{mode.label}</span>
+                                        <span className={`mt-1 block text-xs ${
+                                            isSelected ? "text-gray-600" : "text-gray-400"
+                                        }`}>
+                                            {mode.subtitle}
+                                        </span>
                                     </span>
+                                    {isSelected && (
+                                        <span className="absolute bottom-0 left-1/2 h-0.5 w-12 -translate-x-1/2 rounded-full bg-gray-800" />
+                                    )}
                                 </button>
                             );
                         })}
                     </div>
-                    <div className="mt-5 flex justify-center">
+
+                    <div className="mt-6 flex justify-center">
                         <button
                             type="button"
                             onClick={() => void createGame()}
                             disabled={creating}
-                            className="rounded-lg bg-gray-800 px-10 py-3 text-base font-semibold text-gray-100 shadow-sm transition hover:bg-gray-900 disabled:cursor-wait disabled:opacity-70"
+                            className="group flex min-w-40 items-center justify-center gap-3 rounded-md bg-gray-900 px-10 py-3.5 text-sm font-semibold text-white transition hover:bg-black disabled:cursor-wait disabled:opacity-60"
                         >
-                            {creating ? "Creating..." : "Create"}
+                            {creating ? "Creating…" : "Start"}
+                            {!creating && (
+                                <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                            )}
                         </button>
                     </div>
-                </div>
 
-                <div className="mt-6 rounded-xl border border-gray-200 bg-white p-4 md:p-6">
-                    <h2 className="text-lg font-semibold text-gray-800">Join a game</h2>
-                    <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+                    <div className="mt-10">
+                    <div className="flex items-center gap-4">
+                        <span className="h-px flex-1 bg-gray-200" />
+                        <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">Join a game</h2>
+                        <span className="h-px flex-1 bg-gray-200" />
+                    </div>
+                    <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
                         <label htmlFor="versus-join-code" className="sr-only">Game code</label>
                         <input
                             id="versus-join-code"
@@ -129,20 +144,21 @@ export default function VersusMenuClient() {
                             }}
                             maxLength={VERSUS_GAME_ID_LENGTH}
                             placeholder="ABC123"
-                            className="w-full max-w-48 rounded-md border border-gray-300 bg-white px-3 py-3 text-center text-lg tracking-[0.3em] text-gray-800 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-300 sm:w-48"
+                            className="w-full max-w-52 rounded-md border border-gray-300 bg-white px-4 py-3 text-center text-lg tracking-[0.3em] text-gray-800 shadow-sm outline-none transition placeholder:text-gray-300 focus:border-gray-500 focus:ring-2 focus:ring-gray-300 sm:w-52"
                         />
                         <button
                             type="button"
                             onClick={joinGame}
-                            className="rounded-md border border-gray-300 bg-gray-200 px-6 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-300"
+                            className="w-full max-w-52 rounded-md border border-gray-300 bg-transparent px-7 py-3.5 text-sm font-semibold text-gray-700 transition hover:border-gray-500 hover:bg-gray-200 sm:w-auto"
                         >
-                            Join
+                            Join match
                         </button>
+                    </div>
                     </div>
                 </div>
 
                 {error && (
-                    <p className="mt-4 text-center text-sm text-red-600">{error}</p>
+                    <p role="alert" className="mt-5 text-center text-sm text-red-600">{error}</p>
                 )}
             </div>
         </section>
