@@ -130,6 +130,9 @@ model Profile {
   pastDailys     String[] @default([])
   dailyTest      String?
   dailyScore     Int?
+  dailyStreak          Int       @default(0)
+  dailyLongestStreak   Int       @default(0)
+  dailyLastCompletedAt DateTime?
 }
 
 model Test {
@@ -144,6 +147,7 @@ model Test {
 
   @@index([userId])
   @@index([gameMode, score])
+  @@index([userId, gameMode, time])
 }
 
 model Problem {

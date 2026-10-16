@@ -5,6 +5,7 @@ import {CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAx
 import {useState, type FormEvent} from 'react';
 import {type GameModeTopTests, type ProblemDb, type ProfileDb, type TestDb} from '@/types/dbTypes.js'
 import {type MainGameModeName} from '@/types/frontendTypes'
+import {getDisplayedDailyStreak} from '@/lib/profile/dailyStreak'
 
 type StatsGameModeName = MainGameModeName | 'daily';
 
@@ -391,6 +392,27 @@ function FormatStats({ title, profile, topTests, selectedTestId, onSelectTest }:
                 {title !== 'daily' && (
                     <div>
                         <span className="font-semibold">Problems Solved:</span> {profile[`${title}ProblemsSolved`]}
+                    </div>
+                )}
+                {title === 'daily' && (
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                        <div className="rounded-md bg-gray-100 px-4 py-5">
+                            <p className="text-2xl font-semibold tracking-tight text-gray-900">
+                                {getDisplayedDailyStreak(
+                                    profile.dailyStreak,
+                                    profile.dailyLastCompletedAt
+                                        ? new Date(profile.dailyLastCompletedAt)
+                                        : null,
+                                )} days
+                            </p>
+                            <p className="mt-1 text-xs text-gray-500">Current streak</p>
+                        </div>
+                        <div className="rounded-md bg-gray-100 px-4 py-5">
+                            <p className="text-2xl font-semibold tracking-tight text-gray-900">
+                                {profile.dailyLongestStreak} days
+                            </p>
+                            <p className="mt-1 text-xs text-gray-500">Best streak</p>
+                        </div>
                     </div>
                 )}
             </div>

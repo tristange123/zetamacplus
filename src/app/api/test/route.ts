@@ -106,7 +106,8 @@ export async function POST(req: Request){
                 data: {
                     score: test.score,
                     gameMode: test.gameMode,
-                    time: test.time,
+                    // Daily streak boundaries are server-authoritative.
+                    time: session && test.gameMode === "daily" ? new Date() : test.time,
                     userId,
                     completed: true
                 }
@@ -117,8 +118,8 @@ export async function POST(req: Request){
             return NextResponse.json({error: 'Missing Field'}, {status: 400});
         }
     }
-    catch(err: any){
-        if (err.message == "Unauthorized"){
+    catch(err: unknown){
+        if (err instanceof Error && err.message == "Unauthorized"){
             return NextResponse.json({error: "Unauthorized User"}, {status: 403});
         }
         else{

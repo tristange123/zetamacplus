@@ -74,8 +74,13 @@ export default function VersusMenuClient() {
                 aria-hidden="true"
             />
 
-            <div className="absolute left-0 right-0 top-[8%] z-10">
+            <div className="absolute left-0 right-0 top-[5%] z-10">
                 <div className="mx-auto w-full max-w-3xl px-3 md:px-6">
+                    <div className="mb-4 rounded-lg border border-gray-200 bg-gray-100/60 px-4 py-5 text-center">
+                        <h1 className="text-2xl font-semibold tracking-tight text-gray-900 md:text-3xl">
+                            Private Match
+                        </h1>
+                    </div>
                     <div className="grid grid-cols-2 gap-3 md:gap-4">
                         {GAME_MODE_DISPLAY.map((mode) => {
                             const isSelected = selectedMode === mode.gameMode;
@@ -120,7 +125,7 @@ export default function VersusMenuClient() {
                             disabled={creating}
                             className="group flex min-w-40 items-center justify-center gap-3 rounded-md bg-gray-900 px-10 py-3.5 text-sm font-semibold text-white transition hover:bg-black disabled:cursor-wait disabled:opacity-60"
                         >
-                            {creating ? "Creating…" : "Start"}
+                            {creating ? "Creating…" : "Create Game"}
                             {!creating && (
                                 <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                             )}

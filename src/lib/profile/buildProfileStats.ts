@@ -1,4 +1,6 @@
 import { MAIN_GAME_MODES } from "@/lib/game/gameModeGlobals";
+import { computeDailyStreaks } from "@/lib/profile/dailyStreak";
+import { getUtcDateKey } from "@/lib/time/utcDate";
 import { type MainGameModeName } from "@/types/frontendTypes";
 import { type Prisma } from "@/generated/prisma/client";
 
@@ -20,10 +22,6 @@ const TRACKED_GAME_MODES: TrackedGameMode[] = [
 
 function isTrackedGameMode(gameMode: string): gameMode is TrackedGameMode {
     return TRACKED_GAME_MODES.includes(gameMode as TrackedGameMode);
-}
-
-function getUtcDateKey(date: Date) {
-    return date.toISOString().slice(0, 10);
 }
 
 function buildModeStats(tests: TestStat[], gameMode: TrackedGameMode) {
@@ -66,6 +64,7 @@ export function buildProfileStats(
     const latestDailyTest = dailyTests[0] ?? null;
     const completedDailyToday = latestDailyTest !== null
         && getUtcDateKey(latestDailyTest.time) === getUtcDateKey(now);
+    const dailyStreaks = computeDailyStreaks(dailyTests, now);
 
     const modeStats = TRACKED_GAME_MODES.reduce<Record<string, unknown>>(
         (stats, gameMode) => Object.assign(stats, buildModeStats(tests, gameMode)),
@@ -75,6 +74,7 @@ export function buildProfileStats(
     return {
         testsCompleted: completedTrackedTests.length,
         ...modeStats,
+        ...dailyStreaks,
         dailyCompleted: completedDailyToday,
         pastDailys: [...dailyTests].reverse().map((test) => test.id),
         dailyTest: completedDailyToday ? latestDailyTest.id : null,

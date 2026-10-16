@@ -1,14 +1,7 @@
 import prisma from "@/lib/db/prisma"
 import { type Problem } from "@/types/frontendTypes"
+import { getUtcDateKey, getUtcDayStart } from "@/lib/time/utcDate"
 import { generateDailyGame } from "./generateDailyGame"
-
-function getUtcDateKey(date: Date) {
-    return date.toISOString().slice(0, 10);
-}
-
-function getUtcDayStart(date = new Date()) {
-    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-}
 
 async function replaceDailyGame(date: Date): Promise<Problem[]> {
     const problems = generateDailyGame();

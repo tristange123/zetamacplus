@@ -7,7 +7,9 @@
     "dev": "tsx server.ts",
     "build": "prisma generate && next build",
     "start": "NODE_ENV=production tsx server.ts",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:versus": "tsx --test tests/versusBackend.test.ts",
+    "test:streak": "tsx --test tests/dailyStreak.test.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

@@ -60,7 +60,10 @@ export type ProfileDb = {
   dailyCompleted: boolean,
   pastDailys: string[],
   dailyTest: string | null,
-  dailyScore: number | null
+  dailyScore: number | null,
+  dailyStreak: number,
+  dailyLongestStreak: number,
+  dailyLastCompletedAt: Date | null
 }
 
 export type TestDb = {

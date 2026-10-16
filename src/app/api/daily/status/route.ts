@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/db/prisma";
 import requireSession from "@/lib/auth/requireSession";
 import { refreshDailyGame } from "@/lib/game/dailyGame";
+import { getDisplayedDailyStreak } from "@/lib/profile/dailyStreak";
+import { getUtcDateKey } from "@/lib/time/utcDate";
 
 export async function GET() {
     try {
@@ -18,6 +20,9 @@ export async function GET() {
             select: {
                 dailyCompleted: true,
                 dailyScore: true,
+                dailyStreak: true,
+                dailyLongestStreak: true,
+                dailyLastCompletedAt: true,
                 showScore: true,
                 showTimer: true,
                 showKeyboard: true,
@@ -70,10 +75,20 @@ export async function GET() {
         const scoreFor = (testId: string | null) => (
             testId == null ? null : scoreByTestId.get(testId) ?? null
         );
+        const now = new Date();
+        const completedToday = profile.dailyLastCompletedAt !== null
+            && getUtcDateKey(profile.dailyLastCompletedAt) === getUtcDateKey(now);
 
         return NextResponse.json({
             dailyCompleted: profile.dailyCompleted,
             dailyScore: profile.dailyCompleted ? (profile.dailyScore ?? 0) : null,
+            completedToday,
+            currentStreak: getDisplayedDailyStreak(
+                profile.dailyStreak,
+                profile.dailyLastCompletedAt,
+                now,
+            ),
+            longestStreak: profile.dailyLongestStreak,
             showScore: profile.showScore,
             showTimer: profile.showTimer,
             showKeyboard: profile.showKeyboard,

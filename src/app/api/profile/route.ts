@@ -5,6 +5,7 @@ import requireSession from '@/lib/auth/requireSession';
 import {MAIN_GAME_MODES} from "@/lib/game/gameModeGlobals"
 import {type MainGameModeName} from "@/types/frontendTypes"
 import { auth, createProfileForUser } from "@/lib/auth/auth";
+import { buildProfileStats } from "@/lib/profile/buildProfileStats";
 import { headers } from "next/headers";
 
 function isMainGameModeName(gameMode: string): gameMode is MainGameModeName {
@@ -98,6 +99,58 @@ export async function PATCH(req: Request){
                     return NextResponse.json({error: "Missing test id"}, {status: 400});
                 }
 
+                if (gameMode === "daily") {
+                    const dailyTest = await prisma.test.findFirst({
+                        where: {
+                            id: body.testId,
+                            userId: session.user.id,
+                            gameMode: "daily",
+                            completed: true,
+                        },
+                        select: {
+                            id: true,
+                        },
+                    });
+
+                    if (!dailyTest) {
+                        return NextResponse.json(
+                            {error: "Completed daily test not found"},
+                            {status: 400},
+                        );
+                    }
+
+                    await prisma.$transaction(async (transaction) => {
+                        const userTests = await transaction.test.findMany({
+                            where: {
+                                userId: session.user.id,
+                            },
+                            select: {
+                                id: true,
+                                score: true,
+                                time: true,
+                                gameMode: true,
+                                userId: true,
+                                completed: true,
+                            },
+                            orderBy: [
+                                {time: "desc"},
+                                {id: "desc"},
+                            ],
+                        });
+
+                        await transaction.profile.update({
+                            where: {
+                                userId: session.user.id,
+                            },
+                            data: buildProfileStats(userTests),
+                        });
+                    });
+
+                    revalidatePath('/leaderboard');
+                    revalidatePath('/stats');
+                    return NextResponse.json({message: "Successful post"}, {status: 201});
+                }
+
                 const pastTenTests = [...userProfile[`${gameMode}PastTenTests`]]
                 pastTenTests.unshift(body.score);
                 if (pastTenTests.length > 10){
@@ -163,20 +216,6 @@ export async function PATCH(req: Request){
                     }
                 });
 
-                if (body.gameMode === "daily"){
-                    await prisma.profile.update({
-                        where: {
-                            userId: session.user.id
-                        },
-                        data: {
-                            pastDailys: {
-                                push: body.testId
-                            },
-                            dailyTest: body.testId,
-                            dailyScore: body.score
-                        }
-                    });
-                }
                 revalidatePath('/leaderboard');
             }
         }

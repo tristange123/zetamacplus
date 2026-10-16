@@ -6,7 +6,7 @@ import { useGameContext } from './gameContext';
 import { type MainGameModeName, type GameModeName, type ProblemType } from '@/types/frontendTypes'
 import {type ScoresByGameMode} from '@/types/contextTypes'
 import {MAIN_GAME_MODES, BOUNDS, EXTRA_GAME_MODES} from '@/lib/game/gameModeGlobals'
-import { ArrowRight, Calculator, CalendarDays, Info, Mail, Rabbit, Shapes, Skull, SlidersHorizontal, SportShoe, Wrench, type LucideIcon } from 'lucide-react'
+import { ArrowRight, Calculator, CalendarDays, Flame, Info, Mail, Rabbit, Shapes, Skull, SlidersHorizontal, SportShoe, Wrench, type LucideIcon } from 'lucide-react'
 import Link from 'next/link';
 type startProps = {
     userLoggedIn: boolean
@@ -35,6 +35,8 @@ export default function StartClientSide({userLoggedIn}: startProps) {
     const [isStarting, setIsStarting] = useState(false);
     const [dailyStatus, setDailyStatus] = useState<DailyStatus>('loading');
     const [dailyScore, setDailyScore] = useState<number | null>(null);
+    const [dailyFinishedToday, setDailyFinishedToday] = useState(false);
+    const [currentStreak, setCurrentStreak] = useState(0);
 
     useEffect(() => {
         if (!userLoggedIn) return;
@@ -55,6 +57,8 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                 const status: {
                     dailyCompleted: boolean,
                     dailyScore: number | null,
+                    completedToday: boolean,
+                    currentStreak: number,
                     showScore: boolean,
                     showTimer: boolean,
                     showKeyboard: boolean,
@@ -64,6 +68,8 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                 } = await response.json();
 
                 setDailyScore(status.dailyScore);
+                setDailyFinishedToday(status.completedToday);
+                setCurrentStreak(status.currentStreak);
                 setDailyStatus(status.dailyCompleted ? 'completed' : 'available');
                 setShowScore(status.showScore);
                 setShowTimer(status.showTimer);
@@ -189,12 +195,15 @@ export default function StartClientSide({userLoggedIn}: startProps) {
     const dailyDescription = !userLoggedIn
         ? 'Log in to unlock'
         : dailyCompleted
-            ? `Completed · ${dailyScore ?? 0} points`
+            ? dailyFinishedToday
+                ? `Completed · ${dailyScore ?? 0} points`
+                : 'Attempt already claimed'
             : dailyStatus === 'loading'
                 ? 'Checking availability…'
                 : dailyStatus === 'error'
                     ? 'Unavailable right now'
                     : 'One shared challenge';
+    const showDailyStreak = userLoggedIn && dailyStatus !== 'loading' && dailyStatus !== 'error';
     const dailyDisabled = !userLoggedIn || !dailyAvailable;
     const selectedExample = gameModeInput === 'daily'
         ? gameModeDisplay.standard.example
@@ -302,7 +311,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                         disabled={dailyDisabled}
                         aria-pressed={gameModeInput === 'daily'}
                         onClick={selectDailyMode}
-                        className={`group flex min-h-24 items-center gap-4 rounded-lg border px-5 py-4 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                        className={`group relative flex min-h-24 items-center gap-4 rounded-lg border px-5 py-4 pr-16 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
                             gameModeInput === 'daily'
                                 ? 'border-gray-400 bg-gray-200 text-gray-900'
                                 : 'border-gray-300 bg-white text-gray-900 hover:border-gray-500 hover:bg-gray-50 disabled:hover:border-gray-300 disabled:hover:bg-white'
@@ -320,6 +329,19 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                             }`}>
                                 {dailyDescription}
                             </span>
+                            {showDailyStreak && (
+                                <span
+                                    className="absolute right-5 top-4 flex items-center gap-1 text-xs font-semibold text-gray-600"
+                                    aria-label={`Current streak: ${currentStreak} days`}
+                                >
+                                    <Flame
+                                        size={14}
+                                        className={currentStreak > 0 ? 'fill-red-500 text-red-500' : 'text-gray-400'}
+                                        aria-hidden="true"
+                                    />
+                                    {currentStreak}
+                                </span>
+                            )}
                         </span>
                     </button>
                     <button
