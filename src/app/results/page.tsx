@@ -8,11 +8,14 @@ import {type GameContext, type RankedGameModeName, type ScoreRank} from '@/types
 import { type GameModeName, type Problem } from '@/types/frontendTypes'
 import {authClient} from '@/lib/auth/auth-client'
 import {
+    ArrowLeft,
     Calculator,
     Clock,
     Crown,
+    Flame,
     NotebookText,
     Rabbit,
+    RotateCcw,
     Skull,
     SportShoe,
     type LucideIcon,
@@ -103,9 +106,14 @@ export default function ClientSide() {
     const [score, setScore] = useState(gameContext.score);
     const [gameMode, setGameMode] = useState<GameModeName>(gameContext.gameMode);
     const [isDailyGame, setIsDailyGame] = useState(gameContext.gameMode === "daily");
+    const [dailyStreak, setDailyStreak] = useState<number | null>(null);
     const [scoreRank, setScoreRank] = useState<ScoreRank>(null);
     const topScoresUpdated = useRef(false);
+    const initialGameContext = useRef(gameContext);
+    const resultSaveStarted = useRef(false);
     const {data: session} = authClient.useSession()
+    const testsAttempted = gameContext.testsAttempted;
+    const contextProblemSet = gameContext.problemSet;
     const solveTimes: number[] = []
 
 
@@ -122,21 +130,34 @@ export default function ClientSide() {
           setGameMode(storedGameMode);
           if (
             !topScoresUpdated.current
-            && gameContext.topScoresLoaded
+            && initialGameContext.current.topScoresLoaded
             && isRankedGameModeName(storedGameMode)
           ) {
             topScoresUpdated.current = true;
-            setScoreRank(gameContext.updateTopScores(storedGameMode, storedScore));
+            setScoreRank(initialGameContext.current.updateTopScores(storedGameMode, storedScore));
           }
         }
         setIsDailyGame(storedGameMode === "daily");
       });
-      async function postData(){
-        
-          const now = new Date();
-          try{
-              if (session && session.user.emailVerified && localStorage.getItem("testLogged") == "false"){
+    }, [])
 
+    useEffect(() => {
+      if (
+        !session
+        || !session.user.emailVerified
+        || localStorage.getItem("testLogged") !== "false"
+        || resultSaveStarted.current
+      ) {
+        return;
+      }
+
+      resultSaveStarted.current = true;
+
+      async function postData() {
+          const storedScore = Number(localStorage.getItem("score") ?? "0");
+          const storedGameMode = localStorage.getItem("gameMode");
+          const now = new Date();
+          try {
                 const testResultRes = await fetch('/api/test', {
                     method: 'POST',
                     headers: { "Content-Type": 'application/json'},
@@ -145,33 +166,40 @@ export default function ClientSide() {
 
                 const testResult = await testResultRes.json();
 
-                await fetch('/api/profile', {
+                const profileResponse = await fetch('/api/profile', {
                     method: 'PATCH',
                     headers: { "Content-Type": 'application/json'},
-                    body: JSON.stringify({testId: testResult.id, score: storedScore, gameMode: storedGameMode, testsAttempted: gameContext.testsAttempted})
+                    body: JSON.stringify({testId: testResult.id, score: storedScore, gameMode: storedGameMode, testsAttempted})
                 });
+
+                if (!profileResponse.ok) {
+                    throw new Error("Could not update profile");
+                }
+
+                if (storedGameMode === "daily") {
+                    const statusResponse = await fetch('/api/daily/status', {cache: 'no-store'});
+                    if (statusResponse.ok) {
+                        const status = await statusResponse.json() as {currentStreak: number};
+                        setDailyStreak(status.currentStreak);
+                    }
+                }
+
                 await fetch('/api/problem', {
                     method: 'POST',
                     headers: { "Content-Type": 'application/json'},
-                    body: JSON.stringify({testId: testResult.id, gameMode: storedGameMode, problemSet: gameContext.problemSet})
+                    body: JSON.stringify({testId: testResult.id, gameMode: storedGameMode, problemSet: contextProblemSet})
                      
                 });
                 localStorage.setItem("testLogged", "true");
-
-              }
-              else{
-                console.log("test already logged")
-              }
-               
-              
           } 
           catch (err){
+              resultSaveStarted.current = false;
               console.log(err);
           }
       
         }
-        postData();
-    }, [])
+        void postData();
+    }, [contextProblemSet, session, testsAttempted])
     let curr = 0
     for (const problem of problemList){
         if(problem.solveTime){
@@ -215,7 +243,7 @@ export default function ClientSide() {
                             aria-label={`${gameMode} game mode`}
                         />
                     </div>
-                    <div className="flex min-w-0 flex-1 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 shadow-sm">
+                    <div className="relative flex min-w-0 flex-1 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 shadow-sm">
                         <h2 className="flex items-center justify-center gap-2 text-2xl font-semibold tracking-tight text-gray-800 md:text-3xl">
                             Score: {score}
                             {scoreRank != null && (
@@ -225,6 +253,20 @@ export default function ClientSide() {
                                 />
                             )}
                         </h2>
+                        {isDailyGame && dailyStreak !== null && (
+                            <span
+                                className="absolute right-4 top-3 flex items-center gap-1 text-sm font-semibold text-gray-700"
+                                aria-label={`Daily streak: ${dailyStreak} days`}
+                            >
+                                <Flame
+                                    className={`h-4 w-4 ${
+                                        dailyStreak > 0 ? 'fill-red-500 text-red-500' : 'text-gray-400'
+                                    }`}
+                                    aria-hidden="true"
+                                />
+                                {dailyStreak}
+                            </span>
+                        )}
                     </div>
                 </div>
 
@@ -266,22 +308,26 @@ export default function ClientSide() {
                     </div>
                 </div>
 
-                <div className="mt-6 flex justify-center gap-3">
+                <div className="mt-10 flex justify-center gap-10">
                     {!isDailyGame && (<button
                         onClick={() => {
                             localStorage.setItem("testLogged", "false");
                             router.replace("/game");
                         }}
-                        className="rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-300"
+                        aria-label="Restart"
+                        title="Restart"
+                        className="p-1 text-gray-500 transition hover:text-gray-700"
                     >
-                        Restart
+                        <RotateCcw className="h-6 w-6" aria-hidden="true" />
                     </button>
                     )}
                     <button
                         onClick={() => router.push('/')}
-                        className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                        aria-label="Back"
+                        title="Back"
+                        className="p-1 text-gray-500 transition hover:text-gray-700"
                     >
-                        Back
+                        <ArrowLeft className="h-6 w-6" aria-hidden="true" />
                     </button>
                 </div>
             </div>

@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGameContext} from '@/app/gameContext'
 import OnScreenKeyboard from './onScreenKeyboard'
+import { ArrowLeft, RotateCcw } from 'lucide-react';
 
 
 
@@ -172,22 +173,26 @@ export default function Game() {
                     </div>
                 </div>
 
-                <div className="absolute left-0 right-0 top-[calc(40%+4rem)]">
-                <div className="mx-auto flex w-full max-w-6xl justify-center gap-3 px-4 pt-4 md:px-6">
+                <div className="absolute left-0 right-0 top-[calc(40%+6rem)]">
+                <div className="mx-auto flex w-full max-w-6xl justify-center gap-10 px-4 pt-4 md:px-6">
                     <button
                         onClick={reset}
-                        className="rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-300"
+                        aria-label="Restart"
+                        title="Restart"
+                        className="p-1 text-gray-300 transition hover:text-gray-500"
                     >
-                        Restart
+                        <RotateCcw className="h-6 w-6" aria-hidden="true" />
                     </button>
                     <button
                         onClick={() => {
                             updateTestsAttempted();
                             router.back();
                         }}
-                        className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                        aria-label="Back"
+                        title="Back"
+                        className="p-1 text-gray-300 transition hover:text-gray-500"
                     >
-                        Back
+                        <ArrowLeft className="h-6 w-6" aria-hidden="true" />
                     </button>
                 </div>
 
