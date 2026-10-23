@@ -1,13 +1,14 @@
 "use client";
 
-import { createContext, useContext, useState , ReactNode} from "react";
+import { createContext, useContext, useEffect, useState , ReactNode} from "react";
+import {authClient} from "@/lib/auth/auth-client";
 import {
   type GameContext,
   type RankedGameModeName,
   type ScoreRank,
   type ScoresByGameMode,
 } from '@/types/contextTypes';
-import {type ProblemType, type GameModeName, type OperationBounds, type Problem} from '@/types/frontendTypes'
+import {type OperationBounds} from '@/types/frontendTypes'
 
 
 type GameProviderProps = {
@@ -26,19 +27,14 @@ const EMPTY_SCORES: ScoresByGameMode = {
 };
 
 export function GameProvider({ children } : GameProviderProps) {
+    // Last custom game settings, used as the custom page defaults
     const [timeFormat, setTimeFormat ] = useState<number>(120);
-    const [gameMode, setGameMode ] = useState<GameModeName>("standard");
-    const [problemType, setProblemType ] = useState<ProblemType>("medium");
     const [operations, setOperations ] = useState<OperationBounds>({
             '+': {first: [2,100], second: [2,100]}, 
             '-': {first: [2,100], second: [2,100]}, 
             '*': {first: [2,100], second: [2,12]}, 
             '/': {first: [2,100], second: [2,12]}
         });
-    const [score, setScore] = useState<number>(0);
-    const [testsAttempted, setTestsAttempted] = useState<number>(0);
-    const [problemSet, setProblemSet] = useState<Problem[]>([]);
-    const [dailyProblems, setDailyProblems] = useState<Problem[]>([]);
     const [showScore, setShowScore] = useState(true);
     const [showTimer, setShowTimer] = useState(true);
     const [showKeyboard, setShowKeyboard] = useState(false);
@@ -46,6 +42,52 @@ export function GameProvider({ children } : GameProviderProps) {
     const [secondBestScores, setSecondBestScores] = useState<ScoresByGameMode>({...EMPTY_SCORES});
     const [thirdBestScores, setThirdBestScores] = useState<ScoresByGameMode>({...EMPTY_SCORES});
     const [topScoresLoaded, setTopScoresLoaded] = useState(false);
+
+    const {data: session} = authClient.useSession();
+    const sessionUserId = session?.user.id ?? null;
+
+    // Load the user's display settings and top scores on any page,
+    // so games opened directly (or reloaded) use them too
+    useEffect(() => {
+      if (!sessionUserId) return;
+
+      const controller = new AbortController();
+
+      async function loadProfileSettings() {
+        try {
+          const response = await fetch('/api/daily/status', {
+            cache: 'no-store',
+            signal: controller.signal,
+          });
+          if (!response.ok) return;
+
+          const status: {
+            showScore: boolean,
+            showTimer: boolean,
+            showKeyboard: boolean,
+            bestScores: ScoresByGameMode,
+            secondBestScores: ScoresByGameMode,
+            thirdBestScores: ScoresByGameMode
+          } = await response.json();
+
+          setShowScore(status.showScore);
+          setShowTimer(status.showTimer);
+          setShowKeyboard(status.showKeyboard);
+          setBestScores(status.bestScores);
+          setSecondBestScores(status.secondBestScores);
+          setThirdBestScores(status.thirdBestScores);
+          setTopScoresLoaded(true);
+        }
+        catch (error) {
+          if (error instanceof Error && error.name === 'AbortError') return;
+          console.error('Failed to load profile settings', error);
+        }
+      }
+
+      void loadProfileSettings();
+
+      return () => controller.abort();
+    }, [sessionUserId]);
 
     function updateTopScores(gameMode: RankedGameModeName, newScore: number): ScoreRank {
       if (!topScoresLoaded) return null;
@@ -83,20 +125,8 @@ export function GameProvider({ children } : GameProviderProps) {
         <GameContext.Provider value={{
           timeFormat,
           setTimeFormat,
-          gameMode,
-          setGameMode,
-          problemType,
-          setProblemType,
           operations,
           setOperations,
-          score,
-          setScore,
-          testsAttempted,
-          setTestsAttempted,
-          problemSet,
-          setProblemSet,
-          dailyProblems,
-          setDailyProblems,
           showScore,
           setShowScore,
           showTimer,

@@ -2,16 +2,16 @@
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { useRouter } from 'next/navigation';
-import {useGameContext} from '../gameContext'
-import {useState, useEffect, useRef } from 'react';
-import {type GameContext, type RankedGameModeName, type ScoreRank} from '@/types/contextTypes'
-import { type GameModeName, type Problem } from '@/types/frontendTypes'
-import {authClient} from '@/lib/auth/auth-client'
+import { type ScoreRank } from '@/types/contextTypes'
+import { type GameModeName } from '@/types/frontendTypes'
+import { type GameResult } from './useTimedGame'
 import {
     ArrowLeft,
+    Asterisk,
     Calculator,
     Clock,
     Crown,
+    Divide,
     Flame,
     NotebookText,
     Rabbit,
@@ -28,20 +28,9 @@ const GAME_MODE_ICONS: Record<GameModeName, LucideIcon> = {
     hard: Skull,
     custom: NotebookText,
     daily: Clock,
+    gcd: Divide,
+    lcm: Asterisk,
 };
-
-function isGameModeName(gameMode: string | null): gameMode is GameModeName {
-    return gameMode === "standard"
-        || gameMode === "rapid"
-        || gameMode === "sprint"
-        || gameMode === "hard"
-        || gameMode === "custom"
-        || gameMode === "daily";
-}
-
-function isRankedGameModeName(gameMode: GameModeName): gameMode is RankedGameModeName {
-    return gameMode !== "custom";
-}
 
 const RANK_CROWN_CLASSES: Record<Exclude<ScoreRank, null>, string> = {
     1: "fill-amber-200 text-amber-500",
@@ -98,108 +87,20 @@ function exponentialSmoothing(data: Record<string, number>[], alpha = 0.5) {
     return smoothed;
 }
 
-export default function ClientSide() {
+type GameResultsProps = {
+    gameMode: GameModeName,
+    result: GameResult,
+    scoreRank?: ScoreRank,
+    dailyStreak?: number | null,
+    // Omitted for games that can't be replayed (daily)
+    onRestart?: () => void,
+}
+
+export default function GameResults({gameMode, result, scoreRank = null, dailyStreak = null, onRestart}: GameResultsProps) {
     const router = useRouter();
-    const gameContext: GameContext = useGameContext();
-    const [timeFormat, setTimeFormat] = useState(gameContext.timeFormat);
-    const [problemList, setProblemList] = useState<Problem[]>(gameContext.problemSet)
-    const [score, setScore] = useState(gameContext.score);
-    const [gameMode, setGameMode] = useState<GameModeName>(gameContext.gameMode);
-    const [isDailyGame, setIsDailyGame] = useState(gameContext.gameMode === "daily");
-    const [dailyStreak, setDailyStreak] = useState<number | null>(null);
-    const [scoreRank, setScoreRank] = useState<ScoreRank>(null);
-    const topScoresUpdated = useRef(false);
-    const initialGameContext = useRef(gameContext);
-    const resultSaveStarted = useRef(false);
-    const {data: session} = authClient.useSession()
-    const testsAttempted = gameContext.testsAttempted;
-    const contextProblemSet = gameContext.problemSet;
+    const {score, timeFormat, problems: problemList} = result;
+
     const solveTimes: number[] = []
-
-
-    
-    
-    useEffect (() => {
-      const storedScore = Number(localStorage.getItem("score") ?? "0");
-      const storedGameMode = localStorage.getItem("gameMode");
-      queueMicrotask(() => {
-        setTimeFormat(Number(localStorage.getItem("timeFormat") ?? "120"))
-        setProblemList(JSON.parse(localStorage.getItem("problemSet") ?? "[]"));
-        setScore(storedScore);
-        if (isGameModeName(storedGameMode)) {
-          setGameMode(storedGameMode);
-          if (
-            !topScoresUpdated.current
-            && initialGameContext.current.topScoresLoaded
-            && isRankedGameModeName(storedGameMode)
-          ) {
-            topScoresUpdated.current = true;
-            setScoreRank(initialGameContext.current.updateTopScores(storedGameMode, storedScore));
-          }
-        }
-        setIsDailyGame(storedGameMode === "daily");
-      });
-    }, [])
-
-    useEffect(() => {
-      if (
-        !session
-        || !session.user.emailVerified
-        || localStorage.getItem("testLogged") !== "false"
-        || resultSaveStarted.current
-      ) {
-        return;
-      }
-
-      resultSaveStarted.current = true;
-
-      async function postData() {
-          const storedScore = Number(localStorage.getItem("score") ?? "0");
-          const storedGameMode = localStorage.getItem("gameMode");
-          const now = new Date();
-          try {
-                const testResultRes = await fetch('/api/test', {
-                    method: 'POST',
-                    headers: { "Content-Type": 'application/json'},
-                    body: JSON.stringify({time: now, gameMode: storedGameMode, score: storedScore})
-                });
-
-                const testResult = await testResultRes.json();
-
-                const profileResponse = await fetch('/api/profile', {
-                    method: 'PATCH',
-                    headers: { "Content-Type": 'application/json'},
-                    body: JSON.stringify({testId: testResult.id, score: storedScore, gameMode: storedGameMode, testsAttempted})
-                });
-
-                if (!profileResponse.ok) {
-                    throw new Error("Could not update profile");
-                }
-
-                if (storedGameMode === "daily") {
-                    const statusResponse = await fetch('/api/daily/status', {cache: 'no-store'});
-                    if (statusResponse.ok) {
-                        const status = await statusResponse.json() as {currentStreak: number};
-                        setDailyStreak(status.currentStreak);
-                    }
-                }
-
-                await fetch('/api/problem', {
-                    method: 'POST',
-                    headers: { "Content-Type": 'application/json'},
-                    body: JSON.stringify({testId: testResult.id, gameMode: storedGameMode, problemSet: contextProblemSet})
-                     
-                });
-                localStorage.setItem("testLogged", "true");
-          } 
-          catch (err){
-              resultSaveStarted.current = false;
-              console.log(err);
-          }
-      
-        }
-        void postData();
-    }, [contextProblemSet, session, testsAttempted])
     let curr = 0
     for (const problem of problemList){
         if(problem.solveTime){
@@ -207,11 +108,6 @@ export default function ClientSide() {
             solveTimes.push(curr);
         }
     }
-
-    if (timeFormat == null){
-        return <div>Error</div>
-    }
-   
 
     const rawSolveRates = PPM(solveTimes, timeFormat);
     const solveRatesAlpha02 = exponentialSmoothing(rawSolveRates, 0.2);
@@ -253,7 +149,7 @@ export default function ClientSide() {
                                 />
                             )}
                         </h2>
-                        {isDailyGame && dailyStreak !== null && (
+                        {gameMode === "daily" && dailyStreak !== null && (
                             <span
                                 className="absolute right-4 top-3 flex items-center gap-1 text-sm font-semibold text-gray-700"
                                 aria-label={`Daily streak: ${dailyStreak} days`}
@@ -309,11 +205,8 @@ export default function ClientSide() {
                 </div>
 
                 <div className="mt-10 flex justify-center gap-10">
-                    {!isDailyGame && (<button
-                        onClick={() => {
-                            localStorage.setItem("testLogged", "false");
-                            router.replace("/game");
-                        }}
+                    {onRestart && (<button
+                        onClick={onRestart}
                         aria-label="Restart"
                         title="Restart"
                         className="p-1 text-gray-500 transition hover:text-gray-700"
@@ -343,7 +236,6 @@ export default function ClientSide() {
                                     <th className="px-4 py-3 text-center font-semibold text-gray-700 md:px-5">#</th>
                                     <th className="px-4 py-3 text-center font-semibold text-gray-700 md:px-5">Problem</th>
                                     <th className="px-4 py-3 text-center font-semibold text-gray-700 md:px-5">Solve Time</th>
-                                    {/* <th className="px-4 py-3 text-center font-semibold text-gray-700 md:px-5">Cum. Time</th> */}
                                 </tr>
                             </thead>
                             <tbody>
@@ -358,13 +250,10 @@ export default function ClientSide() {
                                         <td className="px-4 py-3 text-center text-gray-800 md:px-5">
                                             {row.statement}
                                         </td>
-                                        
+
                                         <td className="px-4 py-3 text-center tabular-nums text-gray-600 md:px-5">
                                             {formatSolveTime(row.solveTime)}
                                         </td>
-                                        {/* <td className="px-4 py-3 text-center tabular-nums text-gray-600 md:px-5">
-                                            {formatSolveTime(row.cumulativeTime)}
-                                        </td> */}
                                     </tr>
                                 ))}
                             </tbody>

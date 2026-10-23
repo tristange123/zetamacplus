@@ -6,12 +6,12 @@ import {
     getRandomPitch,
     PITCHES,
     PITCH_GAME_DURATION,
-    PITCH_GAME_RESULTS_KEY,
     playPianoPitch,
     type Pitch,
     type PitchAttempt,
     type PitchGameResults,
 } from "@/lib/game/pitchGame";
+import PitchResults from "./pitchResults";
 
 function getTimestamp() {
     return Date.now();
@@ -24,6 +24,7 @@ export default function PitchGame() {
     const [time, setTime] = useState(PITCH_GAME_DURATION);
     const [started, setStarted] = useState(false);
     const [audioError, setAudioError] = useState("");
+    const [results, setResults] = useState<PitchGameResults | null>(null);
     const [feedback, setFeedback] = useState<{ pitchName: string; correct: boolean } | null>(null);
     const audioContext = useRef<AudioContext | null>(null);
     const nextProblemTimeout = useRef<number | null>(null);
@@ -67,6 +68,7 @@ export default function PitchGame() {
         problemStartedAt.current = startedAt.current;
         setScore(0);
         setTime(PITCH_GAME_DURATION);
+        setResults(null);
         setStarted(true);
         presentProblem();
     }
@@ -127,18 +129,16 @@ export default function PitchGame() {
                 if (nextProblemTimeout.current !== null) {
                     window.clearTimeout(nextProblemTimeout.current);
                 }
-                const results: PitchGameResults = {
+                setResults({
                     score: scoreRef.current,
                     duration: PITCH_GAME_DURATION,
                     attempts: attempts.current,
-                };
-                localStorage.setItem(PITCH_GAME_RESULTS_KEY, JSON.stringify(results));
-                router.replace("/results/pitch_game");
+                });
             }
         }, 100);
 
         return () => window.clearInterval(timer);
-    }, [router, started]);
+    }, [started]);
 
     useEffect(() => {
         return () => {
@@ -148,6 +148,10 @@ export default function PitchGame() {
             void audioContext.current?.close();
         };
     }, []);
+
+    if (results) {
+        return <PitchResults results={results} onRestart={startGame} />;
+    }
 
     return (
         <section className="relative flex min-h-[calc(100vh-9rem)] flex-col justify-center">

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useGameContext } from '../gameContext';
 import { type Operation } from '@/types/frontendTypes';
+import { customGameUrl } from '@/lib/game/customGame';
 
 type NumberBounds = {
     min: number;
@@ -269,16 +270,12 @@ export default function Custom() {
             return;
         }
 
-        gameContext?.setGameMode('custom');
-        localStorage.setItem("gameMode", "custom");
+        const operations = buildOperations(operationBounds, enabledOperations);
+        // Remember the settings for the next visit to this page
         gameContext?.setTimeFormat(timeFormat);
-        localStorage.setItem("timeFormat", String(timeFormat));
-        gameContext?.setOperations(buildOperations(operationBounds, enabledOperations));
-        localStorage.setItem("operations", JSON.stringify(buildOperations(operationBounds, enabledOperations)));
+        gameContext?.setOperations(operations);
 
-        localStorage.setItem("testLogged", "false");
-        
-        router.push('/game');
+        router.push(customGameUrl({timeFormat, operations}));
     }
 
     const inputClassName =

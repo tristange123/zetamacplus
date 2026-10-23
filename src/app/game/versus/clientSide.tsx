@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 import { useGameContext } from "@/app/gameContext";
 import { authClient } from "@/lib/auth/auth-client";
-import OnScreenKeyboard from "../onScreenKeyboard";
+import OnScreenKeyboard from "@/components/game/OnScreenKeyboard";
 
 type VersusPhase = "connecting" | "waiting" | "playing" | "waitingForOpponent" | "error";
 

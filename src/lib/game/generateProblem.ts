@@ -57,5 +57,52 @@ export function generateGame(operations: OperationBounds): Problem[]{
     return problemList;
 }
 
+function gcd(a: number, b: number): number {
+    return b === 0 ? a : gcd(b, a % b);
+}
 
+function randomDistinctPair(bottom: number, top: number): [number, number] {
+    const first = randomInt(bottom, top);
+    let second = randomInt(bottom, top);
+    while (second === first) {
+        second = randomInt(bottom, top);
+    }
+    return [first, second];
+}
 
+export function generateGcdProblem(orderNumber: number): Problem {
+    // Share a factor so the answer is usually bigger than 1
+    const factor = randomInt(2, 12);
+    const [firstMultiple, secondMultiple] = randomDistinctPair(1, 12);
+    const first = factor * firstMultiple;
+    const sec = factor * secondMultiple;
+    return {'operation': 'gcd', 'firstNum': first, 'secondNum': sec, 'answer': gcd(first, sec), 'statement': `gcd(${first}, ${sec}) = `, 'solveTime': null, orderNumber};
+}
+
+export function generateLcmProblem(orderNumber: number): Problem {
+    const [first, sec] = randomDistinctPair(2, 15);
+    return {'operation': 'lcm', 'firstNum': first, 'secondNum': sec, 'answer': first * sec / gcd(first, sec), 'statement': `lcm(${first}, ${sec}) = `, 'solveTime': null, orderNumber};
+}
+
+export type ProblemSource = (orderNumber: number) => Problem;
+
+// Serializable description of where a game's problems come from,
+// so server pages can pass it to client game components
+export type ProblemConfig =
+    | {kind: 'operations', operations: OperationBounds}
+    | {kind: 'fixed', problems: Problem[]}
+    | {kind: 'gcd'}
+    | {kind: 'lcm'};
+
+export function createProblemSource(config: ProblemConfig): ProblemSource {
+    switch (config.kind) {
+        case 'operations':
+            return (orderNumber) => generateProblem(config.operations, orderNumber);
+        case 'fixed':
+            return (orderNumber) => ({...config.problems[orderNumber % config.problems.length], orderNumber});
+        case 'gcd':
+            return generateGcdProblem;
+        case 'lcm':
+            return generateLcmProblem;
+    }
+}

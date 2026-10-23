@@ -2,7 +2,8 @@ import Link from 'next/link';
 import prisma from '@/lib/db/prisma';
 import requireSession from '@/lib/auth/requireSession';
 import {getDailyProblems} from '@/lib/game/dailyGame';
-import ClientSide from './clientSide';
+import NormalGame from '@/components/game/NormalGame';
+import {DAILY_GAME_MODE} from '@/lib/game/gameModeGlobals';
 
 export const dynamic = 'force-dynamic';
 
@@ -77,5 +78,11 @@ export default async function DailyPage() {
         );
     }
 
-    return <ClientSide dailyProblems={dailyProblems} />;
+    return (
+        <NormalGame
+            gameMode="daily"
+            timeFormat={DAILY_GAME_MODE.timeFormat}
+            problems={{kind: 'fixed', problems: dailyProblems}}
+        />
+    );
 }

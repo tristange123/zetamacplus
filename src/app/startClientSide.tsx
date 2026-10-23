@@ -2,10 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useGameContext } from './gameContext';
-import { type MainGameModeName, type GameModeName, type ProblemType } from '@/types/frontendTypes'
-import {type ScoresByGameMode} from '@/types/contextTypes'
-import {MAIN_GAME_MODES, BOUNDS, EXTRA_GAME_MODES} from '@/lib/game/gameModeGlobals'
+import { type MainGameModeName } from '@/types/frontendTypes'
 import { ArrowRight, Calculator, CalendarDays, Flame, Info, Mail, Rabbit, Shapes, Skull, SlidersHorizontal, SportShoe, Wrench, type LucideIcon } from 'lucide-react'
 import Link from 'next/link';
 type startProps = {
@@ -18,19 +15,7 @@ type DailyStatus = 'loading' | 'available' | 'completed' | 'error';
 
 export default function StartClientSide({userLoggedIn}: startProps) {
     const router = useRouter();
-    const gameContext = useGameContext();
-    const {
-        setBestScores,
-        setSecondBestScores,
-        setThirdBestScores,
-        setTopScoresLoaded,
-        setShowScore,
-        setShowTimer,
-        setShowKeyboard,
-    } = gameContext;
 
-    const [timeFormatInput, setTimeFormatInput] = useState(120);
-    const [problemTypeInput, setProblemTypeInput] = useState<ProblemType>('medium');
     const [gameModeInput, setGameModeInput] = useState<MainGameModeName | 'daily'>('standard');
     const [isStarting, setIsStarting] = useState(false);
     const [dailyStatus, setDailyStatus] = useState<DailyStatus>('loading');
@@ -58,26 +43,13 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                     dailyCompleted: boolean,
                     dailyScore: number | null,
                     completedToday: boolean,
-                    currentStreak: number,
-                    showScore: boolean,
-                    showTimer: boolean,
-                    showKeyboard: boolean,
-                    bestScores: ScoresByGameMode,
-                    secondBestScores: ScoresByGameMode,
-                    thirdBestScores: ScoresByGameMode
+                    currentStreak: number
                 } = await response.json();
 
                 setDailyScore(status.dailyScore);
                 setDailyFinishedToday(status.completedToday);
                 setCurrentStreak(status.currentStreak);
                 setDailyStatus(status.dailyCompleted ? 'completed' : 'available');
-                setShowScore(status.showScore);
-                setShowTimer(status.showTimer);
-                setShowKeyboard(status.showKeyboard);
-                setBestScores(status.bestScores);
-                setSecondBestScores(status.secondBestScores);
-                setThirdBestScores(status.thirdBestScores);
-                setTopScoresLoaded(true);
             }
             catch (error) {
                 if (error instanceof Error && error.name === 'AbortError') return;
@@ -89,16 +61,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
         void loadDailyStatus();
 
         return () => controller.abort();
-    }, [
-        userLoggedIn,
-        setBestScores,
-        setSecondBestScores,
-        setThirdBestScores,
-        setTopScoresLoaded,
-        setShowScore,
-        setShowTimer,
-        setShowKeyboard,
-    ]);
+    }, [userLoggedIn]);
 
     const dailyCompleted = dailyStatus === 'completed';
     const dailyAvailable = dailyStatus === 'available';
@@ -137,51 +100,15 @@ export default function StartClientSide({userLoggedIn}: startProps) {
 
     function selectMainMode(mode: MainGameModeName) {
         setGameModeInput(mode);
-        setTimeFormatInput(MAIN_GAME_MODES[mode].timeFormat);
-        setProblemTypeInput(MAIN_GAME_MODES[mode].problemType);
     }
 
     function selectDailyMode() {
         setGameModeInput('daily');
-        setTimeFormatInput(EXTRA_GAME_MODES.daily.timeFormat);
-        setProblemTypeInput(EXTRA_GAME_MODES.daily.problemType);
     }
 
-    async function handleStart (mode: GameModeName = gameModeInput) {
-        try{
-            if (mode === "daily") {
-                if (!dailyAvailable) return;
-
-                gameContext?.setGameMode("daily");
-                localStorage.setItem("gameMode", "daily");
-                gameContext?.setProblemType(EXTRA_GAME_MODES['daily']['problemType']);
-                localStorage.setItem("problemType", EXTRA_GAME_MODES['daily']['problemType']);
-                gameContext?.setTimeFormat(EXTRA_GAME_MODES['daily']['timeFormat']);
-                localStorage.setItem("timeFormat", String(EXTRA_GAME_MODES['daily']['timeFormat']));
-                localStorage.setItem("testLogged","false");
-
-                router.push('/game/daily')
-            }
-            else{
-                gameContext?.setGameMode(mode);
-                localStorage.setItem("gameMode", mode);
-                gameContext?.setProblemType(problemTypeInput);
-                localStorage.setItem("problemType", problemTypeInput);
-                gameContext?.setTimeFormat(timeFormatInput);
-                localStorage.setItem("timeFormat", String(timeFormatInput));
-                gameContext?.setOperations(BOUNDS[problemTypeInput])
-                localStorage.setItem("operations", JSON.stringify(BOUNDS[problemTypeInput]));
-                gameContext?.setScore(0);
-                gameContext?.setTestsAttempted(0);
-                gameContext?.setProblemSet([]);
-
-                localStorage.setItem("testLogged","false");
-                router.push(`/game`);
-            }
-        }
-        catch(err){
-            console.log(err);
-        }
+    async function handleStart (mode: MainGameModeName | 'daily' = gameModeInput) {
+        if (mode === "daily" && !dailyAvailable) return;
+        router.push(`/game/${mode}`);
     }
 
     async function handleMainStart() {

@@ -40,7 +40,7 @@ test('Sprint game flow', async ({ page }) => {
 
   await page.getByRole('button', { name: /^Sprint/ }).click();
   await page.getByRole('button', { name: 'Start' }).click();
-  await expect(page).toHaveURL('/game');
+  await expect(page).toHaveURL('/game/sprint');
 
   const gamePage = new GamePage(page);
   await expect(gamePage.score).toHaveText('Score: 0');
@@ -59,8 +59,8 @@ test('Sprint game flow', async ({ page }) => {
   });
 
   const resultsPage = new ResultsPage(page);
-  await expect(page).toHaveURL(/\/results/, { timeout: 15_000 });
-  await expect(resultsPage.score).toHaveText('Score: 3');
+  await expect(resultsPage.score).toHaveText('Score: 3', { timeout: 15_000 });
+  await expect(page).toHaveURL('/game/sprint');
   await resultsSaved;
 
   await page.getByRole('button', { name: 'User menu' }).click();

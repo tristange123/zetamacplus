@@ -1,4 +1,4 @@
-import {type MainGameModeName, type ExtraGameModeName, type GameModeType, type ProblemType, type OperationBounds} from "@/types/frontendTypes"
+import {type MainGameModeName, type ExtraGameModeName, type GameModeName, type GameModeType, type ProblemType, type OperationBounds} from "@/types/frontendTypes"
 
 
 export const MAIN_GAME_MODES: Record<MainGameModeName, GameModeType> = {
@@ -57,20 +57,31 @@ export const BOUNDS: Record <ProblemType, OperationBounds> =
         }
         };
 
-export const EXTRA_GAME_MODES: Record<ExtraGameModeName, GameModeType> = {
-    'custom':
-    {
-        timeFormat: 120,
-        problemType: 'medium',
-    },
-    'daily':{
-        timeFormat: 120,
-        problemType: 'daily'
-    }
-    // "LCM": {
-    //     timeFormat: 60,
-    //     problemType: 'LCM'
-    // }
+export const DAILY_GAME_MODE: GameModeType = {
+    timeFormat: 120,
+    problemType: 'daily'
 }
 
-// choosing a game: Gamemode -> operationsContext -> bounds
+export const EXTRA_GAME_MODES: Record<ExtraGameModeName, {timeFormat: number}> = {
+    'custom': {
+        timeFormat: 120,
+    },
+    'gcd': {
+        timeFormat: 120,
+    },
+    'lcm': {
+        timeFormat: 120,
+    }
+}
+
+export function isMainGameMode(mode: string): mode is MainGameModeName {
+    return Object.hasOwn(MAIN_GAME_MODES, mode);
+}
+
+export function isExtraGameMode(mode: string): mode is ExtraGameModeName {
+    return Object.hasOwn(EXTRA_GAME_MODES, mode);
+}
+
+export function isGameModeName(mode: string): mode is GameModeName {
+    return mode === 'daily' || isMainGameMode(mode) || isExtraGameMode(mode);
+}

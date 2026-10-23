@@ -9,11 +9,15 @@ export type Problem = {
 
 }
 
-export type GameModeName = MainGameModeName | ExtraGameModeName;
+export type GameModeName = RankedGameModeName | ExtraGameModeName;
 
 export type MainGameModeName = "standard" | "rapid" | "sprint" | "hard";
 
-export type ExtraGameModeName = "custom" | "daily"
+// Modes that are saved to the database and tracked in stats
+export type RankedGameModeName = MainGameModeName | "daily";
+
+// Modes that are played without saving anything
+export type ExtraGameModeName = "custom" | "gcd" | "lcm"
 
 export type ProblemType = "easy" | "medium" | "hard" | "daily" | "easy-medium"
 

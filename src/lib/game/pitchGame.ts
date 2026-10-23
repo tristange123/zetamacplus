@@ -1,5 +1,4 @@
 export const PITCH_GAME_DURATION = 120;
-export const PITCH_GAME_RESULTS_KEY = "pitchGameResults";
 
 export type Pitch = {
     name: string;

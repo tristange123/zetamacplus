@@ -1,13 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Music } from "lucide-react";
-import {
-    PITCH_GAME_DURATION,
-    PITCH_GAME_RESULTS_KEY,
-    type PitchGameResults,
-} from "@/lib/game/pitchGame";
+import { type PitchGameResults } from "@/lib/game/pitchGame";
 import {
     CartesianGrid,
     Line,
@@ -54,25 +49,13 @@ function smooth(data: { time: number; score: number }[], alpha: number) {
     return smoothed;
 }
 
-export default function PitchGameResults() {
+type PitchResultsProps = {
+    results: PitchGameResults;
+    onRestart: () => void;
+};
+
+export default function PitchResults({ results, onRestart }: PitchResultsProps) {
     const router = useRouter();
-    const [results, setResults] = useState<PitchGameResults>({
-        score: 0,
-        duration: PITCH_GAME_DURATION,
-        attempts: [],
-    });
-
-    useEffect(() => {
-        const storedResults = localStorage.getItem(PITCH_GAME_RESULTS_KEY);
-        if (!storedResults) return;
-
-        try {
-            const parsed = JSON.parse(storedResults) as PitchGameResults;
-            queueMicrotask(() => setResults(parsed));
-        } catch {
-            localStorage.removeItem(PITCH_GAME_RESULTS_KEY);
-        }
-    }, []);
 
     const correctAnswerTimes = results.attempts
         .filter((attempt) => attempt.correct)
@@ -144,7 +127,7 @@ export default function PitchGameResults() {
                 <div className="mt-6 flex justify-center gap-3">
                     <button
                         type="button"
-                        onClick={() => router.replace("/game/pitch_game")}
+                        onClick={onRestart}
                         className="rounded-md border border-gray-300 bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-300"
                     >
                         Restart
