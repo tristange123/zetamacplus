@@ -3,7 +3,7 @@ import prisma from "@/lib/db/prisma";
 import { addUtcDays, getUtcDayStart } from "@/lib/time/utcDate";
 import LoginPage from "../pages/LoginPage";
 
-test("daily streak is strict at rollover and profile updates are idempotent", async ({page}) => {
+test("daily streak carries over from yesterday and profile updates are idempotent", async ({page}) => {
     test.setTimeout(90_000);
 
     const suffix = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -51,8 +51,11 @@ test("daily streak is strict at rollover and profile updates are idempotent", as
         },
     });
 
+    // Yesterday's streak is still shown, but the flame is only red once today's daily is played
     await page.goto("/");
-    await expect(page.getByLabel("Current streak: 0 days")).toContainText("0");
+    const streakBadge = page.getByLabel(/^Current streak:/);
+    await expect(streakBadge).toHaveAttribute("aria-label", "Current streak: 2 days");
+    await expect(streakBadge.locator("svg")).toHaveClass(/text-gray-400/);
 
     const testResponse = await page.request.post("/api/test", {
         data: {
@@ -83,7 +86,8 @@ test("daily streak is strict at rollover and profile updates are idempotent", as
     expect(profile.dailyLastCompletedAt?.toISOString()).toBe(today.toISOString());
 
     await page.reload();
-    await expect(page.getByLabel("Current streak: 3 days")).toContainText("3");
+    await expect(streakBadge).toHaveAttribute("aria-label", "Current streak: 3 days");
+    await expect(streakBadge.locator("svg")).toHaveClass(/fill-red-500/);
 
     await page.goto("/stats");
     await expect(page.getByText("Current streak", {exact: true}).locator("..")).toContainText("3 days");

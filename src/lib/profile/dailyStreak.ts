@@ -1,4 +1,4 @@
-import { getUtcDateKey, getUtcDayStart } from "@/lib/time/utcDate";
+import { getUtcDayStart } from "@/lib/time/utcDate";
 
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -50,13 +50,17 @@ export function computeDailyStreaks(
     };
 }
 
+// A streak stays alive until a whole UTC day passes without playing the daily
 export function getDisplayedDailyStreak(
     dailyStreak: number,
     dailyLastCompletedAt: Date | null,
     now: Date = new Date(),
 ): number {
-    return dailyLastCompletedAt !== null
-        && getUtcDateKey(dailyLastCompletedAt) === getUtcDateKey(now)
-        ? dailyStreak
-        : 0;
+    if (dailyLastCompletedAt === null) return 0;
+
+    const daysSinceLastCompletion = (
+        getUtcDayStart(now).getTime() - getUtcDayStart(dailyLastCompletedAt).getTime()
+    ) / MILLISECONDS_PER_DAY;
+
+    return daysSinceLastCompletion <= 1 ? dailyStreak : 0;
 }

@@ -63,24 +63,27 @@ test("ignores incomplete, non-daily, and future tests", () => {
     assert.equal(result.dailyLastCompletedAt?.toISOString(), "2026-10-14T00:00:00.000Z");
 });
 
-test("strict display is zero until the current UTC day is completed", () => {
-    assert.equal(
-        getDisplayedDailyStreak(4, new Date("2026-10-14T00:00:00.000Z"), NOW),
-        0,
-    );
+test("display keeps the streak until a whole UTC day is missed", () => {
     assert.equal(
         getDisplayedDailyStreak(5, new Date("2026-10-15T00:00:00.000Z"), NOW),
         5,
     );
+    assert.equal(
+        getDisplayedDailyStreak(4, new Date("2026-10-14T00:00:00.000Z"), NOW),
+        4,
+    );
+    assert.equal(
+        getDisplayedDailyStreak(3, new Date("2026-10-13T00:00:00.000Z"), NOW),
+        0,
+    );
+    assert.equal(getDisplayedDailyStreak(0, null, NOW), 0);
 });
 
 test("uses UTC rather than the local calendar at midnight boundaries", () => {
-    const beforeMidnight = new Date("2026-10-15T23:59:59.999Z");
-    const afterMidnight = new Date("2026-10-16T00:00:00.000Z");
     const lastCompletion = new Date("2026-10-15T20:00:00.000Z");
 
-    assert.equal(getDisplayedDailyStreak(2, lastCompletion, beforeMidnight), 2);
-    assert.equal(getDisplayedDailyStreak(2, lastCompletion, afterMidnight), 0);
+    assert.equal(getDisplayedDailyStreak(2, lastCompletion, new Date("2026-10-16T23:59:59.999Z")), 2);
+    assert.equal(getDisplayedDailyStreak(2, lastCompletion, new Date("2026-10-17T00:00:00.000Z")), 0);
 });
 
 test("profile rebuild includes the same streak cache fields", () => {

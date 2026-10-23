@@ -263,7 +263,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                                 >
                                     <Flame
                                         size={14}
-                                        className={currentStreak > 0 ? 'fill-red-500 text-red-500' : 'text-gray-400'}
+                                        className={dailyFinishedToday ? 'fill-red-500 text-red-500' : 'text-gray-400'}
                                         aria-hidden="true"
                                     />
                                     {currentStreak}
