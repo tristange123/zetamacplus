@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 import prisma from '@/lib/db/prisma';
-import clearDatabase from '@/lib/db/clearDatabase'
 
 import LoginPage from '../pages/LoginPage'
 
@@ -21,7 +20,8 @@ async function forceVerifyEmail (email: string){
 }
 
 test('Auth Flow Test', async ({ page }) => {
-  await clearDatabase()
+  // Only remove this test's user so tests running in parallel keep theirs
+  await prisma.user.deleteMany({ where: { email: 'obesity500@gmail.com' } })
 
   const loginPage = new LoginPage(page)
   await loginPage.goto()

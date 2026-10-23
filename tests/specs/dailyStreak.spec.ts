@@ -13,6 +13,7 @@ test("daily streak is strict at rollover and profile updates are idempotent", as
 
     await loginPage.goto();
     await loginPage.register(username, email, "pizza2122", "pizza2122");
+    await expect(page.getByText("Email verification required")).toBeVisible();
     await prisma.user.update({
         where: {email},
         data: {emailVerified: true},
