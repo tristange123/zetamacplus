@@ -5,7 +5,7 @@ import {ReactNode, useEffect, useRef, useState} from 'react';
 import {GameProvider} from './gameContext';
 import { authClient } from '@/lib/auth/auth-client';
 import { usePathname, useRouter } from 'next/navigation'
-import {BadgeCheck, BadgeX, Crown, ChartNoAxesCombined as Chart, LogOut, Play, Settings as SettingsIcon, Swords, UserRound} from 'lucide-react'
+import {BadgeCheck, Crown, ChartNoAxesCombined as Chart, LogOut, Play, Settings as SettingsIcon, Swords, UserRound} from 'lucide-react'
 import Link from 'next/link';
 import "./globals.css";
 import type { Metadata } from "next";
@@ -219,14 +219,7 @@ export default function LayoutClientSide({children, fontClassName}: LayoutProps)
                                 title="Login"
                                 className="flex items-center justify-center gap-1 rounded-md px-1.5 py-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 sm:gap-2 sm:px-3"
                             >
-                                <span className="relative">
-                                    <UserRound size={18} aria-hidden="true" />
-                                    <BadgeX
-                                        size={13}
-                                        className="absolute -bottom-1.5 -right-1.5 text-red-600"
-                                        aria-label="Not logged in"
-                                    />
-                                </span>
+                                <UserRound size={18} aria-label="Not logged in" />
                             </Link>
                         )}
                         {userLoggedIn && (

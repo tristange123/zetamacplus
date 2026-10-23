@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Settings as SettingsIcon } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { useGameContext } from "../gameContext";
 
 type UserSettings = {
@@ -85,59 +85,58 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
     ];
 
     return (
-        <main className="mx-auto flex min-h-[calc(100vh-9rem)] w-full max-w-2xl items-center px-4 py-10 md:px-6">
-            <section className="w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-6 shadow-sm md:p-8">
-                <div className="mb-6">
-                    <div className="flex items-center gap-2">
-                        <h1 className="text-2xl font-semibold tracking-tight text-gray-800">Settings</h1>
-                        <SettingsIcon size={24} className="text-gray-600" aria-hidden="true" />
-                    </div>
-                   
+        <section className="flex min-h-[calc(100vh-9rem)] justify-center pt-[8vh] md:pt-[10vh]">
+            <div className="w-full max-w-xl px-3">
+                <div className="border-b border-gray-200 pb-4 pt-2">
+                    <h1 className="text-sm font-semibold text-gray-900 sm:text-base">Settings</h1>
+                    <p className="mt-1 text-xs text-gray-400">Choose what you see while playing.</p>
                 </div>
 
-                <div className="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white px-4">
+                <div className="divide-y divide-gray-200 border-b border-gray-200">
                     {settingOptions.map((option) => (
                         <label
                             key={option.key}
-                            className="flex cursor-pointer items-center justify-between gap-6 py-5"
+                            className="group flex cursor-pointer items-center justify-between gap-6 py-5"
                         >
                             <span>
-                                <span className="block font-medium text-gray-800">{option.label}</span>
-                                <span className="mt-1 block text-sm text-gray-500">{option.description}</span>
+                                <span className="block text-sm font-semibold text-gray-800">{option.label}</span>
+                                <span className="mt-1 block text-xs text-gray-400">{option.description}</span>
                             </span>
-                            <span className="relative shrink-0">
+                            <span className="relative flex shrink-0">
                                 <input
                                     type="checkbox"
                                     checked={settings[option.key]}
                                     onChange={(event) => updateSetting(option.key, event.target.checked)}
                                     className="peer sr-only"
                                 />
-                                <span className="block h-6 w-11 rounded-full bg-gray-300 transition peer-checked:bg-gray-800 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-gray-600" />
-                                <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow-sm transition peer-checked:translate-x-5" />
+                                <span className="flex h-5 w-5 items-center justify-center rounded border border-gray-300 bg-white text-transparent transition group-hover:border-gray-500 peer-checked:border-gray-900 peer-checked:bg-gray-900 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-gray-300">
+                                    <Check size={14} strokeWidth={3} aria-hidden="true" />
+                                </span>
                             </span>
                         </label>
                     ))}
                 </div>
 
-                <div className="mt-6 flex items-center justify-end gap-4">
-                    <p className="text-sm" aria-live="polite">
+                <div className="mt-8 flex items-center justify-end gap-5">
+                    <p className="text-xs" aria-live="polite">
                         {saveStatus === "saved" && (
-                            <span className="text-green-700">Settings saved.</span>
+                            <span className="text-gray-500">Settings saved.</span>
                         )}
                         {saveStatus === "error" && (
-                            <span className="text-red-700">Could not save settings.</span>
+                            <span className="text-red-600">Could not save settings.</span>
                         )}
                     </p>
                     <button
                         type="button"
                         onClick={saveSettings}
                         disabled={saveStatus === "saving"}
-                        className="rounded-lg bg-gray-800 px-6 py-3 font-semibold text-gray-100 shadow-sm transition hover:bg-gray-900 disabled:cursor-wait disabled:opacity-60"
+                        className="group flex items-center justify-center gap-3 rounded-md bg-gray-900 px-10 py-3 text-sm font-semibold text-white transition hover:bg-black disabled:cursor-wait disabled:opacity-60"
                     >
                         {saveStatus === "saving" ? "Saving..." : "Save"}
+                        <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                     </button>
                 </div>
-            </section>
-        </main>
+            </div>
+        </section>
     );
 }

@@ -15,16 +15,23 @@ export default class LoginPage {
     loginPassword: Locator;
     loginButton: Locator;
 
+    registerTab: Locator;
+    loginTab: Locator;
+
     constructor(page: Page) {
         this.page = page;
-        this.registerEmail = page.getByLabel('Register Email');
-        this.registerPassword = page.getByLabel('Register Password');
-        this.confirmPassword = page.getByLabel('Confirm Password');
-        this.registerUsername = page.getByLabel('Register Username');
+        this.registerTab = page.getByRole('tab', { name: 'Register' });
+        this.loginTab = page.getByRole('tab', { name: 'Log in' });
+
+        // Only the selected tab's form is rendered, so the shared labels are unique
+        this.registerEmail = page.getByLabel('Email', { exact: true });
+        this.registerPassword = page.getByLabel('Password', { exact: true });
+        this.confirmPassword = page.getByLabel('Confirm password');
+        this.registerUsername = page.getByLabel('Username');
         this.registerButton = page.getByRole('button', { name: 'Register' });
 
-        this.loginEmail = page.getByLabel('Email');
-        this.loginPassword = page.getByLabel('Password');
+        this.loginEmail = page.getByLabel('Email', { exact: true });
+        this.loginPassword = page.getByLabel('Password', { exact: true });
         this.loginButton = page.getByRole('button', { name: 'Login' });
     }
 
@@ -33,6 +40,7 @@ export default class LoginPage {
     }
 
     async register(username: string, email: string, password: string, confirm: string) {
+        await this.registerTab.click();
         await this.registerUsername.fill(username);
         await this.registerPassword.fill(password);
         await this.registerEmail.fill(email);
@@ -42,6 +50,7 @@ export default class LoginPage {
     }
 
     async login(email: string, password: string) {
+        await this.loginTab.click();
         await this.loginEmail.fill(email);
         await this.loginPassword.fill(password);
 
