@@ -356,15 +356,15 @@ export default function ClientSide({gameModes, leaderboards, problemsSolvedLeade
                                         <td className="px-3 py-2.5 sm:px-4">
                                             <span className="font-semibold tabular-nums text-gray-900">{row.score}</span>
                                             {selectedMetric === 'highScore' && (
-                                                <span className="ml-1 text-xs text-gray-400">pts</span>
+                                                <>{' '}<span className="text-xs text-gray-400">pts</span></>
                                             )}
                                         </td>
                                         {showTimeColumn && (
                                             <td className="hidden px-4 py-2.5 tabular-nums sm:table-cell">
                                                 {runDate ? (
                                                     <>
-                                                        <span className="text-gray-700">{runDate.toLocaleDateString()}</span>
-                                                        <span className="ml-2 text-xs text-gray-400">
+                                                        <span className="text-gray-700">{runDate.toLocaleDateString()}</span>{' '}
+                                                        <span className="ml-1.5 text-xs text-gray-400">
                                                             {runDate.toLocaleTimeString(undefined, {hour: 'numeric', minute: '2-digit'})}
                                                         </span>
                                                     </>

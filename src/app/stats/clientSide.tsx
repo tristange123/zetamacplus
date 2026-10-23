@@ -206,8 +206,8 @@ function PastRuns({tests, selectedTestId, onSelectTest}: PastRunsProps) {
                                     }`}
                                 >
                                     <td className={`border-l-2 px-4 py-2.5 ${isSelected ? 'border-gray-800' : 'border-transparent'}`}>
-                                        <span className="font-semibold tabular-nums text-gray-900">{test.score}</span>
-                                        <span className="ml-1 text-xs text-gray-400">pts</span>
+                                        <span className="font-semibold tabular-nums text-gray-900">{test.score}</span>{' '}
+                                        <span className="text-xs text-gray-400">pts</span>
                                     </td>
                                     <td className="px-4 py-2.5">
                                         <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium capitalize text-gray-700">
@@ -216,8 +216,8 @@ function PastRuns({tests, selectedTestId, onSelectTest}: PastRunsProps) {
                                         </span>
                                     </td>
                                     <td className="px-4 py-2.5 tabular-nums">
-                                        <span className="text-gray-700">{runDate.toLocaleDateString()}</span>
-                                        <span className="ml-2 text-xs text-gray-400">
+                                        <span className="text-gray-700">{runDate.toLocaleDateString()}</span>{' '}
+                                        <span className="ml-1.5 text-xs text-gray-400">
                                             {runDate.toLocaleTimeString(undefined, {hour: 'numeric', minute: '2-digit'})}
                                         </span>
                                     </td>

@@ -42,6 +42,10 @@ export async function createProfileForUser(user: User) {
 
 export const auth = betterAuth({
     baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
+    // Parallel Playwright workers sign up from the same IP and trip the default limit
+    rateLimit: {
+        enabled: process.env.APP_ENV !== "test",
+    },
     emailAndPassword: {
         enabled: true,
     },

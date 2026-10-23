@@ -123,48 +123,49 @@ export default function StartClientSide({userLoggedIn}: startProps) {
     const showDailyStreak = dailyStatus !== 'loading' && dailyStatus !== 'error';
     const selectedExample = gameModeDisplay[gameModeInput].example;
 
-    // Rendered top-left on wide screens and inline under Start on narrow ones.
     function renderDailyCard(className: string) {
         return (
-            <div className={`items-center gap-4 rounded-xl border border-gray-300 bg-white px-5 py-4 shadow-sm ${className}`}>
-                <div className="shrink-0 rounded-lg bg-gray-100 p-2.5 text-gray-700">
-                    <CalendarDays size={22} aria-hidden="true" />
+            <div className={className}>
+                <div className="flex items-center gap-4 rounded-xl border border-gray-300 bg-white px-5 py-4 shadow-sm">
+                    <div className="shrink-0 rounded-lg bg-gray-100 p-2.5 text-gray-700">
+                        <CalendarDays size={22} aria-hidden="true" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                        <p className="flex items-center gap-2 text-base font-semibold text-gray-900">
+                            Daily
+                            {showDailyStreak && (
+                                <span
+                                    className="flex items-center gap-1 text-sm font-semibold text-gray-700"
+                                    aria-label={`Current streak: ${currentStreak} days`}
+                                >
+                                    <Flame
+                                        size={15}
+                                        className={dailyFinishedToday ? 'fill-red-500 text-red-500' : 'text-gray-400'}
+                                        aria-hidden="true"
+                                    />
+                                    {currentStreak}
+                                </span>
+                            )}
+                        </p>
+                        <p className="mt-0.5 truncate text-xs text-gray-500">{dailyDescription}</p>
+                    </div>
+                    {dailyCompleted ? (
+                        <span className="flex shrink-0 items-center gap-1.5 rounded-md bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-500">
+                            <Check size={16} aria-hidden="true" />
+                            Done
+                        </span>
+                    ) : (
+                        <button
+                            type="button"
+                            disabled={!dailyAvailable || isStarting}
+                            onClick={() => void startGame('daily')}
+                            className="group flex shrink-0 items-center gap-2 rounded-md border border-gray-900 px-4 py-2.5 text-sm font-semibold text-gray-900 transition hover:bg-gray-900 hover:text-white disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-transparent"
+                        >
+                            Play
+                            <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                        </button>
+                    )}
                 </div>
-                <div className="min-w-0 flex-1">
-                    <p className="flex items-center gap-2 text-base font-semibold text-gray-900">
-                        Daily
-                        {showDailyStreak && (
-                            <span
-                                className="flex items-center gap-1 text-sm font-semibold text-gray-700"
-                                aria-label={`Current streak: ${currentStreak} days`}
-                            >
-                                <Flame
-                                    size={15}
-                                    className={dailyFinishedToday ? 'fill-red-500 text-red-500' : 'text-gray-400'}
-                                    aria-hidden="true"
-                                />
-                                {currentStreak}
-                            </span>
-                        )}
-                    </p>
-                    <p className="mt-0.5 truncate text-xs text-gray-500">{dailyDescription}</p>
-                </div>
-                {dailyCompleted ? (
-                    <span className="flex shrink-0 items-center gap-1.5 rounded-md bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-500">
-                        <Check size={16} aria-hidden="true" />
-                        Done
-                    </span>
-                ) : (
-                    <button
-                        type="button"
-                        disabled={!dailyAvailable || isStarting}
-                        onClick={() => void startGame('daily')}
-                        className="group flex shrink-0 items-center gap-2 rounded-md border border-gray-900 px-4 py-2.5 text-sm font-semibold text-gray-900 transition hover:bg-gray-900 hover:text-white disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-transparent"
-                    >
-                        Play
-                        <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-                    </button>
-                )}
             </div>
         );
     }
@@ -294,17 +295,16 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                         </button>
                     </div>
 
-                    {userLoggedIn && (
-                        <div className="mx-auto mt-10 w-full max-w-md px-4 lg:hidden">
-                            {renderDailyCard('flex')}
-                        </div>
-                    )}
-                    {renderOtherModes('mt-10 lg:hidden')}
                 </div>
 
-                {renderOtherModes('absolute bottom-20 left-0 right-0 hidden lg:block')}
+                {/* Under Start on narrow screens; daily moves top-left and the other modes sit above the footer on wide ones. */}
+                {userLoggedIn && renderDailyCard(
+                    'absolute left-1/2 top-[calc(40%+10.5rem)] w-full max-w-md -translate-x-1/2 px-4 lg:left-0 lg:-top-4 lg:w-80 lg:max-w-none lg:translate-x-0 lg:px-0'
+                )}
 
-                {userLoggedIn && renderDailyCard('absolute left-0 -top-4 hidden w-80 lg:flex')}
+                {renderOtherModes(`absolute left-0 right-0 lg:top-auto lg:bottom-20 ${
+                    userLoggedIn ? 'top-[calc(40%+17.75rem)]' : 'top-[calc(40%+10.5rem)]'
+                }`)}
 
             <footer className="absolute bottom-0 left-0 right-0 flex justify-center gap-10 border-t border-gray-200 pt-5">
                     <Link
