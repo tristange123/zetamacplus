@@ -1,11 +1,12 @@
 'use client'
 
-import {Calculator, ChevronRight, Clock, Rabbit, Skull, SportShoe, X, type LucideIcon} from 'lucide-react';
+import {ArrowDown, ArrowUp, Calculator, ChevronRight, Clock, Rabbit, Skull, SportShoe, X, type LucideIcon} from 'lucide-react';
 import {CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from 'recharts';
 import {useState, type FormEvent} from 'react';
 import {type GameModeTopTests, type ProblemDb, type ProfileDb, type TestDb} from '@/types/dbTypes.js'
 import {type MainGameModeName} from '@/types/frontendTypes'
 import {getDisplayedDailyStreak} from '@/lib/profile/dailyStreak'
+import {ColumnMenu, MenuCheckbox, MenuSectionLabel} from '@/components/ColumnMenu'
 
 type StatsGameModeName = MainGameModeName | 'daily';
 
@@ -38,44 +39,195 @@ const RANK_CONFIG = [
     },
 ];
 
+type PastRunsSort = 'newest' | 'oldest' | 'scoreDesc' | 'scoreAsc';
+
+const KNOWN_MODE_ORDER: string[] = ['standard', 'sprint', 'rapid', 'hard', 'daily'];
+
+function sortPastRuns(tests: TestDb[], sort: PastRunsSort): TestDb[] {
+    const timeOf = (test: TestDb) => new Date(test.time).getTime();
+    return [...tests].sort((a, b) => {
+        if (sort === 'scoreDesc') return b.score - a.score || timeOf(b) - timeOf(a);
+        if (sort === 'scoreAsc') return a.score - b.score || timeOf(b) - timeOf(a);
+        if (sort === 'oldest') return timeOf(a) - timeOf(b);
+        return timeOf(b) - timeOf(a);
+    });
+}
+
+function getModeOptions(tests: TestDb[]): string[] {
+    const modes = new Set(tests.map((test) => test.gameMode));
+    const rank = (mode: string) => {
+        const index = KNOWN_MODE_ORDER.indexOf(mode);
+        return index === -1 ? KNOWN_MODE_ORDER.length : index;
+    };
+    return [...modes].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+}
+
 type PastRunsProps = {
     tests: TestDb[],
     selectedTestId: string | null,
     onSelectTest: (test: TestDb) => void
 }
 function PastRuns({tests, selectedTestId, onSelectTest}: PastRunsProps) {
+    const [sort, setSort] = useState<PastRunsSort>('newest');
+    const [hiddenModes, setHiddenModes] = useState<Set<string>>(new Set());
+
+    const modeOptions = getModeOptions(tests);
+    const filteredTests = hiddenModes.size === 0
+        ? tests
+        : tests.filter((test) => !hiddenModes.has(test.gameMode));
+    const visibleTests = sortPastRuns(filteredTests, sort);
+    const isScoreSort = sort === 'scoreDesc' || sort === 'scoreAsc';
+    const isFiltered = hiddenModes.size > 0;
+    const isCustomized = isFiltered || sort !== 'newest';
+
+    function toggleMode(mode: string) {
+        setHiddenModes((current) => {
+            const next = new Set(current);
+            if (next.has(mode)) next.delete(mode);
+            else next.add(mode);
+            return next;
+        });
+    }
+
+    // Clicking a checked sort option again falls back to the default sort.
+    function toggleSort(option: PastRunsSort) {
+        setSort((current) => current === option ? 'newest' : option);
+    }
+
+    const SortArrow = sort === 'scoreAsc' || sort === 'oldest' ? ArrowUp : ArrowDown;
+
     return (
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white p-4 md:p-5">
-            <div className="mb-4 border-b border-gray-200 pb-3">
-                <h2 className="text-lg font-semibold tracking-tight text-gray-900">Past Runs</h2>
+            <div className="mb-4 flex items-end justify-between gap-3 border-b border-gray-200 pb-3">
+                <div>
+                    <h2 className="text-lg font-semibold tracking-tight text-gray-900">Past Runs</h2>
+                    <p className="mt-0.5 text-xs text-gray-500">
+                        {visibleTests.length} {visibleTests.length === 1 ? 'run' : 'runs'}
+                        {isFiltered && ` of ${tests.length}`}
+                    </p>
+                </div>
+                {isCustomized && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setSort('newest');
+                            setHiddenModes(new Set());
+                        }}
+                        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+                    >
+                        <X className="h-3.5 w-3.5" aria-hidden="true" />
+                        Reset
+                    </button>
+                )}
             </div>
             <div className="max-h-100 overflow-auto rounded-md border border-gray-200">
                 <table className="min-w-[28rem] w-full text-xs md:min-w-0 md:text-sm">
                     <thead className="sticky top-0 z-10">
-                        <tr className="border-b border-gray-200 bg-gray-100 text-center text-[0.6875rem] font-semibold uppercase tracking-wider text-gray-500">
-                            <th className="px-3 py-2">Score</th>
-                            <th className="px-3 py-2">Mode</th>
-                            <th className="px-3 py-2">Time</th>
-                            <th className="w-10 px-3 py-2" aria-label="View problems"></th>
+                        <tr className="border-b border-gray-200 bg-gray-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wider text-gray-500">
+                            <th className="px-4 py-1.5">
+                                <ColumnMenu
+                                    label="Score"
+                                    active={isScoreSort}
+                                    indicator={isScoreSort && <SortArrow className="h-3 w-3" aria-hidden="true" />}
+                                >
+                                    <MenuSectionLabel>Sort by score</MenuSectionLabel>
+                                    <MenuCheckbox checked={sort === 'scoreDesc'} onChange={() => toggleSort('scoreDesc')} icon={ArrowDown}>
+                                        Highest first
+                                    </MenuCheckbox>
+                                    <MenuCheckbox checked={sort === 'scoreAsc'} onChange={() => toggleSort('scoreAsc')} icon={ArrowUp}>
+                                        Lowest first
+                                    </MenuCheckbox>
+                                </ColumnMenu>
+                            </th>
+                            <th className="px-4 py-1.5">
+                                <ColumnMenu
+                                    label="Mode"
+                                    active={isFiltered}
+                                    indicator={isFiltered && (
+                                        <span className="rounded-full bg-gray-900 px-1.5 text-[0.625rem] leading-4 text-white">
+                                            {modeOptions.length - hiddenModes.size}
+                                        </span>
+                                    )}
+                                >
+                                    <div className="flex items-center justify-between pr-1">
+                                        <MenuSectionLabel>Show modes</MenuSectionLabel>
+                                        <button
+                                            type="button"
+                                            onClick={() => setHiddenModes(isFiltered ? new Set() : new Set(modeOptions))}
+                                            className="rounded px-1.5 py-0.5 text-xs font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+                                        >
+                                            {isFiltered ? 'Select all' : 'Clear'}
+                                        </button>
+                                    </div>
+                                    {modeOptions.length === 0 && (
+                                        <p className="px-2 py-1.5 text-xs text-gray-400">No modes yet.</p>
+                                    )}
+                                    {modeOptions.map((mode) => (
+                                        <MenuCheckbox
+                                            key={mode}
+                                            checked={!hiddenModes.has(mode)}
+                                            onChange={() => toggleMode(mode)}
+                                            icon={GAME_MODE_ICONS[mode as StatsGameModeName]}
+                                        >
+                                            {mode}
+                                        </MenuCheckbox>
+                                    ))}
+                                </ColumnMenu>
+                            </th>
+                            <th className="px-4 py-1.5">
+                                <ColumnMenu
+                                    label="Date"
+                                    active={!isScoreSort}
+                                    indicator={!isScoreSort && <SortArrow className="h-3 w-3" aria-hidden="true" />}
+                                >
+                                    <MenuSectionLabel>Sort by date</MenuSectionLabel>
+                                    <MenuCheckbox checked={sort === 'newest'} onChange={() => setSort('newest')} icon={ArrowDown}>
+                                        Newest first
+                                    </MenuCheckbox>
+                                    <MenuCheckbox checked={sort === 'oldest'} onChange={() => toggleSort('oldest')} icon={ArrowUp}>
+                                        Oldest first
+                                    </MenuCheckbox>
+                                </ColumnMenu>
+                            </th>
+                            <th className="w-12 px-4 py-1.5" aria-label="View problems"></th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
-                        {tests.map((test) => {
+                    <tbody className="divide-y divide-gray-100">
+                        {visibleTests.map((test) => {
                             const isSelected = test.id === selectedTestId;
+                            const ModeIcon: LucideIcon | undefined = GAME_MODE_ICONS[test.gameMode as StatsGameModeName];
+                            const runDate = new Date(test.time);
                             return (
                                 <tr
                                     key={test.id}
-                                    className={`text-center text-gray-700 transition ${
+                                    onClick={() => onSelectTest(test)}
+                                    className={`cursor-pointer text-gray-700 transition ${
                                         isSelected ? 'bg-gray-100' : 'bg-white hover:bg-gray-50'
                                     }`}
                                 >
-                                    <td className="px-3 py-2 font-medium text-gray-800">{test.score} pts</td>
-                                    <td className="px-3 py-2">{test.gameMode}</td>
-                                    <td className="px-3 py-2 text-gray-600">{new Date(test.time).toLocaleString()}</td>
-                                    <td className="px-3 py-2 text-gray-500">
+                                    <td className={`border-l-2 px-4 py-2.5 ${isSelected ? 'border-gray-800' : 'border-transparent'}`}>
+                                        <span className="font-semibold tabular-nums text-gray-900">{test.score}</span>
+                                        <span className="ml-1 text-xs text-gray-400">pts</span>
+                                    </td>
+                                    <td className="px-4 py-2.5">
+                                        <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium capitalize text-gray-700">
+                                            {ModeIcon && <ModeIcon className="h-3.5 w-3.5 text-gray-500" aria-hidden="true" />}
+                                            {test.gameMode}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-2.5 tabular-nums">
+                                        <span className="text-gray-700">{runDate.toLocaleDateString()}</span>
+                                        <span className="ml-2 text-xs text-gray-400">
+                                            {runDate.toLocaleTimeString(undefined, {hour: 'numeric', minute: '2-digit'})}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-2.5 text-gray-500">
                                         <button
                                             type="button"
-                                            onClick={() => onSelectTest(test)}
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                onSelectTest(test);
+                                            }}
                                             className="mx-auto flex rounded-full p-1 transition hover:bg-gray-200"
                                             aria-label={`${isSelected ? 'Hide' : 'View'} problems for this run`}
                                         >
@@ -88,10 +240,10 @@ function PastRuns({tests, selectedTestId, onSelectTest}: PastRunsProps) {
                                 </tr>
                             );
                         })}
-                        {tests.length === 0 && (
+                        {visibleTests.length === 0 && (
                             <tr>
-                                <td colSpan={4} className="px-3 py-6 text-center text-sm text-gray-500">
-                                    No runs yet.
+                                <td colSpan={4} className="px-4 py-8 text-center text-sm text-gray-500">
+                                    {tests.length === 0 ? 'No runs yet.' : 'No runs match this filter.'}
                                 </td>
                             </tr>
                         )}

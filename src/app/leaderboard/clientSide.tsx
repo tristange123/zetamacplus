@@ -1,11 +1,14 @@
 'use client'
 
 import {
+    ArrowDown,
+    ArrowUp,
     Calculator,
     CalendarDays,
     ChevronDown,
     ChevronRight,
     Rabbit,
+    Search,
     Skull,
     SportShoe,
     Trophy,
@@ -15,6 +18,7 @@ import {
 import {useState} from 'react';
 import {type ProblemDb} from '@/types/dbTypes';
 import {type MainGameModeName} from '@/types/frontendTypes';
+import {ColumnMenu, MenuCheckbox, MenuSectionLabel} from '@/components/ColumnMenu';
 
 export type LeaderboardGameModeName = MainGameModeName | 'daily';
 
@@ -28,6 +32,22 @@ export type LeaderboardRow = {
 export type LeaderboardData = Record<LeaderboardGameModeName, LeaderboardRow[]>
 export type ProblemsSolvedLeaderboardData = Record<MainGameModeName, LeaderboardRow[]>
 type LeaderboardMetric = 'highScore' | 'problemsSolved';
+type LeaderboardSort = 'rank' | 'newest' | 'oldest';
+
+type RankedRow = {
+    row: LeaderboardRow,
+    rank: number,
+}
+
+// Rows arrive in rank order, so the rank is captured before any re-sorting.
+function sortRankedRows(rows: RankedRow[], sort: LeaderboardSort): RankedRow[] {
+    const timeOf = ({row}: RankedRow) => row.time ? new Date(row.time).getTime() : 0;
+    return [...rows].sort((a, b) => {
+        if (sort === 'newest') return timeOf(b) - timeOf(a) || a.rank - b.rank;
+        if (sort === 'oldest') return timeOf(a) - timeOf(b) || a.rank - b.rank;
+        return a.rank - b.rank;
+    });
+}
 
 const GAME_MODE_ICONS: Record<LeaderboardGameModeName, LucideIcon> = {
     standard: Calculator,
@@ -47,14 +67,10 @@ function formatGameMode(gameMode: LeaderboardGameModeName) {
     return gameMode.charAt(0).toUpperCase() + gameMode.slice(1);
 }
 
-function formatTime(time: string) {
-    return new Date(time).toLocaleString();
-}
-
 function formatLeaderboardTime(time: string | null, gameMode: LeaderboardGameModeName) {
     if (gameMode === 'daily') return 'Today';
     if (time === null) return '—';
-    return formatTime(time);
+    return new Date(time).toLocaleString();
 }
 
 function formatSolveTime(seconds: number | null): string {
@@ -72,18 +88,43 @@ export default function ClientSide({gameModes, leaderboards, problemsSolvedLeade
     const [problems, setProblems] = useState<ProblemDb[]>([]);
     const [loadingProblems, setLoadingProblems] = useState(false);
     const [problemError, setProblemError] = useState('');
+    const [sort, setSort] = useState<LeaderboardSort>('rank');
+    const [usernameQuery, setUsernameQuery] = useState('');
     const rows = selectedMetric === 'problemsSolved' && selectedGameMode !== 'daily'
         ? problemsSolvedLeaderboards[selectedGameMode] ?? []
         : leaderboards[selectedGameMode] ?? [];
     const showTimeColumn = selectedMetric === 'highScore' && selectedGameMode !== 'daily';
     const showDetailsColumn = selectedMetric === 'highScore';
     const GameModeIcon = GAME_MODE_ICONS[selectedGameMode];
+    const scoreLabel = selectedMetric === 'problemsSolved' ? 'Problems Solved' : 'Score';
+    const columnCount = 3 + Number(showTimeColumn) + Number(showDetailsColumn);
+
+    const normalizedQuery = usernameQuery.trim().toLowerCase();
+    const rankedRows = rows.map((row, index) => ({row, rank: index + 1}));
+    const filteredRows = normalizedQuery
+        ? rankedRows.filter(({row}) => row.username.toLowerCase().includes(normalizedQuery))
+        : rankedRows;
+    const visibleRows = sortRankedRows(filteredRows, sort);
+    const isFiltered = normalizedQuery.length > 0;
+    const isCustomized = isFiltered || sort !== 'rank';
+    const isDateSort = sort === 'newest' || sort === 'oldest';
+
+    function resetTableOptions() {
+        setSort('rank');
+        setUsernameQuery('');
+    }
+
+    // Clicking a checked sort option again falls back to rank order.
+    function toggleSort(option: LeaderboardSort) {
+        setSort((current) => current === option ? 'rank' : option);
+    }
 
     function selectMainGameMode(gameMode: MainGameModeName) {
         setSelectedGameMode(gameMode);
         setSelectedMetric('highScore');
         setExpandedGameMode((expanded) => expanded === gameMode ? null : gameMode);
         setSelectedRow(null);
+        resetTableOptions();
     }
 
     function selectMetric(gameMode: MainGameModeName, metric: LeaderboardMetric) {
@@ -91,12 +132,14 @@ export default function ClientSide({gameModes, leaderboards, problemsSolvedLeade
         setSelectedMetric(metric);
         setExpandedGameMode(gameMode);
         setSelectedRow(null);
+        resetTableOptions();
     }
 
     function selectDaily() {
         setSelectedGameMode('daily');
         setSelectedMetric('highScore');
         setSelectedRow(null);
+        resetTableOptions();
     }
 
     async function toggleProblemSidebar(row: LeaderboardRow) {
@@ -217,49 +260,128 @@ export default function ClientSide({gameModes, leaderboards, problemsSolvedLeade
                     </div>
                 </div>
 
+                <div className="mb-3 flex min-h-7 items-center justify-between gap-3">
+                    <p className="text-xs text-gray-500">
+                        {visibleRows.length} {visibleRows.length === 1 ? 'player' : 'players'}
+                        {isFiltered && ` of ${rows.length}`}
+                    </p>
+                    {isCustomized && (
+                        <button
+                            type="button"
+                            onClick={resetTableOptions}
+                            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-gray-500 transition hover:bg-gray-200 hover:text-gray-800"
+                        >
+                            <X className="h-3.5 w-3.5" aria-hidden="true" />
+                            Reset
+                        </button>
+                    )}
+                </div>
+
                 <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
                     <table className="w-full text-xs sm:text-sm">
                         <thead>
-                            <tr className="border-b border-gray-200 bg-gray-100 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                <th className="w-14 px-2 py-3 sm:w-20 sm:px-4">Rank</th>
-                                <th className="px-2 py-3 sm:px-4">Username</th>
-                                <th className="px-2 py-3 sm:px-4">
-                                    {selectedMetric === 'problemsSolved' ? 'Problems Solved' : 'Score'}
+                            <tr className="border-b border-gray-200 bg-gray-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wider text-gray-500">
+                                <th className="w-14 px-3 py-2.5 sm:w-20 sm:px-4">Rank</th>
+                                <th className="px-3 py-1.5 sm:px-4">
+                                    <ColumnMenu
+                                        label="Username"
+                                        active={isFiltered}
+                                        indicator={isFiltered && <Search className="h-3 w-3" aria-hidden="true" />}
+                                    >
+                                        <MenuSectionLabel>Find player</MenuSectionLabel>
+                                        <div className="relative px-1 pb-1">
+                                            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+                                            <input
+                                                type="search"
+                                                value={usernameQuery}
+                                                onChange={(event) => setUsernameQuery(event.target.value)}
+                                                placeholder="Username"
+                                                aria-label="Filter by username"
+                                                autoFocus
+                                                className="w-full rounded-md border border-gray-300 py-1.5 pl-7 pr-2 text-xs text-gray-800 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200"
+                                            />
+                                        </div>
+                                    </ColumnMenu>
                                 </th>
-                                {showTimeColumn && <th className="hidden px-4 py-3 sm:table-cell">Time</th>}
+                                <th className="px-3 py-2.5 sm:px-4">{scoreLabel}</th>
+                                {showTimeColumn && (
+                                    <th className="hidden px-4 py-1.5 sm:table-cell">
+                                        <ColumnMenu
+                                            label="Date"
+                                            active={isDateSort}
+                                            indicator={isDateSort && (
+                                                sort === 'oldest'
+                                                    ? <ArrowUp className="h-3 w-3" aria-hidden="true" />
+                                                    : <ArrowDown className="h-3 w-3" aria-hidden="true" />
+                                            )}
+                                        >
+                                            <MenuSectionLabel>Sort by date</MenuSectionLabel>
+                                            <MenuCheckbox checked={sort === 'newest'} onChange={() => toggleSort('newest')} icon={ArrowDown}>
+                                                Newest first
+                                            </MenuCheckbox>
+                                            <MenuCheckbox checked={sort === 'oldest'} onChange={() => toggleSort('oldest')} icon={ArrowUp}>
+                                                Oldest first
+                                            </MenuCheckbox>
+                                        </ColumnMenu>
+                                    </th>
+                                )}
                                 {showDetailsColumn && (
-                                    <th className="w-10 px-2 py-3 sm:w-12 sm:px-4" aria-label="View problems"></th>
+                                    <th className="w-10 px-2 py-2.5 sm:w-12 sm:px-4" aria-label="View problems"></th>
                                 )}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200">
-                            {rows.map((row, index) => {
-                                const isSelected = selectedRow?.testId === row.testId;
+                        <tbody className="divide-y divide-gray-100">
+                            {visibleRows.map(({row, rank}) => {
+                                const isSelected = row.testId != null && selectedRow?.testId === row.testId;
+                                const isClickable = showDetailsColumn && row.testId != null;
+                                const runDate = row.time ? new Date(row.time) : null;
                                 return (
                                     <tr
-                                        key={`${row.username}-${row.time}-${index}`}
-                                        className={`text-center text-gray-700 transition hover:bg-gray-50 ${
-                                            isSelected ? 'bg-gray-50' : ''
+                                        key={`${row.username}-${row.time}-${rank}`}
+                                        onClick={isClickable ? () => toggleProblemSidebar(row) : undefined}
+                                        className={`text-gray-700 transition ${isClickable ? 'cursor-pointer' : ''} ${
+                                            isSelected ? 'bg-gray-100' : 'bg-white hover:bg-gray-50'
                                         }`}
                                     >
-                                        <td className="px-2 py-3 font-semibold tabular-nums text-gray-700 sm:px-4">
-                                            {index === 0 ? (
-                                                <Trophy className="mx-auto h-5 w-5 text-yellow-500" aria-label="First place" />
+                                        <td className={`border-l-2 px-3 py-2.5 font-semibold tabular-nums text-gray-500 sm:px-4 ${
+                                            isSelected ? 'border-gray-800' : 'border-transparent'
+                                        }`}>
+                                            {rank === 1 ? (
+                                                <Trophy className="h-5 w-5 text-yellow-500" aria-label="First place" />
                                             ) : (
-                                                index + 1
+                                                rank
                                             )}
                                         </td>
-                                        <td className="break-words px-2 py-3 font-medium text-gray-800 sm:px-4">{row.username}</td>
-                                        <td className="px-2 py-3 tabular-nums sm:px-4">{row.score}</td>
+                                        <td className="break-words px-3 py-2.5 font-medium text-gray-800 sm:px-4">{row.username}</td>
+                                        <td className="px-3 py-2.5 sm:px-4">
+                                            <span className="font-semibold tabular-nums text-gray-900">{row.score}</span>
+                                            {selectedMetric === 'highScore' && (
+                                                <span className="ml-1 text-xs text-gray-400">pts</span>
+                                            )}
+                                        </td>
                                         {showTimeColumn && (
-                                            <td className="hidden px-4 py-3 text-gray-600 sm:table-cell">{formatLeaderboardTime(row.time, selectedGameMode)}</td>
+                                            <td className="hidden px-4 py-2.5 tabular-nums sm:table-cell">
+                                                {runDate ? (
+                                                    <>
+                                                        <span className="text-gray-700">{runDate.toLocaleDateString()}</span>
+                                                        <span className="ml-2 text-xs text-gray-400">
+                                                            {runDate.toLocaleTimeString(undefined, {hour: 'numeric', minute: '2-digit'})}
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    <span className="text-gray-400">—</span>
+                                                )}
+                                            </td>
                                         )}
                                         {showDetailsColumn && (
-                                            <td className="px-2 py-3 text-gray-500 sm:px-4">
+                                            <td className="px-2 py-2.5 text-gray-500 sm:px-4">
                                                 <button
                                                     type="button"
-                                                    onClick={() => toggleProblemSidebar(row)}
-                                                    className="mx-auto flex rounded-full p-1 transition hover:bg-gray-100"
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        toggleProblemSidebar(row);
+                                                    }}
+                                                    className="mx-auto flex rounded-full p-1 transition hover:bg-gray-200"
                                                     aria-label={`${isSelected ? 'Hide' : 'View'} problems for ${row.username}`}
                                                 >
                                                     <ChevronRight
@@ -272,10 +394,10 @@ export default function ClientSide({gameModes, leaderboards, problemsSolvedLeade
                                     </tr>
                                 );
                             })}
-                            {rows.length === 0 && (
+                            {visibleRows.length === 0 && (
                                 <tr>
-                                    <td colSpan={3 + Number(showTimeColumn) + Number(showDetailsColumn)} className="px-4 py-8 text-center text-sm text-gray-500">
-                                        No leaderboard entries yet.
+                                    <td colSpan={columnCount} className="px-4 py-8 text-center text-sm text-gray-500">
+                                        {rows.length === 0 ? 'No leaderboard entries yet.' : 'No players match this search.'}
                                     </td>
                                 </tr>
                             )}

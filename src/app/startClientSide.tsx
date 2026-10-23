@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { type MainGameModeName } from '@/types/frontendTypes'
-import { ArrowRight, Calculator, CalendarDays, Flame, Info, Mail, Rabbit, Shapes, Skull, SlidersHorizontal, SportShoe, Wrench, type LucideIcon } from 'lucide-react'
+import { ArrowRight, Calculator, CalendarDays, Check, Flame, Info, Mail, Rabbit, Shapes, Skull, SlidersHorizontal, SportShoe, Wrench, type LucideIcon } from 'lucide-react'
 import Link from 'next/link';
 type startProps = {
     userLoggedIn: boolean
@@ -16,7 +16,7 @@ type DailyStatus = 'loading' | 'available' | 'completed' | 'error';
 export default function StartClientSide({userLoggedIn}: startProps) {
     const router = useRouter();
 
-    const [gameModeInput, setGameModeInput] = useState<MainGameModeName | 'daily'>('standard');
+    const [gameModeInput, setGameModeInput] = useState<MainGameModeName>('standard');
     const [isStarting, setIsStarting] = useState(false);
     const [dailyStatus, setDailyStatus] = useState<DailyStatus>('loading');
     const [dailyScore, setDailyScore] = useState<number | null>(null);
@@ -102,39 +102,101 @@ export default function StartClientSide({userLoggedIn}: startProps) {
         setGameModeInput(mode);
     }
 
-    function selectDailyMode() {
-        setGameModeInput('daily');
-    }
-
-    async function handleStart (mode: MainGameModeName | 'daily' = gameModeInput) {
-        if (mode === "daily" && !dailyAvailable) return;
-        router.push(`/game/${mode}`);
-    }
-
-    async function handleMainStart() {
+    async function startGame(mode: MainGameModeName | 'daily') {
         if (isStarting) return;
+        if (mode === 'daily' && !dailyAvailable) return;
 
         setIsStarting(true);
         await new Promise((resolve) => window.setTimeout(resolve, 140));
-        await handleStart();
+        router.push(`/game/${mode}`);
     }
 
-    const dailyDescription = !userLoggedIn
-        ? 'Log in to unlock'
-        : dailyCompleted
-            ? dailyFinishedToday
-                ? `Completed · ${dailyScore ?? 0} points`
-                : 'Attempt already claimed'
-            : dailyStatus === 'loading'
-                ? 'Checking availability…'
-                : dailyStatus === 'error'
-                    ? 'Unavailable right now'
-                    : 'One shared challenge';
-    const showDailyStreak = userLoggedIn && dailyStatus !== 'loading' && dailyStatus !== 'error';
-    const dailyDisabled = !userLoggedIn || !dailyAvailable;
-    const selectedExample = gameModeInput === 'daily'
-        ? gameModeDisplay.standard.example
-        : gameModeDisplay[gameModeInput].example;
+    const dailyDescription = dailyCompleted
+        ? dailyFinishedToday
+            ? `Completed · ${dailyScore ?? 0} points`
+            : 'Attempt already claimed'
+        : dailyStatus === 'loading'
+            ? 'Checking availability…'
+            : dailyStatus === 'error'
+                ? 'Unavailable right now'
+                : 'One shared challenge';
+    const showDailyStreak = dailyStatus !== 'loading' && dailyStatus !== 'error';
+    const selectedExample = gameModeDisplay[gameModeInput].example;
+
+    // Rendered top-left on wide screens and inline under Start on narrow ones.
+    function renderDailyCard(className: string) {
+        return (
+            <div className={`items-center gap-4 rounded-xl border border-gray-300 bg-white px-5 py-4 shadow-sm ${className}`}>
+                <div className="shrink-0 rounded-lg bg-gray-100 p-2.5 text-gray-700">
+                    <CalendarDays size={22} aria-hidden="true" />
+                </div>
+                <div className="min-w-0 flex-1">
+                    <p className="flex items-center gap-2 text-base font-semibold text-gray-900">
+                        Daily
+                        {showDailyStreak && (
+                            <span
+                                className="flex items-center gap-1 text-sm font-semibold text-gray-700"
+                                aria-label={`Current streak: ${currentStreak} days`}
+                            >
+                                <Flame
+                                    size={15}
+                                    className={dailyFinishedToday ? 'fill-red-500 text-red-500' : 'text-gray-400'}
+                                    aria-hidden="true"
+                                />
+                                {currentStreak}
+                            </span>
+                        )}
+                    </p>
+                    <p className="mt-0.5 truncate text-xs text-gray-500">{dailyDescription}</p>
+                </div>
+                {dailyCompleted ? (
+                    <span className="flex shrink-0 items-center gap-1.5 rounded-md bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-500">
+                        <Check size={16} aria-hidden="true" />
+                        Done
+                    </span>
+                ) : (
+                    <button
+                        type="button"
+                        disabled={!dailyAvailable || isStarting}
+                        onClick={() => void startGame('daily')}
+                        className="group flex shrink-0 items-center gap-2 rounded-md border border-gray-900 px-4 py-2.5 text-sm font-semibold text-gray-900 transition hover:bg-gray-900 hover:text-white disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-transparent"
+                    >
+                        Play
+                        <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                    </button>
+                )}
+            </div>
+        );
+    }
+
+    function renderOtherModes(className: string) {
+        return (
+            <div className={className}>
+                <div className="mx-auto grid w-full max-w-md grid-cols-2 gap-3 px-4">
+                    <Link
+                        href="/custom"
+                        className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-left transition hover:border-gray-300 hover:bg-gray-100"
+                    >
+                        <SlidersHorizontal size={16} className="shrink-0 text-gray-400" aria-hidden="true" />
+                        <span className="min-w-0">
+                            <span className="block text-xs font-semibold text-gray-500">Custom</span>
+                            <span className="mt-0.5 block truncate text-[0.6875rem] leading-4 text-gray-400">Set your own rules</span>
+                        </span>
+                    </Link>
+                    <Link
+                        href="/otherGameModes"
+                        className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-left transition hover:border-gray-300 hover:bg-gray-100"
+                    >
+                        <Shapes size={16} className="shrink-0 text-gray-400" aria-hidden="true" />
+                        <span className="min-w-0">
+                            <span className="block text-xs font-semibold text-gray-500">Other modes</span>
+                            <span className="mt-0.5 block truncate text-[0.6875rem] leading-4 text-gray-400">More ways to play</span>
+                        </span>
+                    </Link>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <section
@@ -224,7 +286,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                         <button
                             type="button"
                             disabled={isStarting}
-                            onClick={() => void handleMainStart()}
+                            onClick={() => void startGame(gameModeInput)}
                             className="group flex items-center justify-center gap-3 rounded-md bg-gray-900 px-10 py-3.5 text-sm font-semibold text-white transition hover:bg-black"
                         >
                             Start
@@ -232,68 +294,17 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                         </button>
                     </div>
 
-                    <div className="mx-auto mt-5 grid w-full max-w-3xl gap-3 sm:grid-cols-3">
-                    <button
-                        type="button"
-                        disabled={dailyDisabled}
-                        aria-pressed={gameModeInput === 'daily'}
-                        onClick={selectDailyMode}
-                        className={`group relative flex min-h-24 items-center gap-4 rounded-lg border px-5 py-4 pr-16 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
-                            gameModeInput === 'daily'
-                                ? 'border-gray-400 bg-gray-200 text-gray-900'
-                                : 'border-gray-300 bg-white text-gray-900 hover:border-gray-500 hover:bg-gray-50 disabled:hover:border-gray-300 disabled:hover:bg-white'
-                        }`}
-                    >
-                        <CalendarDays
-                            size={20}
-                            className={`shrink-0 ${gameModeInput === 'daily' ? 'text-gray-700' : 'text-gray-500'}`}
-                            aria-hidden="true"
-                        />
-                        <span>
-                            <span className="block text-sm font-semibold">Daily</span>
-                            <span className={`mt-1 block text-xs leading-4 ${
-                                gameModeInput === 'daily' ? 'text-gray-600' : 'text-gray-500'
-                            }`}>
-                                {dailyDescription}
-                            </span>
-                            {showDailyStreak && (
-                                <span
-                                    className="absolute right-5 top-4 flex items-center gap-1 text-xs font-semibold text-gray-600"
-                                    aria-label={`Current streak: ${currentStreak} days`}
-                                >
-                                    <Flame
-                                        size={14}
-                                        className={dailyFinishedToday ? 'fill-red-500 text-red-500' : 'text-gray-400'}
-                                        aria-hidden="true"
-                                    />
-                                    {currentStreak}
-                                </span>
-                            )}
-                        </span>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => router.push('/custom')}
-                        className="flex min-h-24 items-center gap-4 rounded-lg border border-gray-200 bg-gray-100/70 px-5 py-4 text-left transition hover:border-gray-400 hover:bg-gray-200"
-                    >
-                        <SlidersHorizontal size={20} className="shrink-0 text-gray-400" aria-hidden="true" />
-                        <span>
-                            <span className="block text-sm font-semibold text-gray-600">Custom</span>
-                            <span className="mt-1 block text-xs leading-4 text-gray-400">Set your own rules</span>
-                        </span>
-                    </button>
-                    <Link
-                        href="/otherGameModes"
-                        className="flex min-h-24 items-center gap-4 rounded-lg border border-gray-200 bg-gray-100/70 px-5 py-4 text-left transition hover:border-gray-400 hover:bg-gray-200"
-                    >
-                        <Shapes size={20} className="shrink-0 text-gray-400" aria-hidden="true" />
-                        <span>
-                            <span className="block text-sm font-semibold text-gray-600">Other game modes</span>
-                            <span className="mt-1 block text-xs leading-4 text-gray-400">Explore more ways to play</span>
-                        </span>
-                    </Link>
-                    </div>
+                    {userLoggedIn && (
+                        <div className="mx-auto mt-10 w-full max-w-md px-4 lg:hidden">
+                            {renderDailyCard('flex')}
+                        </div>
+                    )}
+                    {renderOtherModes('mt-10 lg:hidden')}
                 </div>
+
+                {renderOtherModes('absolute bottom-20 left-0 right-0 hidden lg:block')}
+
+                {userLoggedIn && renderDailyCard('absolute left-0 -top-4 hidden w-80 lg:flex')}
 
             <footer className="absolute bottom-0 left-0 right-0 flex justify-center gap-10 border-t border-gray-200 pt-5">
                     <Link

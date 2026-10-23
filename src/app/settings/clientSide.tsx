@@ -89,7 +89,6 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
             <div className="w-full max-w-xl px-3">
                 <div className="border-b border-gray-200 pb-4 pt-2">
                     <h1 className="text-sm font-semibold text-gray-900 sm:text-base">Settings</h1>
-                    <p className="mt-1 text-xs text-gray-400">Choose what you see while playing.</p>
                 </div>
 
                 <div className="divide-y divide-gray-200 border-b border-gray-200">
