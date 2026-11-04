@@ -1,4 +1,5 @@
 import {type Problem, type Operation, type OperationBounds} from '@/types/frontendTypes'
+import {BOUNDS} from "./gameModeGlobals"
 
 function randomInt(bottom: number, top: number){
     let seed = Math.random() * (top - bottom + 1);
@@ -51,6 +52,16 @@ export function generateGame(operations: OperationBounds): Problem[]{
     const problemList: Problem[] = [];
     for (let i = 0; i < 10000; i++){
         let problem: Problem = generateProblem(operations, i+1);
+        problem.orderNumber = i;
+        problemList.push(problem);
+    }
+    return problemList;
+}
+
+export function generateStandardProblems(num: number): Problem[]{
+    const problemList: Problem[] = [];
+    for (let i = 0; i < num; i++){
+        let problem: Problem = generateProblem(BOUNDS["medium"], i+1);
         problem.orderNumber = i;
         problemList.push(problem);
     }
