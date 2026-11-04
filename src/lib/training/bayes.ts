@@ -25,7 +25,14 @@ export function initModel(priorPrecision: number | number[] = 1): BayesModel {
 
 
 /** Add one observation: x is the feature vector, y the normalized log time. */
-export function bayesUpdate(model: BayesModel, x: number[], y: number): void {
+export function bayesUpdate(model: BayesModel, problem: Problem): void {
+  if (!problem.solveTime){
+    return
+  }
+
+  const x = generateVector(problem);
+  const y = Math.log(problem.solveTime);
+
   if (x.length !== D) throw new Error(`expected ${D} features, got ${x.length}`);
   for (let i = 0; i < D; i++) {
     if (x[i] === 0) continue;               // zero features change nothing
@@ -62,7 +69,7 @@ export function checkGating(x: number[]): void {
 }
 
 /** Thompson step: one weight sample, score 200 candidates, return the best vector. */
-export function chooseVector(model: BayesModel): Problem {
+export function chooseProblem(model: BayesModel): Problem {
 
   const w = sampleWeights(model);
   const candidates = generateStandardProblems(200);

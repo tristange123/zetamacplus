@@ -17,7 +17,7 @@ export type MainGameModeName = "standard" | "rapid" | "sprint" | "hard";
 export type RankedGameModeName = MainGameModeName | "daily";
 
 // Modes that are played without saving anything
-export type ExtraGameModeName = "custom" | "gcd" | "lcm"
+export type ExtraGameModeName = "custom" | "gcd" | "lcm" | "training"
 
 export type ProblemType = "easy" | "medium" | "hard" | "daily" | "easy-medium"
 

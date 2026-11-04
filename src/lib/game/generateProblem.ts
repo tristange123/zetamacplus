@@ -1,5 +1,6 @@
 import {type Problem, type Operation, type OperationBounds} from '@/types/frontendTypes'
 import {BOUNDS} from "./gameModeGlobals"
+import generateTrainingProblem from "../training/fetchTrainingProblems"
 
 function randomInt(bottom: number, top: number){
     let seed = Math.random() * (top - bottom + 1);
@@ -103,7 +104,8 @@ export type ProblemConfig =
     | {kind: 'operations', operations: OperationBounds}
     | {kind: 'fixed', problems: Problem[]}
     | {kind: 'gcd'}
-    | {kind: 'lcm'};
+    | {kind: 'lcm'}
+
 
 export function createProblemSource(config: ProblemConfig): ProblemSource {
     switch (config.kind) {
@@ -115,5 +117,6 @@ export function createProblemSource(config: ProblemConfig): ProblemSource {
             return generateGcdProblem;
         case 'lcm':
             return generateLcmProblem;
+        
     }
 }
