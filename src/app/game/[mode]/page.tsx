@@ -36,6 +36,8 @@ export default async function GamePage({
             return <ExtraGame gameMode="custom" timeFormat={timeFormat} problems={{ kind: 'operations', operations }} />;
         }
 
+        if (mode === 'training') notFound();
+
         const problems: ProblemConfig = { kind: mode };
         return <ExtraGame gameMode={mode} timeFormat={EXTRA_GAME_MODES[mode].timeFormat} problems={problems} />;
     }
