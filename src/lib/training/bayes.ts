@@ -2,6 +2,15 @@ import {type Problem} from "../../types/frontendTypes"
 import {generateStandardProblems} from "../game/generateProblem"
 import generateVector from "./vectorizeProblem"
 
+const FEATURE_NAMES = [
+  "op: add", "op: subtract", "op: multiply", "op: divide",
+  "add: first carry", "add: second carry", "add: 10 units", "add: answer",
+  "sub: first > 100", "sub: units carry", "sub: 10 units", "sub: answer",
+  "mul: x11", "mul: x12", "mul: x9", "mul: x5 or x10",
+  "mul: firstNum", "mul: secondNum", "mul: answer",
+  "div: 5 or 10", "div: firstNum", "div: secondNum", "div: answer",
+];
+
 const D = 23;        // feature vector size
 const SIGMA2 = 0.25; // noise variance of y (tune later)
 
@@ -68,11 +77,11 @@ export function checkGating(x: number[]): void {
   });
 }
 
-/** Thompson step: one weight sample, score 200 candidates, return the best vector. */
+/** Thompson step: one weight sample, score 50 candidates, return the best vector. */
 export function chooseProblem(model: BayesModel): Problem {
 
   const w = sampleWeights(model);
-  const candidates = generateStandardProblems(200);
+  const candidates = generateStandardProblems(50);
 
   let best = candidates[0];
   let bestScore = -Infinity;
@@ -95,6 +104,29 @@ export function sampleWeights(model: BayesModel): number[] {
   const z = Array.from({ length: D }, () => randn());
   const noise = backSolve(L, z);                         // L⁻ᵀ z has covariance A⁻¹
   return m.map((mi, i) => mi + noise[i]);
+}
+
+export function weightTable(model: BayesModel) {
+  const L = cholesky(model.A);
+  const m = backSolve(L, forwardSolve(L, model.b));        // weights: solves A m = b
+
+  return FEATURE_NAMES.map((feature, i) => {
+    const e = new Array<number>(D).fill(0);
+    e[i] = 1;
+    const col = backSolve(L, forwardSolve(L, e));          // column i of A⁻¹
+    return { index: i, feature, weight: m[i], sd: Math.sqrt(col[i]) };
+  });
+}
+
+export function printWeights(model: BayesModel): void {
+  console.table(
+    weightTable(model).map(r => ({
+      index: r.index,
+      feature: r.feature,
+      weight: Number(r.weight.toFixed(3)),
+      sd: Number(r.sd.toFixed(3)),
+    }))
+  );
 }
 
 // ---------- linear algebra helpers ----------

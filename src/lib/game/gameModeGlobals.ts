@@ -73,7 +73,7 @@ export const EXTRA_GAME_MODES: Record<ExtraGameModeName, {timeFormat: number}> =
         timeFormat: 120,
     },
     'training': {
-        timeFormat: 120
+        timeFormat: 60
     }
 }
 

@@ -1,9 +1,8 @@
 import Link from 'next/link';
-import prisma from '@/lib/db/prisma';
 import requireSession from '@/lib/auth/requireSession';
-import {getDailyProblems} from '@/lib/game/dailyGame';
-import NormalGame from '@/components/game/NormalGame';
-import {DAILY_GAME_MODE} from '@/lib/game/gameModeGlobals';
+import fetchTrainingProblems from '@/lib/training/fetchTrainingProblems';
+import ExtraGame from '@/components/game/ExtraGame';
+import {EXTRA_GAME_MODES} from '@/lib/game/gameModeGlobals';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +17,7 @@ function BackButton() {
     );
 }
 
-export default async function DailyPage() {
+export default async function TrainingPage() {
     const session = await requireSession().catch(() => null);
 
     if (!session) {
@@ -37,14 +36,13 @@ export default async function DailyPage() {
 
     // Rotate first so completion state is reset before this request attempts
     // to claim today's single play.
-    const dailyProblems = await getDailyProblems();
+    const trainingProblems = await fetchTrainingProblems();
     
-
     return (
-        <NormalGame
-            gameMode="daily"
-            timeFormat={DAILY_GAME_MODE.timeFormat}
-            problems={{kind: 'fixed', problems: dailyProblems}}
+        <ExtraGame
+            gameMode="training"
+            timeFormat={EXTRA_GAME_MODES["training"].timeFormat}
+            problems={{kind: 'fixed', problems: trainingProblems}}
         />
     );
 }

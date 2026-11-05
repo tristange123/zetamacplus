@@ -1,4 +1,4 @@
-import {initModel, bayesUpdate, chooseProblem} from "./bayes"
+import {initModel, bayesUpdate, chooseProblem, printWeights} from "./bayes"
 import {type Problem} from "../../types/frontendTypes"
 import prisma from "@/lib/db/prisma"
 import { auth } from '@/lib/auth/auth'
@@ -45,6 +45,9 @@ export default async function fetchTrainingProblems (): Promise<Problem[]>{
     for (let i = 0; i < 1000; i++){
         res.push(chooseProblem(bayesModel))
     }
+
+    printWeights(bayesModel)
+    
 
     return res
 }

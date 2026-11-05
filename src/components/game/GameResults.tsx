@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { type ScoreRank } from '@/types/contextTypes'
 import { type GameModeName } from '@/types/frontendTypes'
 import { type GameResult } from './useTimedGame'
+
 import {
     ArrowLeft,
     Asterisk,
@@ -18,6 +19,7 @@ import {
     RotateCcw,
     Skull,
     SportShoe,
+    Dumbbell,
     type LucideIcon,
 } from 'lucide-react'
 
@@ -30,6 +32,7 @@ const GAME_MODE_ICONS: Record<GameModeName, LucideIcon> = {
     daily: Clock,
     gcd: Divide,
     lcm: Asterisk,
+    training: Dumbbell
 };
 
 const RANK_CROWN_CLASSES: Record<Exclude<ScoreRank, null>, string> = {

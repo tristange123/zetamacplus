@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Asterisk, Divide, Music, type LucideIcon } from "lucide-react";
+import { ArrowRight, Asterisk, Divide, Music, Dumbbell, type LucideIcon } from "lucide-react";
 
 const OTHER_GAME_MODES: { href: string, label: string, description: string, icon: LucideIcon }[] = [
     {
@@ -19,6 +19,12 @@ const OTHER_GAME_MODES: { href: string, label: string, description: string, icon
         label: "Pitch test",
         description: "Identify as many piano notes as you can in 120 seconds.",
         icon: Music,
+    },
+    {
+        href: "/game/training",
+        label: "Training",
+        description: "Custom training for your weakest standard problems",
+        icon: Dumbbell,
     },
 ];
 

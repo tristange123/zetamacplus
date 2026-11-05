@@ -114,7 +114,7 @@ export default function generateVector(problem: Problem): number[] {
         }
         vector[20] =  standardizeUniform(firstNum, 2, 1200)
         vector[21] =  standardizeUniform(secondNum, 2, 12)
-        vector[22] =  standardizeUniform(firstNum / secondNum, 2, 12)
+        vector[22] =  standardizeUniform(firstNum / secondNum, 2, 100)
     }
 
     return vector
