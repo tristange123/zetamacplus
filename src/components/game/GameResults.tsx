@@ -1,7 +1,9 @@
 "use client"
 
+import { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { useRouter } from 'next/navigation';
+import { type TrainingCoefficient } from '@/lib/training/bayes'
 import { type ScoreRank } from '@/types/contextTypes'
 import { type GameModeName } from '@/types/frontendTypes'
 import { type GameResult } from './useTimedGame'
@@ -9,11 +11,13 @@ import { type GameResult } from './useTimedGame'
 import {
     ArrowLeft,
     Asterisk,
+    BrainCircuit,
     Calculator,
     Clock,
     Crown,
     Divide,
     Flame,
+    List,
     NotebookText,
     Rabbit,
     RotateCcw,
@@ -97,10 +101,31 @@ type GameResultsProps = {
     dailyStreak?: number | null,
     // Omitted for games that can't be replayed (daily)
     onRestart?: () => void,
+    trainingCoefficients?: TrainingCoefficient[],
 }
 
-export default function GameResults({gameMode, result, scoreRank = null, dailyStreak = null, onRestart}: GameResultsProps) {
+function coefficientColor(weight: number, minWeight: number, maxWeight: number) {
+    const range = maxWeight - minWeight;
+    const position = range === 0 ? 0.5 : (weight - minWeight) / range;
+    const hue = Math.round(position * 120);
+    return {
+        backgroundColor: `hsl(${hue} 70% 90%)`,
+        borderColor: `hsl(${hue} 55% 68%)`,
+        color: `hsl(${hue} 65% 25%)`,
+    };
+}
+
+export default function GameResults({
+    gameMode,
+    result,
+    scoreRank = null,
+    dailyStreak = null,
+    onRestart,
+    trainingCoefficients,
+}: GameResultsProps) {
     const router = useRouter();
+    const [showProblems, setShowProblems] = useState(true);
+    const [showCoefficients, setShowCoefficients] = useState(false);
     const {score, timeFormat, problems: problemList} = result;
 
     const solveTimes: number[] = []
@@ -122,6 +147,9 @@ export default function GameResults({gameMode, result, scoreRank = null, dailySt
     }));
     const timeTicks = getTimeTicks(timeFormat);
     const GameModeIcon = GAME_MODE_ICONS[gameMode];
+    const coefficientWeights = trainingCoefficients?.map(({weight}) => weight) ?? [];
+    const minCoefficient = coefficientWeights.length > 0 ? Math.min(...coefficientWeights) : 0;
+    const maxCoefficient = coefficientWeights.length > 0 ? Math.max(...coefficientWeights) : 0;
 
     const problemRows = problemList.map((problem, index) => {
         return {
@@ -225,45 +253,102 @@ export default function GameResults({gameMode, result, scoreRank = null, dailySt
                     >
                         <ArrowLeft className="h-6 w-6" aria-hidden="true" />
                     </button>
-                </div>
-            </div>
-
-            <div className="w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-3 shadow-sm md:p-8">
-                <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
-                    {problemList.length === 0 ? (
-                        <p className="px-4 py-6 text-center text-base text-gray-500 md:px-5 md:text-lg">No problems solved.</p>
-                    ) : (
-                        <table className="min-w-[22rem] w-full text-sm md:min-w-0 md:text-lg">
-                            <thead>
-                                <tr className="border-b border-gray-50 bg-gray-50/80">
-                                    <th className="px-4 py-3 text-center font-semibold text-gray-700 md:px-5">#</th>
-                                    <th className="px-4 py-3 text-center font-semibold text-gray-700 md:px-5">Problem</th>
-                                    <th className="px-4 py-3 text-center font-semibold text-gray-700 md:px-5">Solve Time</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {problemRows.map((row) => (
-                                    <tr
-                                        key={row.key}
-                                        className="border-b border-gray-200 last:border-b-0"
-                                    >
-                                        <td className="px-4 py-3 text-center tabular-nums text-gray-600 md:px-5">
-                                            {row.number}
-                                        </td>
-                                        <td className="px-4 py-3 text-center text-gray-800 md:px-5">
-                                            {row.statement}
-                                        </td>
-
-                                        <td className="px-4 py-3 text-center tabular-nums text-gray-600 md:px-5">
-                                            {formatSolveTime(row.solveTime)}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    <button
+                        onClick={() => setShowProblems((shown) => !shown)}
+                        aria-label={showProblems ? "Hide problem list" : "Show problem list"}
+                        aria-expanded={showProblems}
+                        aria-controls="game-results-problems"
+                        title={showProblems ? "Hide problem list" : "Show problem list"}
+                        className={`p-1 transition ${
+                            showProblems ? 'text-gray-800' : 'text-gray-400 hover:text-gray-700'
+                        }`}
+                    >
+                        <List className="h-6 w-6" aria-hidden="true" />
+                    </button>
+                    {gameMode === "training" && trainingCoefficients && (
+                        <button
+                            onClick={() => setShowCoefficients((shown) => !shown)}
+                            aria-label={showCoefficients ? "Hide Bayesian coefficients" : "Show Bayesian coefficients"}
+                            aria-expanded={showCoefficients}
+                            aria-controls="training-coefficients"
+                            title={showCoefficients ? "Hide Bayesian coefficients" : "Show Bayesian coefficients"}
+                            className={`p-1 transition ${
+                                showCoefficients ? 'text-gray-800' : 'text-gray-400 hover:text-gray-700'
+                            }`}
+                        >
+                            <BrainCircuit className="h-6 w-6" aria-hidden="true" />
+                        </button>
                     )}
                 </div>
             </div>
+
+            {showCoefficients && trainingCoefficients && (
+                <div
+                    id="training-coefficients"
+                    className="w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-3 shadow-sm md:p-8"
+                >
+                    <h3 className="mb-4 text-lg font-semibold text-gray-800 md:text-xl">
+                        Bayesian model coefficients
+                    </h3>
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                        {trainingCoefficients.map(({index, feature, weight, sd}) => (
+                            <div
+                                key={index}
+                                className="rounded-lg border px-3 py-2"
+                                style={coefficientColor(weight, minCoefficient, maxCoefficient)}
+                            >
+                                <div className="text-sm font-semibold">{feature}</div>
+                                <div className="mt-1 flex justify-between gap-3 text-xs tabular-nums">
+                                    <span>Weight: {weight.toFixed(3)}</span>
+                                    <span>SD: {sd.toFixed(3)}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {showProblems && (
+                <div
+                    id="game-results-problems"
+                    className="w-full rounded-2xl border border-gray-200 bg-gray-50/70 p-3 shadow-sm md:p-8"
+                >
+                    <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+                        {problemList.length === 0 ? (
+                            <p className="px-4 py-6 text-center text-base text-gray-500 md:px-5 md:text-lg">No problems solved.</p>
+                        ) : (
+                            <table className="min-w-[22rem] w-full text-sm md:min-w-0 md:text-lg">
+                                <thead>
+                                    <tr className="border-b border-gray-50 bg-gray-50/80">
+                                        <th className="px-4 py-3 text-center font-semibold text-gray-700 md:px-5">#</th>
+                                        <th className="px-4 py-3 text-center font-semibold text-gray-700 md:px-5">Problem</th>
+                                        <th className="px-4 py-3 text-center font-semibold text-gray-700 md:px-5">Solve Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {problemRows.map((row) => (
+                                        <tr
+                                            key={row.key}
+                                            className="border-b border-gray-200 last:border-b-0"
+                                        >
+                                            <td className="px-4 py-3 text-center tabular-nums text-gray-600 md:px-5">
+                                                {row.number}
+                                            </td>
+                                            <td className="px-4 py-3 text-center text-gray-800 md:px-5">
+                                                {row.statement}
+                                            </td>
+
+                                            <td className="px-4 py-3 text-center tabular-nums text-gray-600 md:px-5">
+                                                {formatSolveTime(row.solveTime)}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </div>
+            )}
         </section>
     );
 }

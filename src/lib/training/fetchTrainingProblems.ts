@@ -1,19 +1,19 @@
-import {initModel, bayesUpdate, chooseProblem, printWeights} from "./bayes"
+import {initModel, bayesUpdate, chooseProblem, weightTable, type TrainingCoefficient} from "./bayes"
 import {type Problem} from "../../types/frontendTypes"
 import prisma from "@/lib/db/prisma"
 import { auth } from '@/lib/auth/auth'
 import { headers } from 'next/headers'
 
-
-
-
-export default async function fetchTrainingProblems (): Promise<Problem[]>{
+export default async function fetchTrainingProblems (): Promise<{
+    problems: Problem[],
+    coefficients: TrainingCoefficient[],
+}>{
     const session = await auth.api.getSession({
         headers: await headers() 
     })
 
     if (!session){
-        return []
+        return {problems: [], coefficients: []}
     }
 
     const userId = session.user.id;
@@ -46,8 +46,8 @@ export default async function fetchTrainingProblems (): Promise<Problem[]>{
         res.push(chooseProblem(bayesModel))
     }
 
-    printWeights(bayesModel)
-    
-
-    return res
+    return {
+        problems: res,
+        coefficients: weightTable(bayesModel),
+    }
 }

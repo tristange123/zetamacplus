@@ -20,6 +20,12 @@ export interface BayesModel {
   b: number[];       // length-D vector
 }
 
+export interface TrainingCoefficient {
+  index: number;
+  feature: string;
+  weight: number;
+  sd: number;
+}
 
 /** Prior: weights ~ Normal(0, 1/λ). λ is one number, or one per feature. */
 export function initModel(priorPrecision: number | number[] = 1): BayesModel {
@@ -106,7 +112,7 @@ export function sampleWeights(model: BayesModel): number[] {
   return m.map((mi, i) => mi + noise[i]);
 }
 
-export function weightTable(model: BayesModel) {
+export function weightTable(model: BayesModel): TrainingCoefficient[] {
   const L = cholesky(model.A);
   const m = backSolve(L, forwardSolve(L, model.b));        // weights: solves A m = b
 

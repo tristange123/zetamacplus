@@ -36,13 +36,14 @@ export default async function TrainingPage() {
 
     // Rotate first so completion state is reset before this request attempts
     // to claim today's single play.
-    const trainingProblems = await fetchTrainingProblems();
+    const training = await fetchTrainingProblems();
     
     return (
         <ExtraGame
             gameMode="training"
             timeFormat={EXTRA_GAME_MODES["training"].timeFormat}
-            problems={{kind: 'fixed', problems: trainingProblems}}
+            problems={{kind: 'fixed', problems: training.problems}}
+            trainingCoefficients={training.coefficients}
         />
     );
 }
