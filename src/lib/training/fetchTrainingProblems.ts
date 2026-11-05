@@ -24,7 +24,11 @@ export default async function fetchTrainingProblems (): Promise<{
             }
         },
         where: {
-            userId
+            userId,
+            gameMode: {
+                in: ["standard", "training"],
+            },
+            completed: true,
         },
         orderBy: {
             time: "desc"

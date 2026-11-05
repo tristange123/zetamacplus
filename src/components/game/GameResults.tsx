@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { useRouter } from 'next/navigation';
 import { type TrainingCoefficient } from '@/lib/training/bayes'
@@ -102,6 +102,7 @@ type GameResultsProps = {
     // Omitted for games that can't be replayed (daily)
     onRestart?: () => void,
     trainingCoefficients?: TrainingCoefficient[],
+    updatedTrainingCoefficients?: TrainingCoefficient[],
 }
 
 function coefficientColor(weight: number, minWeight: number, maxWeight: number) {
@@ -115,6 +116,65 @@ function coefficientColor(weight: number, minWeight: number, maxWeight: number) 
     };
 }
 
+function AnimatedCoefficient({
+    before,
+    after,
+    minWeight,
+    maxWeight,
+}: {
+    before: TrainingCoefficient,
+    after?: TrainingCoefficient,
+    minWeight: number,
+    maxWeight: number,
+}) {
+    const [displayedAfterWeight, setDisplayedAfterWeight] = useState(before.weight);
+
+    useEffect(() => {
+        if (!after) return;
+        let frame = 0;
+        let startedAt: number | undefined;
+
+        function animate(timestamp: number) {
+            startedAt ??= timestamp;
+            const progress = Math.min((timestamp - startedAt) / 1000, 1);
+            const easedProgress = 1 - Math.pow(1 - progress, 3);
+            setDisplayedAfterWeight(
+                before.weight + (after!.weight - before.weight) * easedProgress,
+            );
+            if (progress < 1) {
+                frame = window.requestAnimationFrame(animate);
+            }
+        }
+
+        frame = window.requestAnimationFrame(animate);
+        return () => window.cancelAnimationFrame(frame);
+    }, [after, before.weight]);
+
+    return (
+        <div
+            className="rounded-lg border px-3 py-2"
+            style={coefficientColor(displayedAfterWeight, minWeight, maxWeight)}
+        >
+            <div className="text-sm font-semibold">{before.feature}</div>
+            <div className="mt-2 grid grid-cols-2 gap-3 text-xs tabular-nums">
+                <div>
+                    <div className="opacity-70">Before</div>
+                    <div className="text-sm font-semibold">{before.weight.toFixed(3)}</div>
+                </div>
+                <div>
+                    <div className="opacity-70">After</div>
+                    <div className="text-sm font-semibold">
+                        {after ? displayedAfterWeight.toFixed(3) : "Saving…"}
+                    </div>
+                </div>
+            </div>
+            <div className="mt-1 text-[0.7rem] opacity-70">
+                SD: {before.sd.toFixed(3)} → {after ? after.sd.toFixed(3) : "…"}
+            </div>
+        </div>
+    );
+}
+
 export default function GameResults({
     gameMode,
     result,
@@ -122,6 +182,7 @@ export default function GameResults({
     dailyStreak = null,
     onRestart,
     trainingCoefficients,
+    updatedTrainingCoefficients,
 }: GameResultsProps) {
     const router = useRouter();
     const [showProblems, setShowProblems] = useState(true);
@@ -147,9 +208,15 @@ export default function GameResults({
     }));
     const timeTicks = getTimeTicks(timeFormat);
     const GameModeIcon = GAME_MODE_ICONS[gameMode];
-    const coefficientWeights = trainingCoefficients?.map(({weight}) => weight) ?? [];
+    const coefficientWeights = [
+        ...(trainingCoefficients?.map(({weight}) => weight) ?? []),
+        ...(updatedTrainingCoefficients?.map(({weight}) => weight) ?? []),
+    ];
     const minCoefficient = coefficientWeights.length > 0 ? Math.min(...coefficientWeights) : 0;
     const maxCoefficient = coefficientWeights.length > 0 ? Math.max(...coefficientWeights) : 0;
+    const updatedCoefficientByIndex = new Map(
+        updatedTrainingCoefficients?.map((coefficient) => [coefficient.index, coefficient]) ?? [],
+    );
 
     const problemRows = problemList.map((problem, index) => {
         return {
@@ -290,20 +357,20 @@ export default function GameResults({
                     <h3 className="mb-4 text-lg font-semibold text-gray-800 md:text-xl">
                         Bayesian model coefficients
                     </h3>
+                    
                     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                        {trainingCoefficients.map(({index, feature, weight, sd}) => (
-                            <div
-                                key={index}
-                                className="rounded-lg border px-3 py-2"
-                                style={coefficientColor(weight, minCoefficient, maxCoefficient)}
-                            >
-                                <div className="text-sm font-semibold">{feature}</div>
-                                <div className="mt-1 flex justify-between gap-3 text-xs tabular-nums">
-                                    <span>Weight: {weight.toFixed(3)}</span>
-                                    <span>SD: {sd.toFixed(3)}</span>
-                                </div>
-                            </div>
-                        ))}
+                        {trainingCoefficients.map((coefficient) => {
+                            const updatedCoefficient = updatedCoefficientByIndex.get(coefficient.index);
+                            return (
+                                <AnimatedCoefficient
+                                    key={`${coefficient.index}-${updatedCoefficient?.weight ?? "pending"}`}
+                                    before={coefficient}
+                                    after={updatedCoefficient}
+                                    minWeight={minCoefficient}
+                                    maxWeight={maxCoefficient}
+                                />
+                            );
+                        })}
                     </div>
                 </div>
             )}
