@@ -4,6 +4,7 @@ import next from "next";
 import { Server as SocketIOServer } from "socket.io";
 import { attachVersusSockets } from "@/lib/versus/versusSockets";
 import { handleVersusHttp } from "@/lib/versus/versusHttp";
+import { versusEnabled } from "@/lib/features";
 
 const port = parseInt(process.env.PORT || "3000", 10);
 const listenHost = process.env.LISTEN_HOST || "0.0.0.0";
@@ -43,10 +44,10 @@ httpServer.on("request", async (req, res) => {
             return;
         }
         await prepared;
-        if (isSocketIoPath(req.url)) {
+        if (versusEnabled && isSocketIoPath(req.url)) {
             return;
         }
-        if (await handleVersusHttp(req, res)) {
+        if (versusEnabled && await handleVersusHttp(req, res)) {
             return;
         }
         await handle(req, res);
@@ -60,7 +61,7 @@ httpServer.on("request", async (req, res) => {
     }
 });
 
-const io = new SocketIOServer(httpServer, {
+const io = versusEnabled ? new SocketIOServer(httpServer, {
     path: "/socket.io",
     addTrailingSlash: false,
     destroyUpgrade: false,
@@ -69,9 +70,11 @@ const io = new SocketIOServer(httpServer, {
         origin: true,
         credentials: true,
     },
-});
+}) : null;
 
-attachVersusSockets(io);
+if (io) {
+    attachVersusSockets(io);
+}
 
 httpServer.listen(port, listenHost, () => {
     console.log(`> Listening on http://${listenHost}:${port}`);
@@ -88,7 +91,7 @@ async function shutdown(signal: string) {
     shuttingDown = true;
     console.log(`${signal} received, shutting down`);
 
-    io.close();
+    io?.close();
     await new Promise<void>((resolve) => {
         httpServer.close(() => resolve());
     });

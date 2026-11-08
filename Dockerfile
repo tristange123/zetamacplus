@@ -14,6 +14,7 @@ WORKDIR /app
 
 ENV NEXT_PUBLIC_API_URL=https://zetamacplus.com
 ENV NEXT_PUBLIC_BETTER_AUTH_URL=https://zetamacplus.com
+ENV NEXT_PUBLIC_ENABLE_VERSUS=true
 
 COPY --from=deps /app/node_modules ./node_modules
 
@@ -28,6 +29,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV LISTEN_HOST=0.0.0.0
+ENV NEXT_PUBLIC_ENABLE_VERSUS=true
 
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/src ./src

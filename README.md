@@ -70,6 +70,9 @@ GOOGLE_CLIENT_SECRET=
 # Optional: verification and contact emails
 RESEND_API_KEY=
 RESEND_FROM=
+
+# Optional: versus mode (needs the Socket.IO server, so AWS/Docker only)
+NEXT_PUBLIC_ENABLE_VERSUS=true
 ```
 
 Apply the database migrations, then start the dev server:
@@ -87,6 +90,21 @@ The app runs at [http://localhost:3000](http://localhost:3000).
 docker build -t zetamacplus .
 docker run --env-file .env.production -p 3000:3000 zetamacplus
 ```
+
+## Deploying
+
+The app deploys to either **Vercel** or **AWS ECS**. The repository variable `DEPLOY_TARGET` (`vercel` or `aws`) picks which job in `.github/workflows/deploy.yml` runs after the tests pass on `main`.
+
+| Target | How it runs | Versus |
+| --- | --- | --- |
+| `vercel` | Plain Next.js (`server.ts` is not used) | Off |
+| `aws` | Docker image running `server.ts` with Socket.IO | On (`NEXT_PUBLIC_ENABLE_VERSUS=true` is set in the `Dockerfile`) |
+
+Versus is controlled by `NEXT_PUBLIC_ENABLE_VERSUS`. When it is unset, the nav link is hidden, the versus pages return 404 and `server.ts` doesn't start Socket.IO. It is inlined at build time, so change it and rebuild.
+
+To switch targets, set `DEPLOY_TARGET`, push to `main`, and point the domain's DNS at the new host. If the domain changes, update `BETTER_AUTH_URL`, `NEXT_PUBLIC_*_URL` and the Google OAuth redirect URI too.
+
+Vercel setup (one time): create the project, add the production env vars (`DATABASE_URL` as a pooled connection string, the Better Auth, Google, Resend and `PROFILE_REBUILD_SECRET` values), and add the GitHub secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`. `vercel.json` turns off Vercel's own Git deployments, so CI is the only thing that deploys.
 
 ## Testing
 

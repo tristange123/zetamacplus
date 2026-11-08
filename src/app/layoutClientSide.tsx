@@ -7,6 +7,7 @@ import { authClient } from '@/lib/auth/auth-client';
 import { usePathname, useRouter } from 'next/navigation'
 import {BadgeCheck, Crown, ChartNoAxesCombined as Chart, LogOut, Play, Settings as SettingsIcon, Swords, UserRound} from 'lucide-react'
 import Link from 'next/link';
+import { versusEnabled } from '@/lib/features';
 import "./globals.css";
 import type { Metadata } from "next";
 
@@ -192,15 +193,34 @@ export default function LayoutClientSide({children, fontClassName}: LayoutProps)
                             <Play size={16} aria-hidden="true" />
                             <span>Play</span>
                         </Link>
-                        <Link
-                            href={userLoggedIn ? "/versusMenu" : "/login"}
-                            aria-label="Versus"
-                            title={userLoggedIn ? "Versus" : "Log in to play Versus"}
-                            className={navLinkClass(isVersusRoute)}
-                        >
-                            <Swords size={16} aria-hidden="true" />
-                            <span>Versus</span>
-                        </Link>
+                        {versusEnabled ? (
+                            <Link
+                                href={userLoggedIn ? "/versusMenu" : "/login"}
+                                aria-label="Versus"
+                                title={userLoggedIn ? "Versus" : "Log in to play Versus"}
+                                className={navLinkClass(isVersusRoute)}
+                            >
+                                <Swords size={16} aria-hidden="true" />
+                                <span>Versus</span>
+                            </Link>
+                        ) : (
+                            <span
+                                role="link"
+                                aria-disabled="true"
+                                aria-label="Versus (temporarily down)"
+                                tabIndex={0}
+                                className="group/versus relative flex cursor-not-allowed items-center justify-center gap-1 border-b-2 border-transparent rounded-md px-1.5 py-2 text-gray-300 sm:gap-2 sm:px-3"
+                            >
+                                <Swords size={16} aria-hidden="true" />
+                                <span>Versus</span>
+                                <span
+                                    role="tooltip"
+                                    className="invisible pointer-events-none absolute top-full left-1/2 z-30 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-800 px-3 py-2 text-[0.65rem] font-normal leading-4 text-gray-100 opacity-0 shadow-lg transition-opacity group-hover/versus:visible group-hover/versus:opacity-100 group-focus/versus:visible group-focus/versus:opacity-100"
+                                >
+                                    Versus temporarily down
+                                </span>
+                            </span>
+                        )}
                         <Link
                             href="/leaderboard"
                             aria-label="Leaderboard"

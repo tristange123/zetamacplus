@@ -86,7 +86,7 @@ jobs:
   build-and-deploy:
     name: Build image & deploy to ECS
     needs: test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.DEPLOY_TARGET == 'aws'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -133,3 +133,28 @@ jobs:
           service: ${{ secrets.ECS_SERVICE }}
           cluster: ${{ secrets.ECS_CLUSTER }}
           wait-for-service-stability: true
+
+  deploy-vercel:
+    name: Deploy to Vercel
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.DEPLOY_TARGET == 'vercel'
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Pull Vercel production env
+        run: npx vercel@latest pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build
+        run: npx vercel@latest build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy
+        run: npx vercel@latest deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
