@@ -104,7 +104,7 @@ Versus is controlled by `NEXT_PUBLIC_ENABLE_VERSUS`. When it is unset, the nav l
 
 To switch targets, set `DEPLOY_TARGET`, push to `main`, and point the domain's DNS at the new host. If the domain changes, update `BETTER_AUTH_URL`, `NEXT_PUBLIC_*_URL` and the Google OAuth redirect URI too.
 
-Vercel setup (one time): create the project, add the production env vars (`DATABASE_URL` as a pooled connection string, the Better Auth, Google, Resend and `PROFILE_REBUILD_SECRET` values), and add the GitHub secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`. `vercel.json` turns off Vercel's own Git deployments, so CI is the only thing that deploys.
+Vercel setup (one time): create the project, add the production env vars (`DATABASE_URL` as a pooled connection string, the Better Auth, Google, Resend and `PROFILE_REBUILD_SECRET` values), and add the GitHub secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`. `vercel.json` turns off Vercel's own Git deployments, so CI is the only thing that deploys
 
 ## Testing
 
