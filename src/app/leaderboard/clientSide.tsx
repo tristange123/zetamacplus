@@ -29,15 +29,22 @@ export type LeaderboardRow = {
     time: string | null
 }
 
-export type LeaderboardData = Record<LeaderboardGameModeName, LeaderboardRow[]>
-export type ProblemsSolvedLeaderboardData = Record<MainGameModeName, LeaderboardRow[]>
-type LeaderboardMetric = 'highScore' | 'problemsSolved';
-type LeaderboardSort = 'rank' | 'newest' | 'oldest';
-
 type RankedRow = {
     row: LeaderboardRow,
     rank: number,
 }
+
+// rows is the top 100; total counts everyone who placed; viewer is set only when the viewer placed outside rows.
+export type Leaderboard = {
+    rows: LeaderboardRow[],
+    total: number,
+    viewer: RankedRow | null,
+}
+
+export type LeaderboardData = Record<LeaderboardGameModeName, Leaderboard>
+export type ProblemsSolvedLeaderboardData = Record<MainGameModeName, Leaderboard>
+type LeaderboardMetric = 'highScore' | 'problemsSolved';
+type LeaderboardSort = 'rank' | 'newest' | 'oldest';
 
 // Rows arrive in rank order, so the rank is captured before any re-sorting.
 function sortRankedRows(rows: RankedRow[], sort: LeaderboardSort): RankedRow[] {
@@ -90,9 +97,11 @@ export default function ClientSide({gameModes, leaderboards, problemsSolvedLeade
     const [problemError, setProblemError] = useState('');
     const [sort, setSort] = useState<LeaderboardSort>('rank');
     const [usernameQuery, setUsernameQuery] = useState('');
-    const rows = selectedMetric === 'problemsSolved' && selectedGameMode !== 'daily'
-        ? problemsSolvedLeaderboards[selectedGameMode] ?? []
-        : leaderboards[selectedGameMode] ?? [];
+    const board = selectedMetric === 'problemsSolved' && selectedGameMode !== 'daily'
+        ? problemsSolvedLeaderboards[selectedGameMode]
+        : leaderboards[selectedGameMode];
+    const rows = board?.rows ?? [];
+    const totalPlayers = board?.total ?? 0;
     const showTimeColumn = selectedMetric === 'highScore' && selectedGameMode !== 'daily';
     const showDetailsColumn = selectedMetric === 'highScore';
     const GameModeIcon = GAME_MODE_ICONS[selectedGameMode];
@@ -108,6 +117,10 @@ export default function ClientSide({gameModes, leaderboards, problemsSolvedLeade
     const isFiltered = normalizedQuery.length > 0;
     const isCustomized = isFiltered || sort !== 'rank';
     const isDateSort = sort === 'newest' || sort === 'oldest';
+    const viewerRow = board?.viewer
+        && (!isFiltered || board.viewer.row.username.toLowerCase().includes(normalizedQuery))
+        ? board.viewer
+        : null;
 
     function resetTableOptions() {
         setSort('rank');
@@ -171,6 +184,73 @@ export default function ClientSide({gameModes, leaderboards, problemsSolvedLeade
         finally{
             setLoadingProblems(false);
         }
+    }
+
+    function renderRow({row, rank}: RankedRow, isViewer = false) {
+        const isSelected = row.testId != null && selectedRow?.testId === row.testId;
+        const isClickable = showDetailsColumn && row.testId != null;
+        const runDate = row.time ? new Date(row.time) : null;
+        return (
+            <tr
+                key={`${row.username}-${row.time}-${rank}`}
+                onClick={isClickable ? () => toggleProblemSidebar(row) : undefined}
+                className={`text-gray-700 transition ${isClickable ? 'cursor-pointer' : ''} ${
+                    isSelected ? 'bg-gray-100' : isViewer ? 'bg-gray-50 hover:bg-gray-100' : 'bg-white hover:bg-gray-50'
+                }`}
+            >
+                <td className={`border-l-2 px-3 py-2.5 font-semibold tabular-nums text-gray-500 sm:px-4 ${
+                    isSelected ? 'border-gray-800' : isViewer ? 'border-gray-400' : 'border-transparent'
+                }`}>
+                    {rank === 1 ? (
+                        <Trophy className="h-5 w-5 text-yellow-500" aria-label="First place" />
+                    ) : (
+                        rank
+                    )}
+                </td>
+                <td className="break-words px-3 py-2.5 font-medium text-gray-800 sm:px-4">
+                    {row.username}
+                    {isViewer && <span className="ml-2 text-xs font-normal text-gray-400">(You)</span>}
+                </td>
+                <td className="px-3 py-2.5 sm:px-4">
+                    <span className="font-semibold tabular-nums text-gray-900">{row.score}</span>
+                    {selectedMetric === 'highScore' && (
+                        <>{' '}<span className="text-xs text-gray-400">pts</span></>
+                    )}
+                </td>
+                {showTimeColumn && (
+                    <td className="hidden px-4 py-2.5 tabular-nums sm:table-cell">
+                        {runDate ? (
+                            <>
+                                <span className="text-gray-700">{runDate.toLocaleDateString()}</span>{' '}
+                                <span className="ml-1.5 text-xs text-gray-400">
+                                    {runDate.toLocaleTimeString(undefined, {hour: 'numeric', minute: '2-digit'})}
+                                </span>
+                            </>
+                        ) : (
+                            <span className="text-gray-400">—</span>
+                        )}
+                    </td>
+                )}
+                {showDetailsColumn && (
+                    <td className="px-2 py-2.5 text-gray-500 sm:px-4">
+                        <button
+                            type="button"
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                toggleProblemSidebar(row);
+                            }}
+                            className="mx-auto flex rounded-full p-1 transition hover:bg-gray-200"
+                            aria-label={`${isSelected ? 'Hide' : 'View'} problems for ${row.username}`}
+                        >
+                            <ChevronRight
+                                className={`h-4 w-4 transition-transform ${isSelected ? 'rotate-180' : ''}`}
+                                aria-hidden="true"
+                            />
+                        </button>
+                    </td>
+                )}
+            </tr>
+        );
     }
 
     return (
@@ -262,8 +342,9 @@ export default function ClientSide({gameModes, leaderboards, problemsSolvedLeade
 
                 <div className="mb-3 flex min-h-7 items-center justify-between gap-3">
                     <p className="text-xs text-gray-500">
-                        {visibleRows.length} {visibleRows.length === 1 ? 'player' : 'players'}
-                        {isFiltered && ` of ${rows.length}`}
+                        {isFiltered
+                            ? `${visibleRows.length} of top ${rows.length}`
+                            : `${totalPlayers.toLocaleString()} ${totalPlayers === 1 ? 'player' : 'players'}`}
                     </p>
                     {isCustomized && (
                         <button
@@ -331,70 +412,18 @@ export default function ClientSide({gameModes, leaderboards, problemsSolvedLeade
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                            {visibleRows.map(({row, rank}) => {
-                                const isSelected = row.testId != null && selectedRow?.testId === row.testId;
-                                const isClickable = showDetailsColumn && row.testId != null;
-                                const runDate = row.time ? new Date(row.time) : null;
-                                return (
-                                    <tr
-                                        key={`${row.username}-${row.time}-${rank}`}
-                                        onClick={isClickable ? () => toggleProblemSidebar(row) : undefined}
-                                        className={`text-gray-700 transition ${isClickable ? 'cursor-pointer' : ''} ${
-                                            isSelected ? 'bg-gray-100' : 'bg-white hover:bg-gray-50'
-                                        }`}
-                                    >
-                                        <td className={`border-l-2 px-3 py-2.5 font-semibold tabular-nums text-gray-500 sm:px-4 ${
-                                            isSelected ? 'border-gray-800' : 'border-transparent'
-                                        }`}>
-                                            {rank === 1 ? (
-                                                <Trophy className="h-5 w-5 text-yellow-500" aria-label="First place" />
-                                            ) : (
-                                                rank
-                                            )}
+                            {visibleRows.map((rankedRow) => renderRow(rankedRow))}
+                            {viewerRow && (
+                                <>
+                                    <tr aria-hidden="true">
+                                        <td colSpan={columnCount} className="bg-gray-50 px-4 py-1 text-center text-xs leading-none text-gray-400">
+                                            ⋯
                                         </td>
-                                        <td className="break-words px-3 py-2.5 font-medium text-gray-800 sm:px-4">{row.username}</td>
-                                        <td className="px-3 py-2.5 sm:px-4">
-                                            <span className="font-semibold tabular-nums text-gray-900">{row.score}</span>
-                                            {selectedMetric === 'highScore' && (
-                                                <>{' '}<span className="text-xs text-gray-400">pts</span></>
-                                            )}
-                                        </td>
-                                        {showTimeColumn && (
-                                            <td className="hidden px-4 py-2.5 tabular-nums sm:table-cell">
-                                                {runDate ? (
-                                                    <>
-                                                        <span className="text-gray-700">{runDate.toLocaleDateString()}</span>{' '}
-                                                        <span className="ml-1.5 text-xs text-gray-400">
-                                                            {runDate.toLocaleTimeString(undefined, {hour: 'numeric', minute: '2-digit'})}
-                                                        </span>
-                                                    </>
-                                                ) : (
-                                                    <span className="text-gray-400">—</span>
-                                                )}
-                                            </td>
-                                        )}
-                                        {showDetailsColumn && (
-                                            <td className="px-2 py-2.5 text-gray-500 sm:px-4">
-                                                <button
-                                                    type="button"
-                                                    onClick={(event) => {
-                                                        event.stopPropagation();
-                                                        toggleProblemSidebar(row);
-                                                    }}
-                                                    className="mx-auto flex rounded-full p-1 transition hover:bg-gray-200"
-                                                    aria-label={`${isSelected ? 'Hide' : 'View'} problems for ${row.username}`}
-                                                >
-                                                    <ChevronRight
-                                                        className={`h-4 w-4 transition-transform ${isSelected ? 'rotate-180' : ''}`}
-                                                        aria-hidden="true"
-                                                    />
-                                                </button>
-                                            </td>
-                                        )}
                                     </tr>
-                                );
-                            })}
-                            {visibleRows.length === 0 && (
+                                    {renderRow(viewerRow, true)}
+                                </>
+                            )}
+                            {visibleRows.length === 0 && !viewerRow && (
                                 <tr>
                                     <td colSpan={columnCount} className="px-4 py-8 text-center text-sm text-gray-500">
                                         {rows.length === 0 ? 'No leaderboard entries yet.' : 'No players match this search.'}
