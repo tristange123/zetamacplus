@@ -7,6 +7,7 @@ import {type GameModeTopTests, type ProblemDb, type ProfileDb, type TestDb} from
 import {type MainGameModeName} from '@/types/frontendTypes'
 import {getDisplayedDailyStreak} from '@/lib/profile/dailyStreak'
 import {ColumnMenu, MenuCheckbox, MenuSectionLabel} from '@/components/ColumnMenu'
+import ActivityCalendar from './activityCalendar'
 
 type StatsGameModeName = MainGameModeName | 'daily';
 
@@ -751,6 +752,8 @@ export default function ClientSide({profile, tests, topTestsByMode, dailyTests}:
                         <DailyScoreChart tests={dailyTests} />
                     </div>
                 </div>
+
+                <ActivityCalendar tests={tests} />
 
                 <PastRuns
                     tests={tests}
