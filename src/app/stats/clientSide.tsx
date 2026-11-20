@@ -8,6 +8,8 @@ import {type MainGameModeName} from '@/types/frontendTypes'
 import {getDisplayedDailyStreak} from '@/lib/profile/dailyStreak'
 import {ColumnMenu, MenuCheckbox, MenuSectionLabel} from '@/components/ColumnMenu'
 import ActivityCalendar from './activityCalendar'
+import SolveRateChart from '@/components/game/SolveRateChart'
+import {getTimeFormat} from '@/lib/game/gameModeGlobals'
 
 type StatsGameModeName = MainGameModeName | 'daily';
 
@@ -270,7 +272,7 @@ type ProblemsPanelProps = {
 
 function ProblemsPanel({selectedTest, problems, loadingProblems, problemError, onClose}: ProblemsPanelProps) {
     return (
-        <aside className="min-w-0 overflow-y-auto rounded-2xl border border-gray-200 bg-gray-50/95 p-3 shadow-xl md:sticky md:top-5 md:max-h-[calc(100vh-8rem)]">
+        <aside className="min-w-0 overflow-y-auto rounded-2xl border border-gray-200 bg-gray-50/95 p-3 shadow-xl md:sticky md:top-24 md:max-h-[calc(100vh-7rem)] md:self-start">
             <div className="mb-3 flex items-start justify-between gap-3 border-b border-gray-200 pb-3">
                 <div>
                     <h2 className="text-sm font-semibold tracking-tight text-gray-800">
@@ -290,7 +292,17 @@ function ProblemsPanel({selectedTest, problems, loadingProblems, problemError, o
                 </button>
             </div>
 
-            <div className="max-h-[calc(100vh-14rem)] overflow-y-auto rounded-xl border border-gray-200 bg-white">
+            {!loadingProblems && !problemError && problems.length > 0 && (
+                <div className="mb-3 h-40 rounded-xl border border-gray-200 bg-white p-1">
+                    <SolveRateChart
+                        problems={problems}
+                        timeFormat={getTimeFormat(selectedTest.gameMode) ?? 0}
+                        compact
+                    />
+                </div>
+            )}
+
+            <div className="rounded-xl border border-gray-200 bg-white">
                 {loadingProblems ? (
                     <p className="px-3 py-4 text-center text-xs text-gray-500">Loading problems...</p>
                 ) : problemError ? (

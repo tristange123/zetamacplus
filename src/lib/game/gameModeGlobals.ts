@@ -88,3 +88,11 @@ export function isExtraGameMode(mode: string): mode is ExtraGameModeName {
 export function isGameModeName(mode: string): mode is GameModeName {
     return mode === 'daily' || isMainGameMode(mode) || isExtraGameMode(mode);
 }
+
+// Length in seconds of a run in the given mode; null for unknown modes.
+export function getTimeFormat(mode: string): number | null {
+    if (mode === 'daily') return DAILY_GAME_MODE.timeFormat;
+    if (isMainGameMode(mode)) return MAIN_GAME_MODES[mode].timeFormat;
+    if (isExtraGameMode(mode)) return EXTRA_GAME_MODES[mode].timeFormat;
+    return null;
+}

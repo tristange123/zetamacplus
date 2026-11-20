@@ -19,6 +19,8 @@ import {useState} from 'react';
 import {type ProblemDb} from '@/types/dbTypes';
 import {type MainGameModeName} from '@/types/frontendTypes';
 import {ColumnMenu, MenuCheckbox, MenuSectionLabel} from '@/components/ColumnMenu';
+import SolveRateChart from '@/components/game/SolveRateChart';
+import {getTimeFormat} from '@/lib/game/gameModeGlobals';
 
 export type LeaderboardGameModeName = MainGameModeName | 'daily';
 
@@ -436,7 +438,7 @@ export default function ClientSide({gameModes, leaderboards, problemsSolvedLeade
             </div>
 
             {selectedRow && (
-                <aside className="w-full max-w-2xl shrink-0 rounded-2xl border border-gray-200 bg-gray-50/95 p-4 shadow-xl md:p-5 lg:w-[28rem]">
+                <aside className="w-full max-w-2xl shrink-0 rounded-2xl border border-gray-200 bg-gray-50/95 p-4 shadow-xl md:sticky md:top-24 md:max-h-[calc(100vh-7rem)] md:self-start md:overflow-y-auto md:p-5 lg:w-[28rem]">
                     <div>
                         <div className="mb-4 flex items-start justify-between gap-4">
                             <div>
@@ -457,7 +459,17 @@ export default function ClientSide({gameModes, leaderboards, problemsSolvedLeade
                             </button>
                         </div>
 
-                        <div className="max-h-[60vh] overflow-y-auto rounded-xl border border-gray-200 bg-white">
+                        {!loadingProblems && !problemError && problems.length > 0 && (
+                            <div className="mb-4 h-48 rounded-xl border border-gray-200 bg-white p-2">
+                                <SolveRateChart
+                                    problems={problems}
+                                    timeFormat={getTimeFormat(selectedGameMode) ?? 0}
+                                    compact
+                                />
+                            </div>
+                        )}
+
+                        <div className="max-h-[60vh] overflow-y-auto rounded-xl border border-gray-200 bg-white md:max-h-none md:overflow-visible">
                             {loadingProblems ? (
                                 <p className="px-4 py-6 text-center text-base text-gray-500 md:px-5 md:text-lg">Loading problems...</p>
                             ) : problemError ? (
