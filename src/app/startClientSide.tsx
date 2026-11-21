@@ -173,6 +173,10 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
         );
     }
 
+    // The wide-screen sidebar is only for logged-in users; without it the page stays centered.
+    const hasSidebar = userLoggedIn;
+    // Sidebar width, so centered elements center in the space beside it.
+    const sidebarOffset = hasSidebar ? 'xl:left-64 2xl:left-72' : '';
     const sidebarPanel = 'fixed inset-y-0 z-40 hidden w-64 flex-col gap-6 overflow-y-auto border-gray-200/80 bg-white/55 px-5 pb-6 pt-24 backdrop-blur-md xl:flex 2xl:w-72';
     const sidebarCard = 'rounded-xl border border-gray-200 bg-white/80 p-4 shadow-sm';
 
@@ -295,11 +299,11 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
     function renderOtherModes(className: string) {
         return (
             <div className={className}>
-                <div className="mx-auto grid w-full max-w-md grid-cols-3 gap-3 px-4 xl:grid-cols-2">
+                <div className={`mx-auto grid w-full max-w-md grid-cols-3 gap-3 px-4 ${hasSidebar ? 'xl:grid-cols-2' : ''}`}>
                     {/* Training lives in the left sidebar on wide screens. */}
                     <Link
                         href="/game/training"
-                        className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-left transition hover:border-gray-300 hover:bg-gray-100 xl:hidden"
+                        className={`flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-left transition hover:border-gray-300 hover:bg-gray-100 ${hasSidebar ? 'xl:hidden' : ''}`}
                     >
                         <Dumbbell size={16} className="shrink-0 text-gray-400" aria-hidden="true" />
                         <span className="min-w-0">
@@ -339,7 +343,7 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
                 isStarting ? 'pointer-events-none opacity-0' : 'opacity-100'
             }`}
         >
-                <div className="absolute left-0 right-0 top-[13%] xl:left-64 2xl:left-72">
+                <div className={`absolute left-0 right-0 top-[13%] ${sidebarOffset}`}>
                     <div className="mx-auto w-full max-w-3xl px-3 md:px-6">
                         <div className="grid grid-cols-4 border-b border-gray-200">
                             {(Object.keys(gameModeDisplay) as MainGameModeName[]).map((mode) => {
@@ -398,7 +402,7 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
                 </div>
 
                 <div className="absolute left-1/2 top-[40%] w-screen -translate-x-1/2 -translate-y-1/2 bg-gray-200 py-6 md:py-8">
-                    <div className="mx-auto grid max-w-6xl grid-cols-2 items-center gap-3 px-4 md:gap-4 md:px-6 xl:pl-[17.5rem] 2xl:pl-[19.5rem]">
+                    <div className={`mx-auto grid max-w-6xl grid-cols-2 items-center gap-3 px-4 md:gap-4 md:px-6 ${hasSidebar ? 'xl:pl-[17.5rem] 2xl:pl-[19.5rem]' : ''}`}>
                         <span className="flex justify-self-end whitespace-nowrap text-3xl font-semibold tracking-tight text-gray-300 sm:text-4xl md:text-5xl">
                             <span className="inline-block w-36 text-center sm:w-44 md:w-56">
                                 {selectedExample}
@@ -415,7 +419,7 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
                     </div>
                 </div>
 
-                <div className="absolute left-0 right-0 top-[calc(40%+5rem)] xl:left-64 2xl:left-72">
+                <div className={`absolute left-0 right-0 top-[calc(40%+5rem)] ${sidebarOffset}`}>
                     <div className="flex justify-center">
                         <button
                             type="button"
@@ -430,25 +434,26 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
 
                 </div>
 
-                {/* Centered elements use xl:left-64 / 2xl:left-72 (the sidebar width) so they center in the space beside the sidebar. */}
-                {/* Below xl: daily under Start. xl and up: one full-height sidebar fixed to the left edge, starting under the nav (z-50). */}
+                                {/* Below xl: daily under Start. xl and up: one full-height sidebar fixed to the left edge, starting under the nav (z-50). */}
                 {userLoggedIn && renderDailyCard(
                     'absolute left-1/2 top-[calc(40%+10.5rem)] w-full max-w-md -translate-x-1/2 px-4 xl:hidden'
                 )}
 
-                <aside aria-label="Daily, training and best scores" className={`left-0 border-r ${sidebarPanel}`}>
-                    <div className="flex flex-col gap-3">
-                        {renderDailySidebar()}
-                        {renderTrainingSidebar()}
-                    </div>
-                    {renderTopScores()}
-                </aside>
+                {hasSidebar && (
+                    <aside aria-label="Daily, training and best scores" className={`left-0 border-r ${sidebarPanel}`}>
+                        <div className="flex flex-col gap-3">
+                            {renderDailySidebar()}
+                            {renderTrainingSidebar()}
+                        </div>
+                        {renderTopScores()}
+                    </aside>
+                )}
 
-                {renderOtherModes(`absolute left-0 right-0 xl:top-auto xl:bottom-20 xl:left-64 2xl:left-72 ${
+                {renderOtherModes(`absolute left-0 right-0 xl:top-auto xl:bottom-20 ${sidebarOffset} ${
                     userLoggedIn ? 'top-[calc(40%+17.75rem)]' : 'top-[calc(40%+10.5rem)]'
                 }`)}
 
-            <footer className="absolute bottom-0 left-0 right-0 xl:left-64 2xl:left-72 flex justify-center gap-10 border-t border-gray-200 pt-5">
+            <footer className={`absolute bottom-0 left-0 right-0 ${sidebarOffset} flex justify-center gap-10 border-t border-gray-200 pt-5`}>
                     <Link
                         href="/help"
                         className="flex items-center gap-2 text-xs font-medium text-gray-400 transition hover:text-gray-700"
