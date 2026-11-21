@@ -53,7 +53,8 @@ test("daily streak carries over from yesterday and profile updates are idempoten
 
     // Yesterday's streak is still shown, but the flame is only red once today's daily is played
     await page.goto("/");
-    const streakBadge = page.getByLabel(/^Current streak:/);
+    // The home page renders a daily card for small screens and one in the wide-screen sidebar; only one is visible.
+    const streakBadge = page.getByLabel(/^Current streak:/).filter({visible: true});
     await expect(streakBadge).toHaveAttribute("aria-label", "Current streak: 2 days");
     await expect(streakBadge.locator("svg")).toHaveClass(/text-gray-400/);
 
