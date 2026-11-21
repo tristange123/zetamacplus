@@ -96,6 +96,24 @@ export function generateLcmProblem(orderNumber: number): Problem {
     return {'operation': 'lcm', 'firstNum': first, 'secondNum': sec, 'answer': first * sec / gcd(first, sec), 'statement': `lcm(${first}, ${sec}) = `, 'solveTime': null, orderNumber};
 }
 
+function formatLinearLeft(a: number, b: number): string {
+    const xTerm = a === 1 ? 'x' : `${a}x`;
+    if (b === 0) return xTerm;
+    return b > 0 ? `${xTerm} + ${b}` : `${xTerm} - ${-b}`;
+}
+
+// ax + b = c with x in [1, 25], a in [1, 12], b in [-50, 50], c in [0, 200]
+export function generateLinearProblem(orderNumber: number): Problem {
+    let x, a, b, c;
+    do {
+        x = randomInt(1, 25);
+        a = randomInt(1, 12);
+        b = randomInt(-50, 50);
+        c = a * x + b;
+    } while (c < 0 || c > 200);
+    return {'operation': 'linear', 'firstNum': a, 'secondNum': b, 'answer': x, 'statement': `${formatLinearLeft(a, b)} = ${c}`, 'solveTime': null, orderNumber};
+}
+
 export type ProblemSource = (orderNumber: number) => Problem;
 
 // Serializable description of where a game's problems come from,
@@ -105,6 +123,7 @@ export type ProblemConfig =
     | {kind: 'fixed', problems: Problem[]}
     | {kind: 'gcd'}
     | {kind: 'lcm'}
+    | {kind: 'linear'}
 
 
 export function createProblemSource(config: ProblemConfig): ProblemSource {
@@ -117,6 +136,8 @@ export function createProblemSource(config: ProblemConfig): ProblemSource {
             return generateGcdProblem;
         case 'lcm':
             return generateLcmProblem;
+        case 'linear':
+            return generateLinearProblem;
         
     }
 }

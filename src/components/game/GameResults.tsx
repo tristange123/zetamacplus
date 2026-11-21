@@ -24,6 +24,7 @@ import {
     Skull,
     SportShoe,
     Dumbbell,
+    Variable,
     type LucideIcon,
 } from 'lucide-react'
 
@@ -36,6 +37,7 @@ const GAME_MODE_ICONS: Record<GameModeName, LucideIcon> = {
     daily: Clock,
     gcd: Divide,
     lcm: Asterisk,
+    linear: Variable,
     training: Dumbbell
 };
 
@@ -162,7 +164,10 @@ export default function GameResults({
         return {
             key: problem.orderNumber ?? index,
             number: (problem.orderNumber ?? index) + 1,
-            statement: `${problem.statement}${problem.answer}`,
+            // Linear statements are a full equation, so the answer is shown as x = ...
+            statement: problem.operation === 'linear'
+                ? `${problem.statement}, x = ${problem.answer}`
+                : `${problem.statement}${problem.answer}`,
             solveTime: problem.solveTime,
         };
     });

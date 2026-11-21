@@ -72,6 +72,9 @@ export const EXTRA_GAME_MODES: Record<ExtraGameModeName, {timeFormat: number}> =
     'lcm': {
         timeFormat: 120,
     },
+    'linear': {
+        timeFormat: 120,
+    },
     'training': {
         timeFormat: 60
     }
