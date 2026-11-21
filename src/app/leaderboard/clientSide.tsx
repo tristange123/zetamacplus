@@ -257,71 +257,66 @@ export default function ClientSide({gameModes, leaderboards, problemsSolvedLeade
 
     return (
         <section className="flex min-h-[calc(100vh-9rem)] flex-col gap-4 md:flex-row md:gap-5">
-            <aside className="w-full shrink-0 rounded-2xl border border-gray-200 bg-gray-50/70 p-4 shadow-sm md:w-56">
-                <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">Game Modes</h2>
-                <nav className="space-y-2">
+            <aside className="w-full shrink-0 md:w-56">
+                <div className="border-b border-gray-200 pb-4 pt-2">
+                    <h2 className="text-base font-semibold text-gray-900 sm:text-lg">Game modes</h2>
+                </div>
+                <nav className="divide-y divide-gray-200 border-b border-gray-200">
                     {gameModes.map((gameMode) => {
                         const isSelected = gameMode === selectedGameMode;
+                        const ModeIcon = GAME_MODE_ICONS[gameMode];
+                        const isExpanded = gameMode !== 'daily' && expandedGameMode === gameMode;
+                        const rowClasses = `group flex w-full items-center gap-3 py-4 text-left text-base font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 ${
+                            isSelected ? 'text-gray-900' : 'text-gray-500 hover:text-gray-900'
+                        }`;
+                        const iconClasses = `h-5 w-5 shrink-0 transition ${
+                            isSelected ? 'text-gray-900' : 'text-gray-400 group-hover:text-gray-900'
+                        }`;
+
                         if (gameMode === 'daily'){
                             return (
-                                <button
-                                    key={gameMode}
-                                    type="button"
-                                    onClick={selectDaily}
-                                    className={`w-full rounded-lg px-3 py-2 text-left text-sm font-medium transition ${
-                                        isSelected
-                                            ? 'bg-gray-200 text-gray-900 shadow-sm'
-                                            : 'bg-white text-gray-700 hover:bg-gray-100'
-                                    }`}
-                                >
-                                    {formatGameMode(gameMode)}
-                                </button>
+                                <div key={gameMode}>
+                                    <button type="button" onClick={selectDaily} aria-pressed={isSelected} className={rowClasses}>
+                                        <ModeIcon className={iconClasses} aria-hidden="true" />
+                                        <span className="flex-1">{formatGameMode(gameMode)}</span>
+                                    </button>
+                                </div>
                             );
                         }
 
-                        const isExpanded = expandedGameMode === gameMode;
                         return (
                             <div key={gameMode}>
                                 <button
                                     type="button"
                                     onClick={() => selectMainGameMode(gameMode)}
                                     aria-expanded={isExpanded}
-                                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium transition ${
-                                        isSelected
-                                            ? 'bg-gray-200 text-gray-900 shadow-sm'
-                                            : 'bg-white text-gray-700 hover:bg-gray-100'
-                                    }`}
+                                    className={rowClasses}
                                 >
-                                    {formatGameMode(gameMode)}
+                                    <ModeIcon className={iconClasses} aria-hidden="true" />
+                                    <span className="flex-1">{formatGameMode(gameMode)}</span>
                                     <ChevronDown
-                                        className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                                        className={`h-4 w-4 shrink-0 text-gray-400 transition-transform group-hover:text-gray-900 ${isExpanded ? 'rotate-180' : ''}`}
                                         aria-hidden="true"
                                     />
                                 </button>
                                 {isExpanded && (
-                                    <div className="mt-1 space-y-1 pl-3">
-                                        <button
-                                            type="button"
-                                            onClick={() => selectMetric(gameMode, 'highScore')}
-                                            className={`w-full rounded-md px-3 py-1.5 text-left text-xs font-medium transition ${
-                                                isSelected && selectedMetric === 'highScore'
-                                                    ? 'bg-gray-200 text-gray-900'
-                                                    : 'text-gray-600 hover:bg-gray-100'
-                                            }`}
-                                        >
-                                            High Score
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => selectMetric(gameMode, 'problemsSolved')}
-                                            className={`w-full rounded-md px-3 py-1.5 text-left text-xs font-medium transition ${
-                                                isSelected && selectedMetric === 'problemsSolved'
-                                                    ? 'bg-gray-200 text-gray-900'
-                                                    : 'text-gray-600 hover:bg-gray-100'
-                                            }`}
-                                        >
-                                            Problems Solved
-                                        </button>
+                                    <div className="-mt-1 space-y-1 pb-4 pl-8">
+                                        {([['highScore', 'High score'], ['problemsSolved', 'Problems solved']] as const).map(([metric, label]) => {
+                                            const isActive = isSelected && selectedMetric === metric;
+                                            return (
+                                                <button
+                                                    key={metric}
+                                                    type="button"
+                                                    onClick={() => selectMetric(gameMode, metric)}
+                                                    aria-pressed={isActive}
+                                                    className={`block w-full py-1 text-left text-sm transition ${
+                                                        isActive ? 'font-semibold text-gray-900' : 'text-gray-400 hover:text-gray-700'
+                                                    }`}
+                                                >
+                                                    {label}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>

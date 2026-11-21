@@ -3,17 +3,20 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { type MainGameModeName } from '@/types/frontendTypes'
-import { ArrowRight, Calculator, CalendarDays, Check, Flame, Info, Mail, Rabbit, Shapes, Skull, SlidersHorizontal, SportShoe, Wrench, type LucideIcon } from 'lucide-react'
+import { ArrowRight, Calculator, CalendarDays, Check, Dumbbell, Flame, Info, Mail, Rabbit, Shapes, Skull, SlidersHorizontal, SportShoe, Wrench, type LucideIcon } from 'lucide-react'
 import Link from 'next/link';
+import { type ModeStandings } from '@/lib/profile/modeStandings'
 type startProps = {
-    userLoggedIn: boolean
+    userLoggedIn: boolean,
+    // Null when logged out, unverified, or the lookup failed
+    standings: ModeStandings | null,
 }
 
 type DailyStatus = 'loading' | 'available' | 'completed' | 'error';
 
 
 
-export default function StartClientSide({userLoggedIn}: startProps) {
+export default function StartClientSide({userLoggedIn, standings}: startProps) {
     const router = useRouter();
 
     const [gameModeInput, setGameModeInput] = useState<MainGameModeName>('standard');
@@ -170,10 +173,140 @@ export default function StartClientSide({userLoggedIn}: startProps) {
         );
     }
 
+    const sidebarPanel = 'fixed inset-y-0 z-40 hidden w-64 flex-col gap-6 overflow-y-auto border-gray-200/80 bg-white/55 px-5 pb-6 pt-24 backdrop-blur-md xl:flex 2xl:w-72';
+    const sidebarCard = 'rounded-xl border border-gray-200 bg-white/80 p-4 shadow-sm';
+
+    function renderDailySidebar() {
+        return (
+            <div className={sidebarCard}>
+                <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-700">
+                        <CalendarDays size={20} aria-hidden="true" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                        <span className="block text-base font-semibold text-gray-900">Daily</span>
+                        <span className="block text-xs text-gray-500">
+                            {userLoggedIn ? dailyDescription : 'One shared challenge'}
+                        </span>
+                    </span>
+                    {userLoggedIn && showDailyStreak && (
+                        <span
+                            className="flex shrink-0 items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-sm font-semibold tabular-nums text-gray-700"
+                            aria-label={`Current streak: ${currentStreak} days`}
+                        >
+                            <Flame
+                                size={20}
+                                className={dailyFinishedToday ? 'fill-red-500 text-red-500' : 'text-gray-400'}
+                                aria-hidden="true"
+                            />
+                            {currentStreak}
+                        </span>
+                    )}
+                </div>
+                {!userLoggedIn ? (
+                    <Link
+                        href="/login"
+                        className="mt-4 flex w-full items-center justify-center rounded-md border border-gray-300 py-2 text-sm font-semibold text-gray-600 transition hover:border-gray-900 hover:text-gray-900"
+                    >
+                        Log in to play
+                    </Link>
+                ) : dailyCompleted ? (
+                    <span className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-md bg-gray-100 py-2 text-sm font-semibold text-gray-500">
+                        <Check size={16} aria-hidden="true" />
+                        Done for today
+                    </span>
+                ) : (
+                    <button
+                        type="button"
+                        disabled={!dailyAvailable || isStarting}
+                        onClick={() => void startGame('daily')}
+                        className="group mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-gray-900 py-2 text-sm font-semibold text-white transition hover:bg-black disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
+                    >
+                        Play
+                        <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                    </button>
+                )}
+            </div>
+        );
+    }
+
+    function renderTrainingSidebar() {
+        return (
+            <Link href="/game/training" className={`group block transition hover:border-gray-400 ${sidebarCard}`}>
+                <span className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-700">
+                        <Dumbbell size={20} aria-hidden="true" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                        <span className="block text-base font-semibold text-gray-900">Training</span>
+                        <span className="block text-xs text-gray-500">Targets your weakest standard problems</span>
+                    </span>
+                    <ArrowRight size={16} className="shrink-0 text-gray-400 transition group-hover:translate-x-0.5 group-hover:text-gray-900" aria-hidden="true" />
+                </span>
+            </Link>
+        );
+    }
+
+    // Grayer than the white Daily/Training cards so the stats read as secondary.
+    const scoreCard = 'rounded-xl border border-gray-200/80 bg-gray-100/80 p-4';
+
+    function renderTopScores() {
+        return (
+            <section aria-label="Your best scores" className="flex flex-col gap-3">
+                <h2 className="px-1 text-lg font-semibold tracking-tight text-gray-900">Your best</h2>
+                {standings ? (
+                    <ul className="flex flex-col gap-2">
+                        {(Object.keys(gameModeDisplay) as MainGameModeName[]).map((mode) => {
+                            const { label, icon: ModeIcon } = gameModeDisplay[mode];
+                            const { score, rank, total } = standings[mode];
+                            const topPercent = rank != null && total > 0
+                                ? Math.max(1, Math.ceil((rank / total) * 100))
+                                : null;
+                            return (
+                                <li key={mode} className={scoreCard}>
+                                    <div className="flex items-center gap-3">
+                                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-200 text-gray-600">
+                                            <ModeIcon size={20} aria-hidden="true" />
+                                        </span>
+                                        <span className="min-w-0 flex-1">
+                                            <span className="block text-sm font-semibold text-gray-900">{label}</span>
+                                            <span
+                                                className="block text-xs tabular-nums text-gray-500"
+                                                title={rank != null ? `#${rank} of ${total}` : undefined}
+                                            >
+                                                {topPercent != null ? `Top ${topPercent}%` : 'Not played yet'}
+                                            </span>
+                                        </span>
+                                        <span className="text-xl font-semibold tabular-nums text-gray-900">{score ?? '—'}</span>
+                                    </div>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                ) : (
+                    <p className={`text-sm text-gray-500 ${scoreCard}`}>
+                        {userLoggedIn ? 'Verify your email to track your best scores.' : 'Log in to track your best scores and world ranking.'}
+                    </p>
+                )}
+            </section>
+        );
+    }
+
     function renderOtherModes(className: string) {
         return (
             <div className={className}>
-                <div className="mx-auto grid w-full max-w-md grid-cols-2 gap-3 px-4">
+                <div className="mx-auto grid w-full max-w-md grid-cols-3 gap-3 px-4 xl:grid-cols-2">
+                    {/* Training lives in the left sidebar on wide screens. */}
+                    <Link
+                        href="/game/training"
+                        className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-left transition hover:border-gray-300 hover:bg-gray-100 xl:hidden"
+                    >
+                        <Dumbbell size={16} className="shrink-0 text-gray-400" aria-hidden="true" />
+                        <span className="min-w-0">
+                            <span className="block text-xs font-semibold text-gray-500">Training</span>
+                            <span className="mt-0.5 block truncate text-[0.6875rem] leading-4 text-gray-400">Weak spots</span>
+                        </span>
+                    </Link>
                     <Link
                         href="/custom"
                         className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-left transition hover:border-gray-300 hover:bg-gray-100"
@@ -206,7 +339,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                 isStarting ? 'pointer-events-none opacity-0' : 'opacity-100'
             }`}
         >
-                <div className="absolute left-0 right-0 top-[13%]">
+                <div className="absolute left-0 right-0 top-[13%] xl:left-64 2xl:left-72">
                     <div className="mx-auto w-full max-w-3xl px-3 md:px-6">
                         <div className="grid grid-cols-4 border-b border-gray-200">
                             {(Object.keys(gameModeDisplay) as MainGameModeName[]).map((mode) => {
@@ -265,7 +398,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                 </div>
 
                 <div className="absolute left-1/2 top-[40%] w-screen -translate-x-1/2 -translate-y-1/2 bg-gray-200 py-6 md:py-8">
-                    <div className="mx-auto grid max-w-6xl grid-cols-2 items-center gap-3 px-4 md:gap-4 md:px-6">
+                    <div className="mx-auto grid max-w-6xl grid-cols-2 items-center gap-3 px-4 md:gap-4 md:px-6 xl:pl-[17.5rem] 2xl:pl-[19.5rem]">
                         <span className="flex justify-self-end whitespace-nowrap text-3xl font-semibold tracking-tight text-gray-300 sm:text-4xl md:text-5xl">
                             <span className="inline-block w-36 text-center sm:w-44 md:w-56">
                                 {selectedExample}
@@ -282,7 +415,7 @@ export default function StartClientSide({userLoggedIn}: startProps) {
                     </div>
                 </div>
 
-                <div className="absolute left-0 right-0 top-[calc(40%+5rem)]">
+                <div className="absolute left-0 right-0 top-[calc(40%+5rem)] xl:left-64 2xl:left-72">
                     <div className="flex justify-center">
                         <button
                             type="button"
@@ -297,16 +430,25 @@ export default function StartClientSide({userLoggedIn}: startProps) {
 
                 </div>
 
-                {/* Under Start on narrow screens; daily moves top-left and the other modes sit above the footer on wide ones. */}
+                {/* Centered elements use xl:left-64 / 2xl:left-72 (the sidebar width) so they center in the space beside the sidebar. */}
+                {/* Below xl: daily under Start. xl and up: one full-height sidebar fixed to the left edge, starting under the nav (z-50). */}
                 {userLoggedIn && renderDailyCard(
-                    'absolute left-1/2 top-[calc(40%+10.5rem)] w-full max-w-md -translate-x-1/2 px-4 lg:left-0 lg:-top-4 lg:w-80 lg:max-w-none lg:translate-x-0 lg:px-0'
+                    'absolute left-1/2 top-[calc(40%+10.5rem)] w-full max-w-md -translate-x-1/2 px-4 xl:hidden'
                 )}
 
-                {renderOtherModes(`absolute left-0 right-0 lg:top-auto lg:bottom-20 ${
+                <aside aria-label="Daily, training and best scores" className={`left-0 border-r ${sidebarPanel}`}>
+                    <div className="flex flex-col gap-3">
+                        {renderDailySidebar()}
+                        {renderTrainingSidebar()}
+                    </div>
+                    {renderTopScores()}
+                </aside>
+
+                {renderOtherModes(`absolute left-0 right-0 xl:top-auto xl:bottom-20 xl:left-64 2xl:left-72 ${
                     userLoggedIn ? 'top-[calc(40%+17.75rem)]' : 'top-[calc(40%+10.5rem)]'
                 }`)}
 
-            <footer className="absolute bottom-0 left-0 right-0 flex justify-center gap-10 border-t border-gray-200 pt-5">
+            <footer className="absolute bottom-0 left-0 right-0 xl:left-64 2xl:left-72 flex justify-center gap-10 border-t border-gray-200 pt-5">
                     <Link
                         href="/help"
                         className="flex items-center gap-2 text-xs font-medium text-gray-400 transition hover:text-gray-700"
