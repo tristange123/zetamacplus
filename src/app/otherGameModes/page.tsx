@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Asterisk, Divide, Music, Dumbbell, Variable, type LucideIcon } from "lucide-react";
+import { ArrowRight, Asterisk, Divide, Music, Dumbbell, Shuffle, Variable, type LucideIcon } from "lucide-react";
 import { getTimeFormat } from "@/lib/game/gameModeGlobals";
 import { PITCH_GAME_DURATION } from "@/lib/game/pitchGame";
 
@@ -12,6 +12,13 @@ type OtherGameMode = {
 };
 
 const OTHER_GAME_MODES: OtherGameMode[] = [
+    {
+        href: "/game/training",
+        label: "Training",
+        description: "Custom training that targets your weakest standard problems.",
+        seconds: getTimeFormat("training") ?? 60,
+        icon: Dumbbell,
+    },
     {
         href: "/game/gcd",
         label: "GCD",
@@ -41,11 +48,11 @@ const OTHER_GAME_MODES: OtherGameMode[] = [
         icon: Music,
     },
     {
-        href: "/game/training",
-        label: "Training",
-        description: "Custom training that targets your weakest standard problems.",
-        seconds: getTimeFormat("training") ?? 60,
-        icon: Dumbbell,
+        href: "/game/chaos",
+        label: "Chaos",
+        description: "Every problem type mixed together at random: arithmetic, GCD, LCM and linear equations.",
+        seconds: getTimeFormat("chaos") ?? 120,
+        icon: Shuffle,
     },
 ];
 

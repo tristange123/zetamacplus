@@ -28,5 +28,11 @@ html {
 }
 
 .pitch-key-shake {
-    animation: pitch-key-shake 350ms ease-in-out;
+    animation: pitch-key-shake 350ms ease-in-out 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pitch-key-shake {
+        animation: none;
+    }
 }

@@ -25,6 +25,7 @@ import {
     SportShoe,
     Dumbbell,
     Variable,
+    Shuffle,
     type LucideIcon,
 } from 'lucide-react'
 
@@ -38,6 +39,7 @@ const GAME_MODE_ICONS: Record<GameModeName, LucideIcon> = {
     gcd: Divide,
     lcm: Asterisk,
     linear: Variable,
+    chaos: Shuffle,
     training: Dumbbell
 };
 

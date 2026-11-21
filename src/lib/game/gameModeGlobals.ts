@@ -75,6 +75,9 @@ export const EXTRA_GAME_MODES: Record<ExtraGameModeName, {timeFormat: number}> =
     'linear': {
         timeFormat: 120,
     },
+    'chaos': {
+        timeFormat: 120,
+    },
     'training': {
         timeFormat: 60
     }

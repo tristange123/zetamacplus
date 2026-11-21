@@ -114,6 +114,21 @@ export function generateLinearProblem(orderNumber: number): Problem {
     return {'operation': 'linear', 'firstNum': a, 'secondNum': b, 'answer': x, 'statement': `${formatLinearLeft(a, b)} = ${c}`, 'solveTime': null, orderNumber};
 }
 
+// Every problem type, picked with equal odds: standard, rapid, sprint, hard, gcd, lcm, linear
+const CHAOS_SOURCES: ((orderNumber: number) => Problem)[] = [
+    (orderNumber) => generateProblem(BOUNDS['medium'], orderNumber),
+    (orderNumber) => generateProblem(BOUNDS['easy-medium'], orderNumber),
+    (orderNumber) => generateProblem(BOUNDS['easy'], orderNumber),
+    (orderNumber) => generateProblem(BOUNDS['hard'], orderNumber),
+    generateGcdProblem,
+    generateLcmProblem,
+    generateLinearProblem,
+];
+
+export function generateChaosProblem(orderNumber: number): Problem {
+    return CHAOS_SOURCES[randomInt(0, CHAOS_SOURCES.length - 1)](orderNumber);
+}
+
 export type ProblemSource = (orderNumber: number) => Problem;
 
 // Serializable description of where a game's problems come from,
@@ -124,6 +139,7 @@ export type ProblemConfig =
     | {kind: 'gcd'}
     | {kind: 'lcm'}
     | {kind: 'linear'}
+    | {kind: 'chaos'}
 
 
 export function createProblemSource(config: ProblemConfig): ProblemSource {
@@ -138,6 +154,8 @@ export function createProblemSource(config: ProblemConfig): ProblemSource {
             return generateLcmProblem;
         case 'linear':
             return generateLinearProblem;
+        case 'chaos':
+            return generateChaosProblem;
         
     }
 }
