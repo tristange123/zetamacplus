@@ -176,15 +176,15 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
     // The wide-screen sidebar is only for logged-in users; without it the page stays centered.
     const hasSidebar = userLoggedIn;
     // Sidebar width, so centered elements center in the space beside it.
-    const sidebarOffset = hasSidebar ? 'xl:left-64 2xl:left-72' : '';
-    const sidebarPanel = 'fixed inset-y-0 z-40 hidden w-64 flex-col gap-6 overflow-y-auto border-gray-200/80 bg-white/55 px-5 pb-6 pt-24 backdrop-blur-md xl:flex 2xl:w-72';
-    const sidebarCard = 'rounded-xl border border-gray-200 bg-white/80 p-4 shadow-sm';
+    const sidebarOffset = hasSidebar ? 'lg:left-56 xl:left-64 2xl:left-72' : '';
+    const sidebarPanel = 'fixed inset-y-0 z-40 hidden w-56 flex-col gap-5 overflow-y-auto border-gray-200/80 bg-white/55 px-3 pb-6 pt-24 backdrop-blur-md lg:flex xl:w-64 xl:gap-6 xl:px-5 2xl:w-72';
+    const sidebarCard = 'rounded-xl border border-gray-200 bg-white/80 p-3 shadow-sm xl:p-4';
 
     function renderDailySidebar() {
         return (
             <div className={sidebarCard}>
                 <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-700">
+                    <span className="flex h-9 w-9 xl:h-10 xl:w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-700">
                         <CalendarDays size={20} aria-hidden="true" />
                     </span>
                     <span className="min-w-0 flex-1">
@@ -238,7 +238,7 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
         return (
             <Link href="/game/training" className={`group block transition hover:border-gray-400 ${sidebarCard}`}>
                 <span className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-700">
+                    <span className="flex h-9 w-9 xl:h-10 xl:w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-700">
                         <Dumbbell size={20} aria-hidden="true" />
                     </span>
                     <span className="min-w-0 flex-1">
@@ -252,7 +252,7 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
     }
 
     // Grayer than the white Daily/Training cards so the stats read as secondary.
-    const scoreCard = 'rounded-xl border border-gray-200/80 bg-gray-100/80 p-4';
+    const scoreCard = 'rounded-xl border border-gray-200/80 bg-gray-100/80 p-3 xl:p-4';
 
     function renderTopScores() {
         return (
@@ -269,7 +269,7 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
                             return (
                                 <li key={mode} className={scoreCard}>
                                     <div className="flex items-center gap-3">
-                                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-200 text-gray-600">
+                                        <span className="flex h-9 w-9 xl:h-10 xl:w-10 shrink-0 items-center justify-center rounded-lg bg-gray-200 text-gray-600">
                                             <ModeIcon size={20} aria-hidden="true" />
                                         </span>
                                         <span className="min-w-0 flex-1">
@@ -299,18 +299,20 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
     function renderOtherModes(className: string) {
         return (
             <div className={className}>
-                <div className={`mx-auto grid w-full max-w-md grid-cols-3 gap-3 px-4 ${hasSidebar ? 'xl:grid-cols-2' : ''}`}>
-                    {/* Training lives in the left sidebar on wide screens. */}
-                    <Link
-                        href="/game/training"
-                        className={`flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-left transition hover:border-gray-300 hover:bg-gray-100 ${hasSidebar ? 'xl:hidden' : ''}`}
-                    >
-                        <Dumbbell size={16} className="shrink-0 text-gray-400" aria-hidden="true" />
-                        <span className="min-w-0">
-                            <span className="block text-xs font-semibold text-gray-500">Training</span>
-                            <span className="mt-0.5 block truncate text-[0.6875rem] leading-4 text-gray-400">Weak spots</span>
-                        </span>
-                    </Link>
+                <div className={`mx-auto grid w-full max-w-md gap-3 px-4 ${userLoggedIn ? 'grid-cols-3 lg:grid-cols-2' : 'grid-cols-2'}`}>
+                    {/* Logged-in only; on wide screens Training lives in the sidebar instead. */}
+                    {userLoggedIn && (
+                        <Link
+                            href="/game/training"
+                            className={`flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-left transition hover:border-gray-300 hover:bg-gray-100 lg:hidden`}
+                        >
+                            <Dumbbell size={16} className="shrink-0 text-gray-400" aria-hidden="true" />
+                            <span className="min-w-0">
+                                <span className="block text-xs font-semibold text-gray-500">Training</span>
+                                <span className="mt-0.5 block truncate text-[0.6875rem] leading-4 text-gray-400">Weak spots</span>
+                            </span>
+                        </Link>
+                    )}
                     <Link
                         href="/custom"
                         className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-left transition hover:border-gray-300 hover:bg-gray-100"
@@ -402,7 +404,7 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
                 </div>
 
                 <div className="absolute left-1/2 top-[40%] w-screen -translate-x-1/2 -translate-y-1/2 bg-gray-200 py-6 md:py-8">
-                    <div className={`mx-auto grid max-w-6xl grid-cols-2 items-center gap-3 px-4 md:gap-4 md:px-6 ${hasSidebar ? 'xl:pl-[17.5rem] 2xl:pl-[19.5rem]' : ''}`}>
+                    <div className={`mx-auto grid max-w-6xl grid-cols-2 items-center gap-3 px-4 md:gap-4 md:px-6 ${hasSidebar ? 'lg:pl-[15.5rem] xl:pl-[17.5rem] 2xl:pl-[19.5rem]' : ''}`}>
                         <span className="flex justify-self-end whitespace-nowrap text-3xl font-semibold tracking-tight text-gray-300 sm:text-4xl md:text-5xl">
                             <span className="inline-block w-36 text-center sm:w-44 md:w-56">
                                 {selectedExample}
@@ -434,9 +436,9 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
 
                 </div>
 
-                                {/* Below xl: daily under Start. xl and up: one full-height sidebar fixed to the left edge, starting under the nav (z-50). */}
+                                {/* Below lg: daily under Start. lg and up: one full-height sidebar fixed to the left edge, starting under the nav (z-50). */}
                 {userLoggedIn && renderDailyCard(
-                    'absolute left-1/2 top-[calc(40%+10.5rem)] w-full max-w-md -translate-x-1/2 px-4 xl:hidden'
+                    'absolute left-1/2 top-[calc(40%+10.5rem)] w-full max-w-md -translate-x-1/2 px-4 lg:hidden'
                 )}
 
                 {hasSidebar && (
@@ -449,7 +451,7 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
                     </aside>
                 )}
 
-                {renderOtherModes(`absolute left-0 right-0 xl:top-auto xl:bottom-20 ${sidebarOffset} ${
+                {renderOtherModes(`absolute left-0 right-0 lg:top-auto lg:bottom-20 ${sidebarOffset} ${
                     userLoggedIn ? 'top-[calc(40%+17.75rem)]' : 'top-[calc(40%+10.5rem)]'
                 }`)}
 
