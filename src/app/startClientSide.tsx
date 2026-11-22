@@ -3,20 +3,23 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { type MainGameModeName } from '@/types/frontendTypes'
-import { ArrowRight, Calculator, CalendarDays, Check, Dumbbell, Flame, Info, Mail, Rabbit, Shapes, Skull, SlidersHorizontal, SportShoe, Wrench, type LucideIcon } from 'lucide-react'
+import { ArrowRight, Calculator, CalendarDays, Check, Dumbbell, Flame, Info, Lock, Mail, Rabbit, Shapes, Skull, SlidersHorizontal, SportShoe, Wrench, type LucideIcon } from 'lucide-react'
 import Link from 'next/link';
 import { type ModeStandings } from '@/lib/profile/modeStandings'
+import { TRAINING_UNLOCK_STANDARD_GAMES } from '@/lib/game/gameModeGlobals'
 type startProps = {
     userLoggedIn: boolean,
     // Null when logged out, unverified, or the lookup failed
     standings: ModeStandings | null,
+    // Completed standard games; training unlocks at TRAINING_UNLOCK_STANDARD_GAMES
+    standardGamesPlayed: number,
 }
 
 type DailyStatus = 'loading' | 'available' | 'completed' | 'error';
 
 
 
-export default function StartClientSide({userLoggedIn, standings}: startProps) {
+export default function StartClientSide({userLoggedIn, standings, standardGamesPlayed}: startProps) {
     const router = useRouter();
 
     const [gameModeInput, setGameModeInput] = useState<MainGameModeName>('standard');
@@ -239,7 +242,40 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
         );
     }
 
+    const trainingUnlocked = standardGamesPlayed >= TRAINING_UNLOCK_STANDARD_GAMES;
+    const trainingProgress = Math.min(standardGamesPlayed, TRAINING_UNLOCK_STANDARD_GAMES);
+
     function renderTrainingSidebar() {
+        if (!trainingUnlocked) {
+            return (
+                <div className={sidebarCard} aria-label={`Training locked: ${trainingProgress} of ${TRAINING_UNLOCK_STANDARD_GAMES} standard games played`}>
+                    <div className="flex items-center gap-3">
+                        <span className="flex h-9 w-9 xl:h-10 xl:w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-400">
+                            <Dumbbell size={20} aria-hidden="true" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                            <span className="block text-base font-semibold text-gray-500">Training</span>
+                            <span className="block text-xs text-gray-400">
+                                Play {TRAINING_UNLOCK_STANDARD_GAMES} standard games to unlock
+                            </span>
+                        </span>
+                        <Lock size={16} className="shrink-0 text-gray-400" aria-hidden="true" />
+                    </div>
+                    <div className="mt-3 flex items-center gap-2">
+                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100">
+                            <div
+                                className="h-full rounded-full bg-gray-800 transition-[width]"
+                                style={{ width: `${(trainingProgress / TRAINING_UNLOCK_STANDARD_GAMES) * 100}%` }}
+                            />
+                        </div>
+                        <span className="text-xs font-medium tabular-nums text-gray-500">
+                            {trainingProgress}/{TRAINING_UNLOCK_STANDARD_GAMES}
+                        </span>
+                    </div>
+                </div>
+            );
+        }
+
         return (
             <Link href="/game/training" className={`group block transition hover:border-gray-400 ${sidebarCard}`}>
                 <span className="flex items-center gap-3">
@@ -259,13 +295,19 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
     // Grayer than the white Daily/Training cards so the stats read as secondary.
     const scoreCard = 'rounded-xl border border-gray-200/80 bg-gray-100/80 p-3 xl:p-4';
 
+    const playedModes = standings
+        ? (Object.keys(gameModeDisplay) as MainGameModeName[]).filter((mode) => standings[mode].score != null)
+        : [];
+
     function renderTopScores() {
+        // Only modes you've played get a card; with none played the section is hidden.
+        if (standings && playedModes.length === 0) return null;
         return (
             <section aria-label="Your best scores" className="flex flex-col gap-3">
                 <h2 className="px-1 text-lg font-semibold tracking-tight text-gray-900">Your best</h2>
                 {standings ? (
                     <ul className="flex flex-col gap-2">
-                        {(Object.keys(gameModeDisplay) as MainGameModeName[]).map((mode) => {
+                        {playedModes.map((mode) => {
                             const { label, icon: ModeIcon } = gameModeDisplay[mode];
                             const { score, rank, total } = standings[mode];
                             const topPercent = rank != null && total > 0
@@ -283,7 +325,7 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
                                                 className="block text-xs tabular-nums text-gray-500"
                                                 title={rank != null ? `#${rank} of ${total}` : undefined}
                                             >
-                                                {topPercent != null ? `Top ${topPercent}%` : 'Not played yet'}
+                                                {topPercent != null ? `Top ${topPercent}%` : '—'}
                                             </span>
                                         </span>
                                         <span className="text-xl font-semibold tabular-nums text-gray-900">{score ?? '—'}</span>
@@ -306,10 +348,10 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
             <div className={className}>
                 <div className={`mx-auto grid w-full max-w-md gap-3 px-4 ${userLoggedIn ? 'grid-cols-3 lg:grid-cols-2' : 'grid-cols-2'}`}>
                     {/* Logged-in only; on wide screens Training lives in the sidebar instead. */}
-                    {userLoggedIn && (
+                    {userLoggedIn && (trainingUnlocked ? (
                         <Link
                             href="/game/training"
-                            className={`flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-left transition hover:border-gray-300 hover:bg-gray-100 lg:hidden`}
+                            className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-left transition hover:border-gray-300 hover:bg-gray-100 lg:hidden"
                         >
                             <Dumbbell size={16} className="shrink-0 text-gray-400" aria-hidden="true" />
                             <span className="min-w-0">
@@ -317,7 +359,26 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
                                 <span className="mt-0.5 block truncate text-[0.6875rem] leading-4 text-gray-400">Weak spots</span>
                             </span>
                         </Link>
-                    )}
+                    ) : (
+                        <div
+                            className="flex items-center gap-3 rounded-lg border border-dashed border-gray-200 px-4 py-3 text-left lg:hidden"
+                            aria-label={`Training locked: ${trainingProgress} of ${TRAINING_UNLOCK_STANDARD_GAMES} standard games played`}
+                        >
+                            <Lock size={16} className="shrink-0 text-gray-300" aria-hidden="true" />
+                            <span className="min-w-0 flex-1">
+                                <span className="block text-xs font-semibold text-gray-400">Training</span>
+                                <span className="mt-1 block h-1 overflow-hidden rounded-full bg-gray-200">
+                                    <span
+                                        className="block h-full rounded-full bg-gray-500"
+                                        style={{ width: `${(trainingProgress / TRAINING_UNLOCK_STANDARD_GAMES) * 100}%` }}
+                                    />
+                                </span>
+                                <span className="mt-0.5 block text-[0.6875rem] leading-4 tabular-nums text-gray-400">
+                                    {trainingProgress}/{TRAINING_UNLOCK_STANDARD_GAMES} standard
+                                </span>
+                            </span>
+                        </div>
+                    ))}
                     <Link
                         href="/custom"
                         className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-left transition hover:border-gray-300 hover:bg-gray-100"

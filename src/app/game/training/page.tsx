@@ -2,7 +2,8 @@ import Link from 'next/link';
 import requireSession from '@/lib/auth/requireSession';
 import fetchTrainingProblems from '@/lib/training/fetchTrainingProblems';
 import ExtraGame from '@/components/game/ExtraGame';
-import {EXTRA_GAME_MODES} from '@/lib/game/gameModeGlobals';
+import {EXTRA_GAME_MODES, TRAINING_UNLOCK_STANDARD_GAMES} from '@/lib/game/gameModeGlobals';
+import prisma from '@/lib/db/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,6 +27,27 @@ export default async function TrainingPage() {
                 <div className="rounded-2xl border border-gray-200 bg-gray-50/70 p-8 text-center shadow-sm">
                     <h1 className="text-2xl font-semibold tracking-tight text-gray-800">Training</h1>
                     <p className="mt-2 text-sm text-gray-600">Log in and verify your email to play the training mode.</p>
+                    <div className="mt-5">
+                        <BackButton />
+                    </div>
+                </div>
+            </section>
+        );
+    }
+
+    const profile = await prisma.profile.findUnique({
+        where: {userId: session.user.id},
+        select: {standardTotalTests: true},
+    });
+    const standardGamesPlayed = profile?.standardTotalTests ?? 0;
+    if (standardGamesPlayed < TRAINING_UNLOCK_STANDARD_GAMES) {
+        return (
+            <section className="flex min-h-[calc(100vh-9rem)] items-center justify-center">
+                <div className="rounded-2xl border border-gray-200 bg-gray-50/70 p-8 text-center shadow-sm">
+                    <h1 className="text-2xl font-semibold tracking-tight text-gray-800">Training is locked</h1>
+                    <p className="mt-2 text-sm text-gray-600">
+                        Play {TRAINING_UNLOCK_STANDARD_GAMES} standard games to unlock training ({standardGamesPlayed}/{TRAINING_UNLOCK_STANDARD_GAMES}).
+                    </p>
                     <div className="mt-5">
                         <BackButton />
                     </div>

@@ -102,3 +102,6 @@ export function getTimeFormat(mode: string): number | null {
     if (isExtraGameMode(mode)) return EXTRA_GAME_MODES[mode].timeFormat;
     return null;
 }
+
+// Training needs enough standard history to model weak spots.
+export const TRAINING_UNLOCK_STANDARD_GAMES = 10;
