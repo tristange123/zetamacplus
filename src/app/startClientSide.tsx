@@ -183,7 +183,12 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
     function renderDailySidebar() {
         return (
             <div className={sidebarCard}>
-                <div className="flex items-center gap-3">
+                {/* The card body opens the daily leaderboard; the Play button below starts the daily. */}
+                <Link
+                    href="/leaderboard?mode=daily"
+                    title="View daily leaderboard"
+                    className="group -m-1 flex items-center gap-3 rounded-lg p-1 transition hover:bg-gray-50"
+                >
                     <span className="flex h-9 w-9 xl:h-10 xl:w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-700">
                         <CalendarDays size={20} aria-hidden="true" />
                     </span>
@@ -206,7 +211,7 @@ export default function StartClientSide({userLoggedIn, standings}: startProps) {
                             {currentStreak}
                         </span>
                     )}
-                </div>
+                </Link>
                 {!userLoggedIn ? (
                     <Link
                         href="/login"

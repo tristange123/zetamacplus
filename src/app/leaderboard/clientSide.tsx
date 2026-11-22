@@ -69,7 +69,9 @@ const GAME_MODE_ICONS: Record<LeaderboardGameModeName, LucideIcon> = {
 type ClientSideProps = {
     gameModes: LeaderboardGameModeName[],
     leaderboards: LeaderboardData,
-    problemsSolvedLeaderboards: ProblemsSolvedLeaderboardData
+    problemsSolvedLeaderboards: ProblemsSolvedLeaderboardData,
+    // From ?mode=, e.g. the home page's daily card links to ?mode=daily
+    initialGameMode?: string,
 }
 
 function formatGameMode(gameMode: LeaderboardGameModeName) {
@@ -87,11 +89,14 @@ function formatSolveTime(seconds: number | null): string {
     return `${seconds.toFixed(1)}s`;
 }
 
-export default function ClientSide({gameModes, leaderboards, problemsSolvedLeaderboards}: ClientSideProps) {
-    const [selectedGameMode, setSelectedGameMode] = useState<LeaderboardGameModeName>(gameModes[0] ?? 'standard');
+export default function ClientSide({gameModes, leaderboards, problemsSolvedLeaderboards, initialGameMode}: ClientSideProps) {
+    const startingGameMode = gameModes.find((gameMode) => gameMode === initialGameMode) ?? gameModes[0] ?? 'standard';
+    const [selectedGameMode, setSelectedGameMode] = useState<LeaderboardGameModeName>(startingGameMode);
     const [selectedMetric, setSelectedMetric] = useState<LeaderboardMetric>('highScore');
     const [expandedGameMode, setExpandedGameMode] = useState<MainGameModeName | null>(
-        gameModes.find((gameMode): gameMode is MainGameModeName => gameMode !== 'daily') ?? null
+        startingGameMode !== 'daily'
+            ? startingGameMode
+            : gameModes.find((gameMode): gameMode is MainGameModeName => gameMode !== 'daily') ?? null
     );
     const [selectedRow, setSelectedRow] = useState<LeaderboardRow | null>(null);
     const [problems, setProblems] = useState<ProblemDb[]>([]);

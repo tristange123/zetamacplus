@@ -173,8 +173,12 @@ async function getLeaderboardData() {
     }
 }
 
-export default async function Leaderboard (){
-    const data = await getLeaderboardData();
+export default async function Leaderboard ({
+    searchParams,
+}: {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>,
+}){
+    const [data, query] = await Promise.all([getLeaderboardData(), searchParams]);
     if (!data){
         return <div>Error Loading Leaderboards</div>
     }
@@ -184,6 +188,7 @@ export default async function Leaderboard (){
             gameModes={data.gameModes}
             leaderboards={data.leaderboards}
             problemsSolvedLeaderboards={data.problemsSolvedLeaderboards}
+            initialGameMode={typeof query.mode === 'string' ? query.mode : undefined}
         />
     )
 }

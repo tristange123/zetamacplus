@@ -2,6 +2,7 @@
 
 import {useMemo, useState, useSyncExternalStore} from 'react';
 import {type TestDb} from '@/types/dbTypes.js'
+import {getTimeFormat} from '@/lib/game/gameModeGlobals'
 
 const WEEKS = 53;
 const CELL = 11;
@@ -18,6 +19,16 @@ function levelFor(count: number, max: number): number {
     return Math.min(4, Math.ceil((count / max) * 4));
 }
 
+// Seconds as "45s", "12m 30s" or "1h 5m".
+function formatDuration(seconds: number): string {
+    if (seconds < 60) return `${seconds}s`;
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    if (hours > 0) return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+    return secs > 0 ? `${minutes}m ${secs}s` : `${minutes}m`;
+}
+
 function formatDate(date: Date): string {
     return date.toLocaleDateString(undefined, {weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'});
 }
@@ -31,7 +42,8 @@ function useIsClient() {
 type Day = {
     key: string,
     date: Date,
-    count: number,
+    // Seconds played that day, in total and per game mode
+    seconds: number,
     modes: [string, number][],
     inFuture: boolean,
 };
@@ -39,9 +51,13 @@ type Day = {
 function buildWeeks(tests: TestDb[]) {
     const byDay = new Map<string, Map<string, number>>();
     for (const test of tests) {
+        // Runs don't store how long they lasted, so a finished run counts as its mode's full length.
+        // Unfinished runs (an abandoned daily) have no known length and are skipped.
+        const runSeconds = getTimeFormat(test.gameMode);
+        if (!test.completed || runSeconds == null) continue;
         const key = dayKey(new Date(test.time));
         const modes = byDay.get(key) ?? new Map<string, number>();
-        modes.set(test.gameMode, (modes.get(test.gameMode) ?? 0) + 1);
+        modes.set(test.gameMode, (modes.get(test.gameMode) ?? 0) + runSeconds);
         byDay.set(key, modes);
     }
 
@@ -65,10 +81,10 @@ function buildWeeks(tests: TestDb[]) {
             const modes = modeCounts
                 ? [...modeCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
                 : [];
-            const count = modes.reduce((sum, [, n]) => sum + n, 0);
-            total += count;
-            max = Math.max(max, count);
-            week.push({key, date, count, modes, inFuture});
+            const seconds = modes.reduce((sum, [, n]) => sum + n, 0);
+            total += seconds;
+            max = Math.max(max, seconds);
+            week.push({key, date, seconds, modes, inFuture});
         }
         weeks.push(week);
     }
@@ -109,7 +125,7 @@ export default function ActivityCalendar({tests}: ActivityCalendarProps) {
                 <div>
                     <h2 className="text-lg font-semibold tracking-tight text-gray-900">Run Calendar</h2>
                     <p className="mt-0.5 text-xs text-gray-500">
-                        {data ? `${data.total} ${data.total === 1 ? 'run' : 'runs'} in the last year` : ' '}
+                        {data ? `${formatDuration(data.total)} played in the last year` : ' '}
                     </p>
                 </div>
             </div>
@@ -143,10 +159,10 @@ export default function ActivityCalendar({tests}: ActivityCalendarProps) {
                                                     <div
                                                         key={day.key}
                                                         role="img"
-                                                        aria-label={`${day.count} ${day.count === 1 ? 'run' : 'runs'} on ${formatDate(day.date)}`}
+                                                        aria-label={`${formatDuration(day.seconds)} played on ${formatDate(day.date)}`}
                                                         onMouseEnter={(e) => showDay(day, e.currentTarget)}
                                                         onClick={(e) => showDay(day, e.currentTarget)}
-                                                        className={`rounded-sm ${LEVEL_CLASSES[levelFor(day.count, data.max)]} ${
+                                                        className={`rounded-sm ${LEVEL_CLASSES[levelFor(day.seconds, data.max)]} ${
                                                             isHovered ? 'ring-1 ring-gray-900 ring-offset-1' : ''
                                                         }`}
                                                         style={{width: CELL, height: CELL}}
@@ -177,7 +193,7 @@ export default function ActivityCalendar({tests}: ActivityCalendarProps) {
                     role="tooltip"
                 >
                     <p className="font-semibold">
-                        {hovered.day.count} {hovered.day.count === 1 ? 'run' : 'runs'}
+                        {formatDuration(hovered.day.seconds)} played
                     </p>
                     <p className="text-gray-300">{formatDate(hovered.day.date)}</p>
                     {hovered.day.modes.length > 0 && (
@@ -185,7 +201,7 @@ export default function ActivityCalendar({tests}: ActivityCalendarProps) {
                             {hovered.day.modes.map(([mode, n]) => (
                                 <li key={mode} className="flex justify-between gap-4">
                                     <span className="capitalize text-gray-300">{mode}</span>
-                                    <span className="tabular-nums">{n}</span>
+                                    <span className="tabular-nums">{formatDuration(n)}</span>
                                 </li>
                             ))}
                         </ul>
